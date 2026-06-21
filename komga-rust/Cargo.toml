@@ -37,7 +37,7 @@ regex = "1.12.3"
 rxing = "0.9.0"
 toml = "1.1.2"
 tower = { version = "0.5.2", features = ["util"] }
-tower-http = { version = "0.6.10", features = ["trace"] }
+tower-http = { version = "0.7.0", features = ["trace"] }
 tower-sessions = "0.15.0"
 oauth2 = "5.0.0"
 openidconnect = "4.0.1"
