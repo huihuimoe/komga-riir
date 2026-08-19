@@ -23,7 +23,7 @@ use komga_domain::discovery::{DiscoveryError, PageEnvelope};
 use serde_json::{Value, json};
 
 fn empty_books_page_response(page: usize, size: usize, unpaged: bool, sorted: bool) -> Response {
-    Json(books_page_payload(
+    match books_page_payload(
         PageEnvelope {
             content: vec![],
             page,
@@ -34,8 +34,10 @@ fn empty_books_page_response(page: usize, size: usize, unpaged: bool, sorted: bo
         false,
         !unpaged,
         sorted,
-    ))
-    .into_response()
+    ) {
+        Ok(payload) => Json(payload).into_response(),
+        Err(error) => internal_error_response(error),
+    }
 }
 
 pub(crate) async fn books_list(
@@ -75,13 +77,15 @@ pub(crate) async fn books_list(
         .list_books(&context, resolved.request)
         .await
     {
-        Ok(page) => Json(books_page_payload(
+        Ok(page) => match books_page_payload(
             page,
             context.is_admin,
             resolved.response.paged,
             resolved.response.sorted,
-        ))
-        .into_response(),
+        ) {
+            Ok(payload) => Json(payload).into_response(),
+            Err(error) => internal_error_response(error),
+        },
         Err(DiscoveryError::InvalidSemantics(e)) => {
             (StatusCode::BAD_REQUEST, Json(json!({ "error": e }))).into_response()
         }
@@ -149,13 +153,15 @@ pub(crate) async fn books_deprecated_get(
         .list_books(&context, resolved.request)
         .await
     {
-        Ok(page) => Json(books_page_payload(
+        Ok(page) => match books_page_payload(
             page,
             context.is_admin,
             resolved.response.paged,
             resolved.response.sorted,
-        ))
-        .into_response(),
+        ) {
+            Ok(payload) => Json(payload).into_response(),
+            Err(error) => internal_error_response(error),
+        },
         Err(DiscoveryError::InvalidSemantics(e)) => {
             (StatusCode::BAD_REQUEST, Json(json!({ "error": e }))).into_response()
         }
@@ -218,13 +224,15 @@ pub(crate) async fn series_books_deprecated(
         .list_books(&context, resolved.request)
         .await
     {
-        Ok(page) => Json(books_page_payload(
+        Ok(page) => match books_page_payload(
             page,
             context.is_admin,
             resolved.response.paged,
             resolved.response.sorted,
-        ))
-        .into_response(),
+        ) {
+            Ok(payload) => Json(payload).into_response(),
+            Err(error) => internal_error_response(error),
+        },
         Err(DiscoveryError::InvalidSemantics(e)) => {
             (StatusCode::BAD_REQUEST, Json(json!({ "error": e }))).into_response()
         }

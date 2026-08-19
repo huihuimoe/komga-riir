@@ -148,13 +148,15 @@ pub(crate) async fn books_latest(
             } else {
                 page
             };
-            Json(books_page_payload(
+            match books_page_payload(
                 page,
                 context.is_admin,
                 resolved.response.paged,
                 resolved.response.sorted,
-            ))
-            .into_response()
+            ) {
+                Ok(payload) => Json(payload).into_response(),
+                Err(error) => internal_error_response(error),
+            }
         }
         Err(error) => internal_error_response(format!("{error:?}")),
     }

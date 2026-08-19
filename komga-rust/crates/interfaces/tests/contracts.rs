@@ -77,3 +77,15 @@ fn unpaged_dto_has_explicit_unpaged_semantics() {
     assert_eq!(serialized["pageable"]["offset"], json!(0));
     assert_eq!(serialized["totalPages"], json!(1));
 }
+
+#[test]
+fn page_dto_can_preserve_unpaged_totals_from_a_read_model_page() {
+    let payload = PageDto::from_parts(Vec::<serde_json::Value>::new(), 2, 20, 5, 1, false, true);
+    let serialized = serde_json::to_value(payload).expect("page should serialize");
+
+    assert_eq!(serialized["pageable"]["pageSize"], json!(20));
+    assert_eq!(serialized["pageable"]["offset"], json!(0));
+    assert_eq!(serialized["pageable"]["paged"], json!(false));
+    assert_eq!(serialized["totalElements"], json!(5));
+    assert_eq!(serialized["totalPages"], json!(1));
+}

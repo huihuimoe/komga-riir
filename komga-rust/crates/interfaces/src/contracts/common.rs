@@ -133,6 +133,26 @@ impl<T> PageDto<T> {
         total_pages: usize,
         sorted: bool,
     ) -> Self {
+        Self::from_parts(
+            content,
+            page,
+            size,
+            total_elements,
+            total_pages,
+            true,
+            sorted,
+        )
+    }
+
+    pub fn from_parts(
+        content: Vec<T>,
+        page: usize,
+        size: usize,
+        total_elements: usize,
+        total_pages: usize,
+        paged: bool,
+        sorted: bool,
+    ) -> Self {
         let number_of_elements = content.len();
         let sort = SortDto::new(sorted);
 
@@ -142,9 +162,9 @@ impl<T> PageDto<T> {
                 page_number: page,
                 page_size: size,
                 sort,
-                offset: page.saturating_mul(size),
-                paged: true,
-                unpaged: false,
+                offset: if paged { page.saturating_mul(size) } else { 0 },
+                paged,
+                unpaged: !paged,
             },
             last: total_pages == 0 || page + 1 >= total_pages,
             total_elements,
@@ -162,29 +182,7 @@ impl<T> PageDto<T> {
         let total_elements = content.len();
         let size = total_elements.max(1);
         let total_pages = usize::from(total_elements != 0);
-        let number_of_elements = content.len();
-        let sort = SortDto::new(sorted);
-
-        Self {
-            content,
-            pageable: PageableDto {
-                page_number: 0,
-                page_size: size,
-                sort,
-                offset: 0,
-                paged: false,
-                unpaged: true,
-            },
-            last: true,
-            total_elements,
-            total_pages,
-            first: true,
-            size,
-            number: 0,
-            sort,
-            number_of_elements,
-            empty: number_of_elements == 0,
-        }
+        Self::from_parts(content, 0, size, total_elements, total_pages, false, sorted)
     }
 }
 

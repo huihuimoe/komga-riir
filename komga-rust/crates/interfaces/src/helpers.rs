@@ -1,12 +1,12 @@
+use crate::contracts::common::PageDto;
+use crate::contracts::discovery::BookDto;
 use crate::discovery_auth::context::{DetailAccessDenial, DiscoveryQueryContext};
 use axum::Json;
 use axum::http::{StatusCode, header};
 use axum::response::{IntoResponse, Response};
 use komga_application::discovery::BookReadModel;
 use komga_domain::common_ids::{LibraryId, UserId};
-use komga_domain::discovery::{
-    DiscoveryQueryContext as DomainDiscoveryQueryContext, MediaProfile, PageEnvelope,
-};
+use komga_domain::discovery::{DiscoveryQueryContext as DomainDiscoveryQueryContext, PageEnvelope};
 use reqwest::Url;
 use serde_json::{Value, json};
 use time::OffsetDateTime;
@@ -17,114 +17,22 @@ pub(crate) fn books_page_payload(
     is_admin: bool,
     paged: bool,
     sorted: bool,
-) -> Value {
+) -> anyhow::Result<PageDto<BookDto>> {
     let content = page
         .content
         .iter()
-        .map(|book| book_payload(book, is_admin))
-        .collect::<Vec<_>>();
-    let number_of_elements = content.len();
-    let first = page.page == 0;
-    let last = page.total_pages == 0 || page.page + 1 >= page.total_pages;
-    let offset = if paged {
-        page.page.saturating_mul(page.size)
-    } else {
-        0
-    };
+        .map(|book| BookDto::from_read_model(book, is_admin))
+        .collect::<anyhow::Result<Vec<_>>>()?;
 
-    json!({
-        "content": content,
-        "pageable": {
-            "pageNumber": page.page,
-            "pageSize": page.size,
-            "sort": {
-                "empty": !sorted,
-                "sorted": sorted,
-                "unsorted": !sorted
-            },
-            "offset": offset,
-            "paged": paged,
-            "unpaged": !paged
-        },
-        "last": last,
-        "totalElements": page.total_elements,
-        "totalPages": page.total_pages,
-        "first": first,
-        "size": page.size,
-        "number": page.page,
-        "sort": {
-            "empty": !sorted,
-            "sorted": sorted,
-            "unsorted": !sorted
-        },
-        "numberOfElements": number_of_elements,
-        "empty": number_of_elements == 0
-    })
-}
-
-fn book_payload(book: &BookReadModel, is_admin: bool) -> Value {
-    let url = restricted_book_url(&book.url, is_admin);
-    let media_profile = MediaProfile::from_media_type(&book.media_type)
-        .map(MediaProfile::api_name)
-        .unwrap_or_default();
-
-    json!({
-        "id": book.id,
-        "seriesId": book.series_id,
-        "seriesTitle": book.series_title,
-        "libraryId": book.library_id,
-        "name": book.name,
-        "url": url,
-        "number": book.number,
-        "created": normalized_date_time(&book.created),
-        "lastModified": normalized_date_time(&book.last_modified),
-        "fileLastModified": normalized_file_last_modified(&book.file_last_modified),
-        "sizeBytes": book.size_bytes,
-        "size": format_size_bytes(book.size_bytes),
-        "media": {
-            "status": book.media_status.persisted_name(),
-            "mediaType": book.media_type,
-            "pagesCount": book.media_pages_count,
-            "comment": book.media_comment,
-            "epubDivinaCompatible": book.media_epub_divina_compatible,
-            "epubIsKepub": book.media_epub_is_kepub,
-            "mediaProfile": media_profile
-        },
-        "metadata": {
-            "title": book.metadata_title,
-            "titleLock": book.metadata_title_lock,
-            "summary": book.metadata_summary,
-            "summaryLock": book.metadata_summary_lock,
-            "number": book.metadata_number,
-            "numberLock": book.metadata_number_lock,
-            "numberSort": book.metadata_number_sort,
-            "numberSortLock": book.metadata_number_sort_lock,
-            "releaseDate": book.metadata_release_date,
-            "releaseDateLock": book.metadata_release_date_lock,
-            "authors": book.metadata_authors.iter().map(|author| json!({ "name": author.name, "role": author.role })).collect::<Vec<_>>(),
-            "authorsLock": book.metadata_authors_lock,
-            "tags": book.metadata_tags,
-            "tagsLock": book.metadata_tags_lock,
-            "isbn": book.metadata_isbn,
-            "isbnLock": book.metadata_isbn_lock,
-            "links": book.metadata_links.iter().map(|link| json!({ "label": link.label, "url": link.url })).collect::<Vec<_>>(),
-            "linksLock": book.metadata_links_lock,
-            "created": normalized_date_time(&book.metadata_created),
-            "lastModified": normalized_date_time(&book.metadata_last_modified)
-        },
-        "readProgress": book.read_progress.as_ref().map_or(Value::Null, |progress| json!({
-            "page": progress.page,
-            "completed": progress.completed,
-            "readDate": normalized_optional_read_progress_date(progress.read_date.as_deref(), &progress.last_modified, &progress.created),
-            "created": normalized_date_time(&progress.created),
-            "lastModified": normalized_date_time(&progress.last_modified),
-            "deviceId": progress.device_id,
-            "deviceName": progress.device_name,
-        })),
-        "deleted": book.deleted,
-        "fileHash": book.file_hash,
-        "oneshot": book.oneshot
-    })
+    Ok(PageDto::from_parts(
+        content,
+        page.page,
+        page.size,
+        page.total_elements,
+        page.total_pages,
+        paged,
+        sorted,
+    ))
 }
 
 pub(crate) fn normalized_file_last_modified(value: &str) -> String {
@@ -176,27 +84,6 @@ pub(crate) fn normalized_optional_read_progress_date(
 
 pub(crate) fn api_file_path(value: &str) -> String {
     decode_file_url_path(value).unwrap_or_else(|| value.to_string())
-}
-
-fn format_size_bytes(size_bytes: u64) -> String {
-    const UNITS: [&str; 5] = ["B", "KiB", "MiB", "GiB", "TiB"];
-
-    if size_bytes < 1024 {
-        return format!("{size_bytes} B");
-    }
-
-    let mut size = size_bytes as f64;
-    let mut unit_index = 0usize;
-    while size >= 1024.0 && unit_index < UNITS.len() - 1 {
-        size /= 1024.0;
-        unit_index += 1;
-    }
-
-    if (size - size.round()).abs() < 0.05 {
-        format!("{} {}", size.round() as u64, UNITS[unit_index])
-    } else {
-        format!("{size:.1} {}", UNITS[unit_index])
-    }
 }
 
 pub(crate) fn restricted_book_url(url: &str, is_admin: bool) -> String {
