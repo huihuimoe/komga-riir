@@ -3,8 +3,9 @@ use axum::extract::State;
 use axum::http::{HeaderMap, StatusCode, Uri};
 use axum::response::{IntoResponse, Response};
 use komga_domain::discovery::{PageEnvelope, QueryRestrictions, content_allowed_by_restrictions};
-use serde_json::{Value, json};
 
+use crate::contracts::common::PageDto;
+use crate::contracts::discovery::BookDto;
 use crate::helpers::{books_page_payload, query_bool, query_value, to_domain_query_context};
 use crate::identity_access::auth::Authenticated;
 use crate::state::DiscoveryState;
@@ -38,7 +39,7 @@ fn ondeck_content_allowed(
     content_allowed_by_restrictions(restrictions, age_rating, sharing_labels)
 }
 
-fn ondeck_page_payload(content: Vec<Value>, uri: &Uri) -> Value {
+fn ondeck_page_payload(content: Vec<BookDto>, uri: &Uri) -> PageDto<BookDto> {
     let query = uri.query().unwrap_or_default();
     let requested_page = query_value(query, "page")
         .and_then(|value| value.parse::<usize>().ok())
@@ -74,35 +75,15 @@ fn ondeck_page_payload(content: Vec<Value>, uri: &Uri) -> Value {
     } else {
         total_elements.div_ceil(page_size)
     };
-    let number_of_elements = content.len();
-    let first = page == 0;
-    let last = total_pages == 0 || page + 1 >= total_pages;
-    let sort = json!({
-        "empty": true,
-        "sorted": false,
-        "unsorted": true,
-    });
-
-    json!({
-        "content": content,
-        "pageable": {
-            "pageNumber": page,
-            "pageSize": page_size,
-            "sort": sort.clone(),
-            "offset": offset,
-            "paged": true,
-            "unpaged": false,
-        },
-        "last": last,
-        "totalElements": total_elements,
-        "totalPages": total_pages,
-        "first": first,
-        "size": page_size,
-        "number": page,
-        "sort": sort,
-        "numberOfElements": number_of_elements,
-        "empty": number_of_elements == 0,
-    })
+    PageDto::from_parts(
+        content,
+        page,
+        page_size,
+        total_elements,
+        total_pages,
+        true,
+        false,
+    )
 }
 
 pub(crate) async fn books_latest(
@@ -241,10 +222,11 @@ pub(crate) async fn books_ondeck(
                     }
                     Err(error) => return internal_error_response(error),
                 };
-                content.push(super::super::detail::book_detail_payload(
-                    &detail,
-                    context.is_admin,
-                ));
+                let book = match BookDto::from_read_model(&detail, context.is_admin) {
+                    Ok(book) => book,
+                    Err(error) => return internal_error_response(error),
+                };
+                content.push(book);
             }
 
             Json(ondeck_page_payload(content, &uri)).into_response()
