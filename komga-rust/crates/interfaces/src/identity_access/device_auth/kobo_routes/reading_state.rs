@@ -7,14 +7,14 @@ use komga_application::identity_access::{
     DeviceSyncPort, KoboReadingStateSnapshot, KoboReadingStateStatus, KoboReadingStateUpdate,
     now_sync_marker, user_id,
 };
-use serde::Deserialize;
-use serde_json::{Map, Value, json};
+use serde::{Deserialize, Serialize};
 
 use super::{
     ensure_kobo_book_access, proxied_missing_kobo_book_response,
     resolved_kobo_request_api_key_metadata,
 };
 use crate::access_log::RequestConnectionInfo;
+use crate::helpers::spring_error_response;
 use crate::identity_access::device_auth::auth_resolvers::required_kobo_user;
 use crate::identity_access::device_auth::device_progress_service;
 use crate::state::IdentityAccessState;
@@ -55,6 +55,78 @@ struct KoboReadingStateLocation {
 #[serde(rename_all = "PascalCase")]
 struct KoboReadingStateStatusInfo {
     status: String,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "PascalCase")]
+struct KoboReadingStatePayload {
+    created: String,
+    current_bookmark: KoboReadingStateBookmarkPayload,
+    entitlement_id: String,
+    last_modified: String,
+    priority_timestamp: String,
+    statistics: KoboReadingStateStatisticsPayload,
+    status_info: KoboReadingStateStatusPayload,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "PascalCase")]
+struct KoboReadingStateBookmarkPayload {
+    last_modified: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    progress_percent: Option<f64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    content_source_progress_percent: Option<f64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    location: Option<KoboReadingStateLocationPayload>,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "PascalCase")]
+struct KoboReadingStateLocationPayload {
+    source: String,
+    #[serde(rename = "Type")]
+    location_type: &'static str,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    value: Option<String>,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "PascalCase")]
+struct KoboReadingStateStatisticsPayload {
+    last_modified: String,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "PascalCase")]
+struct KoboReadingStateStatusPayload {
+    last_modified: String,
+    status: &'static str,
+    times_started_reading: u64,
+    last_time_finished: Option<String>,
+    last_time_started_reading: Option<String>,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "PascalCase")]
+struct KoboReadingStateUpdatePayloadResponse {
+    request_result: &'static str,
+    update_results: Vec<KoboReadingStateUpdateResultPayload>,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "PascalCase")]
+struct KoboReadingStateUpdateResultPayload {
+    entitlement_id: String,
+    current_bookmark_result: KoboReadingStateResultPayload,
+    statistics_result: KoboReadingStateResultPayload,
+    status_info_result: KoboReadingStateResultPayload,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "PascalCase")]
+struct KoboReadingStateResultPayload {
+    result: &'static str,
 }
 
 fn default_kobo_location_type() -> String {
@@ -140,51 +212,39 @@ pub(crate) async fn kobo_library_book_state(
         Err(_) => return StatusCode::INTERNAL_SERVER_ERROR.into_response(),
     };
 
-    Json(json!([kobo_reading_state_payload(reading_state)])).into_response()
+    Json(vec![kobo_reading_state_payload(reading_state)]).into_response()
 }
 
-fn kobo_reading_state_payload(reading_state: KoboReadingStateSnapshot) -> Value {
-    let mut current_bookmark = Map::new();
-    current_bookmark.insert(
-        "LastModified".to_string(),
-        Value::String(reading_state.last_modified.clone()),
-    );
-    if let Some(progress_percent) = reading_state.total_progress_percent {
-        current_bookmark.insert("ProgressPercent".to_string(), json!(progress_percent));
-    }
-    if let Some(content_source_progress_percent) = reading_state.content_source_progress_percent {
-        current_bookmark.insert(
-            "ContentSourceProgressPercent".to_string(),
-            json!(content_source_progress_percent),
-        );
-    }
-    if let Some(location) = reading_state.location {
-        let mut location_payload = Map::new();
-        location_payload.insert("Source".to_string(), Value::String(location.source));
-        location_payload.insert("Type".to_string(), Value::String("KoboSpan".to_string()));
-        if let Some(kobo_span) = location.kobo_span {
-            location_payload.insert("Value".to_string(), Value::String(kobo_span));
-        }
-        current_bookmark.insert("Location".to_string(), Value::Object(location_payload));
-    }
-
-    json!({
-        "Created": reading_state.created,
-        "CurrentBookmark": Value::Object(current_bookmark),
-        "EntitlementId": reading_state.book_id,
-        "LastModified": reading_state.last_modified,
-        "PriorityTimestamp": reading_state.last_modified,
-        "Statistics": {
-            "LastModified": reading_state.last_modified,
+fn kobo_reading_state_payload(reading_state: KoboReadingStateSnapshot) -> KoboReadingStatePayload {
+    let last_modified = reading_state.last_modified.clone();
+    KoboReadingStatePayload {
+        created: reading_state.created,
+        current_bookmark: KoboReadingStateBookmarkPayload {
+            last_modified: last_modified.clone(),
+            progress_percent: reading_state.total_progress_percent,
+            content_source_progress_percent: reading_state.content_source_progress_percent,
+            location: reading_state
+                .location
+                .map(|location| KoboReadingStateLocationPayload {
+                    source: location.source,
+                    location_type: "KoboSpan",
+                    value: location.kobo_span,
+                }),
         },
-        "StatusInfo": {
-            "LastModified": reading_state.last_modified,
-            "Status": reading_state.status.as_str(),
-            "TimesStartedReading": reading_state.times_started_reading,
-            "LastTimeFinished": Value::Null,
-            "LastTimeStartedReading": Value::Null,
+        entitlement_id: reading_state.book_id,
+        last_modified: last_modified.clone(),
+        priority_timestamp: last_modified.clone(),
+        statistics: KoboReadingStateStatisticsPayload {
+            last_modified: last_modified.clone(),
         },
-    })
+        status_info: KoboReadingStateStatusPayload {
+            last_modified,
+            status: reading_state.status.as_str(),
+            times_started_reading: reading_state.times_started_reading,
+            last_time_finished: None,
+            last_time_started_reading: None,
+        },
+    }
 }
 
 pub(crate) async fn kobo_library_book_state_update(
@@ -210,11 +270,7 @@ pub(crate) async fn kobo_library_book_state_update(
     let payload = match serde_json::from_slice::<KoboReadingStateUpdatePayload>(&body) {
         Ok(payload) => payload,
         Err(_) => {
-            return (
-                StatusCode::BAD_REQUEST,
-                Json(json!({ "error": "invalid Kobo state payload" })),
-            )
-                .into_response();
+            return spring_error_response(StatusCode::BAD_REQUEST, "invalid Kobo state payload");
         }
     };
 
@@ -248,11 +304,10 @@ pub(crate) async fn kobo_library_book_state_update(
     }
 
     let Some(state) = payload.reading_states.first() else {
-        return (
+        return spring_error_response(
             StatusCode::BAD_REQUEST,
-            Json(json!({ "error": "ReadingStates must contain one element" })),
-        )
-            .into_response();
+            "ReadingStates must contain one element",
+        );
     };
     let Some(location) = state.current_bookmark.location.as_ref() else {
         return StatusCode::BAD_REQUEST.into_response();
@@ -309,23 +364,32 @@ pub(crate) async fn kobo_library_book_state_update(
         )
         .await;
 
-    let update_result = if persist_result.is_ok() {
+    let update_succeeded = persist_result.is_ok();
+    let update_result = if update_succeeded {
         "Success"
     } else {
         "Failure"
     };
 
-    Json(json!({
-        "RequestResult": update_result,
-        "UpdateResults": [
-            {
-                "EntitlementId": book_id,
-                "CurrentBookmarkResult": {"Result": update_result},
-                "StatisticsResult": {"Result": if persist_result.is_ok() { "Ignored" } else { "Failure" }},
-                "StatusInfoResult": {"Result": update_result},
-            }
-        ],
-    }))
+    Json(KoboReadingStateUpdatePayloadResponse {
+        request_result: update_result,
+        update_results: vec![KoboReadingStateUpdateResultPayload {
+            entitlement_id: book_id,
+            current_bookmark_result: KoboReadingStateResultPayload {
+                result: update_result,
+            },
+            statistics_result: KoboReadingStateResultPayload {
+                result: if update_succeeded {
+                    "Ignored"
+                } else {
+                    "Failure"
+                },
+            },
+            status_info_result: KoboReadingStateResultPayload {
+                result: update_result,
+            },
+        }],
+    })
     .into_response()
 }
 
