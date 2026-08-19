@@ -4,7 +4,9 @@ use komga_application::media_assets::{
 };
 use komga_domain::media_assets::ThumbnailType;
 use komga_interfaces::contracts::media_assets::{
-    BookThumbnailDto, CollectionThumbnailDto, ReadListThumbnailDto, SeriesThumbnailDto,
+    BookProgressionDeviceDto, BookProgressionDto, BookThumbnailDto, CollectionThumbnailDto,
+    ReadListThumbnailDto, SeriesThumbnailDto, TachiyomiReadListProgressDto,
+    TachiyomiSeriesProgressDto,
 };
 use serde_json::json;
 
@@ -89,5 +91,63 @@ fn thumbnail_dtos_preserve_kotlin_owner_field_names() {
     assert_eq!(
         serde_json::to_value(collection).expect("collection thumbnail should serialize")["collectionId"],
         json!("collection-1")
+    );
+}
+
+#[test]
+fn progress_dtos_preserve_nested_and_tachiyomi_shapes() {
+    let progression = BookProgressionDto {
+        modified: "2024-01-01T00:00:00Z".to_string(),
+        device: BookProgressionDeviceDto {
+            id: "device-1".to_string(),
+            name: "Reader".to_string(),
+        },
+        locator: json!({"href": "chapter.xhtml", "locations": {"progression": 0.5}}),
+    };
+    assert_eq!(
+        serde_json::to_value(progression).expect("progression should serialize"),
+        json!({
+            "modified": "2024-01-01T00:00:00Z",
+            "device": {"id": "device-1", "name": "Reader"},
+            "locator": {"href": "chapter.xhtml", "locations": {"progression": 0.5}},
+        })
+    );
+
+    let series = TachiyomiSeriesProgressDto {
+        books_count: 2,
+        books_read_count: 1,
+        books_unread_count: 0,
+        books_in_progress_count: 1,
+        last_read_continuous_number_sort: 1.0,
+        max_number_sort: 2.0,
+    };
+    assert_eq!(
+        serde_json::to_value(series).expect("series progress should serialize"),
+        json!({
+            "booksCount": 2,
+            "booksReadCount": 1,
+            "booksUnreadCount": 0,
+            "booksInProgressCount": 1,
+            "lastReadContinuousNumberSort": 1.0,
+            "maxNumberSort": 2.0,
+        })
+    );
+
+    let readlist = TachiyomiReadListProgressDto {
+        books_count: 2,
+        books_read_count: 1,
+        books_unread_count: 1,
+        books_in_progress_count: 0,
+        last_read_continuous_index: 1,
+    };
+    assert_eq!(
+        serde_json::to_value(readlist).expect("readlist progress should serialize"),
+        json!({
+            "booksCount": 2,
+            "booksReadCount": 1,
+            "booksUnreadCount": 1,
+            "booksInProgressCount": 0,
+            "lastReadContinuousIndex": 1,
+        })
     );
 }

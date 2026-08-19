@@ -5,9 +5,10 @@ use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
 use komga_application::discovery::resolve_persisted_series_id;
 use komga_application::identity_access::user_id;
-use serde_json::{Value, json};
+use serde_json::Value;
 
 use crate::contracts::common::ErrorMessageDto;
+use crate::contracts::media_assets::TachiyomiSeriesProgressDto;
 use crate::identity_access::auth::Authenticated;
 use crate::media_assets::access_control::{
     user_can_access_series_media, user_has_unrestricted_all_libraries,
@@ -17,15 +18,8 @@ use crate::state::MediaAssetsState;
 
 fn series_tachiyomi_progress_payload(
     progress: komga_application::media_assets::SeriesTachiyomiProgress,
-) -> Value {
-    json!({
-        "booksCount": progress.books_count,
-        "booksReadCount": progress.books_read_count,
-        "booksUnreadCount": progress.books_unread_count,
-        "booksInProgressCount": progress.books_in_progress_count,
-        "lastReadContinuousNumberSort": progress.last_read_continuous_number_sort,
-        "maxNumberSort": progress.max_number_sort,
-    })
+) -> TachiyomiSeriesProgressDto {
+    progress.into()
 }
 
 async fn series_exists(app: &MediaAssetsState, series_id: &str) -> Result<bool, Response> {

@@ -13,9 +13,10 @@ use komga_application::media_assets::{
     BookProgressionRecord, BookProgressionService, BookProgressionUpdate,
     BookProgressionUpdateInput,
 };
-use serde_json::{Value, json};
+use serde_json::Value;
 
 use crate::contracts::common::{ErrorMessageDto, ViolationDto};
+use crate::contracts::media_assets::BookProgressionDto;
 use crate::helpers::{
     invalid_progression_payload, invalid_read_progress_payload,
     read_progress_validation_error_response,
@@ -387,13 +388,6 @@ fn progression_bad_request_response(message: impl Into<String>) -> Response {
         .into_response()
 }
 
-fn book_progression_payload(progression: BookProgressionRecord) -> Value {
-    json!({
-        "modified": progression.modified,
-        "device": {
-            "id": progression.device_id,
-            "name": progression.device_name,
-        },
-        "locator": progression.locator,
-    })
+fn book_progression_payload(progression: BookProgressionRecord) -> BookProgressionDto {
+    progression.into()
 }
