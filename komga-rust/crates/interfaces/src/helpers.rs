@@ -65,23 +65,6 @@ pub(crate) fn normalized_date_time(value: &str) -> String {
     value.to_string()
 }
 
-pub(crate) fn normalized_optional_read_progress_date(
-    read_date: Option<&str>,
-    last_modified: &str,
-    created: &str,
-) -> String {
-    let chosen = read_date
-        .filter(|value| !value.trim().is_empty())
-        .unwrap_or_else(|| {
-            if !last_modified.trim().is_empty() {
-                last_modified
-            } else {
-                created
-            }
-        });
-    normalized_date_time(chosen)
-}
-
 pub(crate) fn api_file_path(value: &str) -> String {
     decode_file_url_path(value).unwrap_or_else(|| value.to_string())
 }

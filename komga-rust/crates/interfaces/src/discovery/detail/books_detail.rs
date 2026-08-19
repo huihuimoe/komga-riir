@@ -11,11 +11,18 @@ use super::books_persistence::{
 };
 use super::detail_utils::internal_error_response;
 use super::readlists_support::readlist_payload;
-use super::{book_detail_payload, load_persisted_book_detail};
+use super::{BookDetailReadModel, book_detail_payload, load_persisted_book_detail};
 use crate::discovery_auth::context::{DetailContentContext, DetailResourceContext};
 use crate::helpers::{detail_access_denial_response, to_domain_query_context};
 use crate::identity_access::auth::Authenticated;
 use crate::state::DiscoveryState;
+
+fn book_detail_response(book: &BookDetailReadModel, is_admin: bool) -> Response {
+    match book_detail_payload(book, is_admin) {
+        Ok(payload) => Json(payload).into_response(),
+        Err(error) => internal_error_response(error),
+    }
+}
 
 pub(crate) async fn book_detail(
     State(app): State<DiscoveryState>,
@@ -50,7 +57,7 @@ pub(crate) async fn book_detail(
     let is_admin = detail_query_context.is_admin;
     match load_persisted_book_detail(&app, &book_id, detail_query_context.user_id.as_deref()).await
     {
-        Ok(Some(book)) => Json(book_detail_payload(&book, is_admin)).into_response(),
+        Ok(Some(book)) => book_detail_response(&book, is_admin),
         Ok(None) => StatusCode::NOT_FOUND.into_response(),
         Err(error) => internal_error_response(error),
     }
@@ -97,7 +104,7 @@ pub(crate) async fn book_sibling_previous(
     )
     .await
     {
-        Ok(Some(book)) => Json(book_detail_payload(&book, is_admin)).into_response(),
+        Ok(Some(book)) => book_detail_response(&book, is_admin),
         Ok(None) => StatusCode::NOT_FOUND.into_response(),
         Err(error) => internal_error_response(error),
     }
@@ -144,7 +151,7 @@ pub(crate) async fn book_sibling_next(
     )
     .await
     {
-        Ok(Some(book)) => Json(book_detail_payload(&book, is_admin)).into_response(),
+        Ok(Some(book)) => book_detail_response(&book, is_admin),
         Ok(None) => StatusCode::NOT_FOUND.into_response(),
         Err(error) => internal_error_response(error),
     }

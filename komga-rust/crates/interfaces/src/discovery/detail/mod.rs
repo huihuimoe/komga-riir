@@ -1,14 +1,12 @@
 use serde_json::{Map, Value, json};
 
-use crate::helpers::{
-    api_file_path, normalized_date_time, normalized_file_last_modified,
-    normalized_optional_read_progress_date, restricted_book_url,
-};
+use crate::contracts::discovery::BookDto;
+use crate::helpers::{api_file_path, normalized_date_time, normalized_file_last_modified};
 use komga_application::discovery::{
     BookMetadataAuthorReadModel, BookReadModel, CollectionReadModel, SeriesAlternateTitleRecord,
     SeriesMetadataLinkRecord, SeriesReadingDirection,
 };
-use komga_domain::discovery::{MediaProfile, SeriesStatus};
+use komga_domain::discovery::SeriesStatus;
 
 use crate::state::DiscoveryState;
 
@@ -31,7 +29,6 @@ pub(crate) use collections::{
     collections,
 };
 use collections_support::collection_payload;
-use detail_utils::format_size_bytes;
 pub(crate) use readlists::{
     readlist_book_sibling_next, readlist_book_sibling_previous, readlist_books, readlist_create,
     readlist_delete, readlist_detail, readlist_match_comicrack, readlist_update, readlists,
@@ -103,74 +100,8 @@ pub(super) async fn load_persisted_book_detail(
     books_persistence::load_persisted_book_detail(app, book_id, user_id).await
 }
 
-pub(super) fn book_detail_payload(book: &BookReadModel, is_admin: bool) -> Value {
-    let admin_url = api_file_path(&book.url);
-    let url = if is_admin {
-        admin_url
-    } else {
-        restricted_book_url(&admin_url, false)
-    };
-    let media_profile = MediaProfile::from_media_type(&book.media_type)
-        .map(MediaProfile::api_name)
-        .unwrap_or_default();
-
-    json!({
-        "id": book.id,
-        "seriesId": book.series_id,
-        "seriesTitle": book.series_title,
-        "libraryId": book.library_id,
-        "name": book.name,
-        "url": url,
-        "number": book.number,
-        "created": normalized_date_time(&book.created),
-        "lastModified": normalized_date_time(&book.last_modified),
-        "fileLastModified": normalized_file_last_modified(&book.file_last_modified),
-        "sizeBytes": book.size_bytes,
-        "size": format_size_bytes(book.size_bytes),
-        "media": {
-            "status": book.media_status.persisted_name(),
-            "mediaType": book.media_type,
-            "pagesCount": book.media_pages_count,
-            "comment": book.media_comment,
-            "epubDivinaCompatible": book.media_epub_divina_compatible,
-            "epubIsKepub": book.media_epub_is_kepub,
-            "mediaProfile": media_profile
-        },
-        "metadata": {
-            "title": book.metadata_title,
-            "titleLock": book.metadata_title_lock,
-            "summary": book.metadata_summary,
-            "summaryLock": book.metadata_summary_lock,
-            "number": book.metadata_number,
-            "numberLock": book.metadata_number_lock,
-            "numberSort": book.metadata_number_sort,
-            "numberSortLock": book.metadata_number_sort_lock,
-            "releaseDate": book.metadata_release_date,
-            "releaseDateLock": book.metadata_release_date_lock,
-            "authors": book.metadata_authors.iter().map(|author| json!({ "name": author.name, "role": author.role })).collect::<Vec<_>>(),
-            "authorsLock": book.metadata_authors_lock,
-            "tags": book.metadata_tags,
-            "tagsLock": book.metadata_tags_lock,
-            "isbn": book.metadata_isbn,
-            "isbnLock": book.metadata_isbn_lock,
-            "links": book.metadata_links.iter().map(|link| json!({ "label": link.label, "url": link.url })).collect::<Vec<_>>(),
-            "linksLock": book.metadata_links_lock,
-            "created": normalized_date_time(&book.metadata_created),
-            "lastModified": normalized_date_time(&book.metadata_last_modified)
-        },
-        "readProgress": book.read_progress.as_ref().map_or(Value::Null, |progress| json!({
-            "page": progress.page,
-            "completed": progress.completed,
-            "readDate": normalized_optional_read_progress_date(progress.read_date.as_deref(), &progress.last_modified, &progress.created),
-            "created": normalized_date_time(&progress.created),
-            "lastModified": normalized_date_time(&progress.last_modified),
-            "deviceId": progress.device_id,
-            "deviceName": progress.device_name,
-        })),
-        "deleted": book.deleted,
-        "fileHash": book.file_hash,
-        "oneshot": book.oneshot
-    })
+pub(super) fn book_detail_payload(book: &BookReadModel, is_admin: bool) -> anyhow::Result<BookDto> {
+    BookDto::from_read_model(book, is_admin)
 }
 
 fn series_detail_payload(series: &SeriesDetailReadModel, is_admin: bool) -> Value {
@@ -408,59 +339,63 @@ mod tests {
 
     #[test]
     fn book_detail_payload_uses_persisted_lock_link_and_media_flags() {
-        let payload = book_detail_payload(
-            &BookDetailReadModel {
-                id: "book-1".to_string(),
-                series_id: "series-1".to_string(),
-                series_title: "Series".to_string(),
-                series_title_sort: "Series".to_string(),
-                library_id: "lib-1".to_string(),
-                name: "Book".to_string(),
-                url: "/data/books/book.cbz".to_string(),
-                number: 1,
-                created: "2024-01-01T00:00:00Z".to_string(),
-                last_modified: "2024-01-02T00:00:00Z".to_string(),
-                file_last_modified: "2024-01-03T00:00:00Z".to_string(),
-                size_bytes: 123,
-                media_status: MediaStatus::Ready,
-                media_type: "application/epub+zip".to_string(),
-                media_pages_count: 5,
-                media_comment: "ok".to_string(),
-                metadata_title: "Meta".to_string(),
-                metadata_summary: "Summary".to_string(),
-                metadata_number: "1".to_string(),
-                metadata_number_sort: 1.0,
-                metadata_release_date: Some("2024-01-04".to_string()),
-                metadata_title_lock: true,
-                metadata_summary_lock: true,
-                metadata_number_lock: true,
-                metadata_number_sort_lock: true,
-                metadata_release_date_lock: true,
-                metadata_authors: vec![BookMetadataAuthorReadModel {
-                    name: "Author".to_string(),
-                    role: "Writer".to_string(),
-                }],
-                metadata_authors_lock: true,
-                metadata_tags: vec!["tag".to_string()],
-                metadata_tags_lock: true,
-                metadata_isbn: "isbn".to_string(),
-                metadata_isbn_lock: true,
-                metadata_links: vec![BookMetadataLinkReadModel {
-                    label: "Wiki".to_string(),
-                    url: "https://example.com".to_string(),
-                }],
-                metadata_links_lock: true,
-                metadata_created: "2024-01-01T00:00:00Z".to_string(),
-                metadata_last_modified: "2024-01-02T00:00:00Z".to_string(),
-                media_epub_divina_compatible: true,
-                media_epub_is_kepub: true,
-                read_progress: None,
-                deleted: false,
-                file_hash: "hash".to_string(),
-                oneshot: false,
-            },
-            true,
-        );
+        let payload = serde_json::to_value(
+            book_detail_payload(
+                &BookDetailReadModel {
+                    id: "book-1".to_string(),
+                    series_id: "series-1".to_string(),
+                    series_title: "Series".to_string(),
+                    series_title_sort: "Series".to_string(),
+                    library_id: "lib-1".to_string(),
+                    name: "Book".to_string(),
+                    url: "/data/books/book.cbz".to_string(),
+                    number: 1,
+                    created: "2024-01-01T00:00:00Z".to_string(),
+                    last_modified: "2024-01-02T00:00:00Z".to_string(),
+                    file_last_modified: "2024-01-03T00:00:00Z".to_string(),
+                    size_bytes: 123,
+                    media_status: MediaStatus::Ready,
+                    media_type: "application/epub+zip".to_string(),
+                    media_pages_count: 5,
+                    media_comment: "ok".to_string(),
+                    metadata_title: "Meta".to_string(),
+                    metadata_summary: "Summary".to_string(),
+                    metadata_number: "1".to_string(),
+                    metadata_number_sort: 1.0,
+                    metadata_release_date: Some("2024-01-04".to_string()),
+                    metadata_title_lock: true,
+                    metadata_summary_lock: true,
+                    metadata_number_lock: true,
+                    metadata_number_sort_lock: true,
+                    metadata_release_date_lock: true,
+                    metadata_authors: vec![BookMetadataAuthorReadModel {
+                        name: "Author".to_string(),
+                        role: "Writer".to_string(),
+                    }],
+                    metadata_authors_lock: true,
+                    metadata_tags: vec!["tag".to_string()],
+                    metadata_tags_lock: true,
+                    metadata_isbn: "isbn".to_string(),
+                    metadata_isbn_lock: true,
+                    metadata_links: vec![BookMetadataLinkReadModel {
+                        label: "Wiki".to_string(),
+                        url: "https://example.com".to_string(),
+                    }],
+                    metadata_links_lock: true,
+                    metadata_created: "2024-01-01T00:00:00Z".to_string(),
+                    metadata_last_modified: "2024-01-02T00:00:00Z".to_string(),
+                    media_epub_divina_compatible: true,
+                    media_epub_is_kepub: true,
+                    read_progress: None,
+                    deleted: false,
+                    file_hash: "hash".to_string(),
+                    oneshot: false,
+                },
+                true,
+            )
+            .expect("book detail should map"),
+        )
+        .expect("book detail should serialize");
 
         assert_eq!(
             payload
@@ -488,53 +423,57 @@ mod tests {
 
     #[test]
     fn book_detail_payload_decodes_legacy_admin_file_urls() {
-        let payload = book_detail_payload(
-            &BookDetailReadModel {
-                id: "book-1".to_string(),
-                series_id: "series-1".to_string(),
-                series_title: "Series".to_string(),
-                series_title_sort: "Series".to_string(),
-                library_id: "lib-1".to_string(),
-                name: "Book".to_string(),
-                url: "file:/library%20root/books/book%201.cbz".to_string(),
-                number: 1,
-                created: "2024-01-01T00:00:00Z".to_string(),
-                last_modified: "2024-01-02T00:00:00Z".to_string(),
-                file_last_modified: "2024-01-03T00:00:00Z".to_string(),
-                size_bytes: 123,
-                media_status: MediaStatus::Ready,
-                media_type: "application/vnd.comicbook+zip".to_string(),
-                media_pages_count: 5,
-                media_comment: "ok".to_string(),
-                metadata_title: "Meta".to_string(),
-                metadata_summary: "Summary".to_string(),
-                metadata_number: "1".to_string(),
-                metadata_number_sort: 1.0,
-                metadata_release_date: Some("2024-01-04".to_string()),
-                metadata_title_lock: false,
-                metadata_summary_lock: false,
-                metadata_number_lock: false,
-                metadata_number_sort_lock: false,
-                metadata_release_date_lock: false,
-                metadata_authors: Vec::new(),
-                metadata_authors_lock: false,
-                metadata_tags: Vec::new(),
-                metadata_tags_lock: false,
-                metadata_isbn: String::new(),
-                metadata_isbn_lock: false,
-                metadata_links: Vec::new(),
-                metadata_links_lock: false,
-                metadata_created: "2024-01-01T00:00:00Z".to_string(),
-                metadata_last_modified: "2024-01-02T00:00:00Z".to_string(),
-                media_epub_divina_compatible: false,
-                media_epub_is_kepub: false,
-                read_progress: None,
-                deleted: false,
-                file_hash: "hash".to_string(),
-                oneshot: false,
-            },
-            true,
-        );
+        let payload = serde_json::to_value(
+            book_detail_payload(
+                &BookDetailReadModel {
+                    id: "book-1".to_string(),
+                    series_id: "series-1".to_string(),
+                    series_title: "Series".to_string(),
+                    series_title_sort: "Series".to_string(),
+                    library_id: "lib-1".to_string(),
+                    name: "Book".to_string(),
+                    url: "file:/library%20root/books/book%201.cbz".to_string(),
+                    number: 1,
+                    created: "2024-01-01T00:00:00Z".to_string(),
+                    last_modified: "2024-01-02T00:00:00Z".to_string(),
+                    file_last_modified: "2024-01-03T00:00:00Z".to_string(),
+                    size_bytes: 123,
+                    media_status: MediaStatus::Ready,
+                    media_type: "application/vnd.comicbook+zip".to_string(),
+                    media_pages_count: 5,
+                    media_comment: "ok".to_string(),
+                    metadata_title: "Meta".to_string(),
+                    metadata_summary: "Summary".to_string(),
+                    metadata_number: "1".to_string(),
+                    metadata_number_sort: 1.0,
+                    metadata_release_date: Some("2024-01-04".to_string()),
+                    metadata_title_lock: false,
+                    metadata_summary_lock: false,
+                    metadata_number_lock: false,
+                    metadata_number_sort_lock: false,
+                    metadata_release_date_lock: false,
+                    metadata_authors: Vec::new(),
+                    metadata_authors_lock: false,
+                    metadata_tags: Vec::new(),
+                    metadata_tags_lock: false,
+                    metadata_isbn: String::new(),
+                    metadata_isbn_lock: false,
+                    metadata_links: Vec::new(),
+                    metadata_links_lock: false,
+                    metadata_created: "2024-01-01T00:00:00Z".to_string(),
+                    metadata_last_modified: "2024-01-02T00:00:00Z".to_string(),
+                    media_epub_divina_compatible: false,
+                    media_epub_is_kepub: false,
+                    read_progress: None,
+                    deleted: false,
+                    file_hash: "hash".to_string(),
+                    oneshot: false,
+                },
+                true,
+            )
+            .expect("book detail should map"),
+        )
+        .expect("book detail should serialize");
 
         assert_eq!(
             payload.get("url"),

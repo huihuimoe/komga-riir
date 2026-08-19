@@ -17,6 +17,8 @@ use super::readlists_support::{
     comicrack_match_payload, merge_readlist_write_input, readlist_payload, readlists_page_payload,
 };
 use super::{BookDetailReadModel, book_detail_payload};
+use crate::contracts::common::PageDto;
+use crate::contracts::discovery::BookDto;
 use crate::discovery::query::{resolve_readlist_books_query, resolve_readlists_query};
 use crate::helpers::{to_domain_query_context, validation_error_response};
 use crate::identity_access::auth::{Admin, Authenticated};
@@ -352,12 +354,10 @@ pub(crate) async fn readlist_books(
         Err(error) => return internal_error_response(error),
     };
 
-    Json(book_details_page_payload(
-        page,
-        response_context.is_admin,
-        paged,
-    ))
-    .into_response()
+    match book_details_page_payload(page, response_context.is_admin, paged) {
+        Ok(payload) => Json(payload).into_response(),
+        Err(error) => internal_error_response(error),
+    }
 }
 
 pub(crate) async fn readlist_detail(
@@ -437,56 +437,32 @@ async fn sibling_response(
         Err(error) => return internal_error_response(error),
     };
 
-    Json(book_detail_payload(&sibling, is_admin)).into_response()
+    match book_detail_payload(&sibling, is_admin) {
+        Ok(payload) => Json(payload).into_response(),
+        Err(error) => internal_error_response(error),
+    }
 }
 
 fn book_details_page_payload(
     page: PageEnvelope<BookDetailReadModel>,
     is_admin: bool,
     paged: bool,
-) -> Value {
+) -> anyhow::Result<PageDto<BookDto>> {
     let content = page
         .content
         .iter()
         .map(|book| book_detail_payload(book, is_admin))
-        .collect::<Vec<_>>();
-    let number_of_elements = content.len();
-    let first = page.page == 0;
-    let last = page.total_pages == 0 || page.page + 1 >= page.total_pages;
-    let offset = if paged {
-        page.page.saturating_mul(page.size)
-    } else {
-        0
-    };
+        .collect::<anyhow::Result<Vec<_>>>()?;
 
-    json!({
-        "content": content,
-        "pageable": {
-            "pageNumber": page.page,
-            "pageSize": page.size,
-            "sort": {
-                "empty": false,
-                "sorted": true,
-                "unsorted": false
-            },
-            "offset": offset,
-            "paged": paged,
-            "unpaged": !paged
-        },
-        "last": last,
-        "totalElements": page.total_elements,
-        "totalPages": page.total_pages,
-        "first": first,
-        "size": page.size,
-        "number": page.page,
-        "sort": {
-            "empty": false,
-            "sorted": true,
-            "unsorted": false
-        },
-        "numberOfElements": number_of_elements,
-        "empty": number_of_elements == 0
-    })
+    Ok(PageDto::from_parts(
+        content,
+        page.page,
+        page.size,
+        page.total_elements,
+        page.total_pages,
+        paged,
+        true,
+    ))
 }
 
 async fn extract_comicrack_upload_xml(

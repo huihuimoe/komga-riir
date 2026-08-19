@@ -18,7 +18,7 @@ const ISO_DATETIME_WITH_SUBSECOND: &[time::format_description::FormatItem<'stati
 const KOTLIN_LOCAL_DATE: &[time::format_description::FormatItem<'static>] =
     format_description!("[year]-[month]-[day]");
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct KotlinLocalDate(Date);
 
 impl KotlinLocalDate {
@@ -54,7 +54,7 @@ impl std::fmt::Display for WireLocalDateError {
 
 impl std::error::Error for WireLocalDateError {}
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct KotlinUtcDateTime(OffsetDateTime);
 
 impl KotlinUtcDateTime {
