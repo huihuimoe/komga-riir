@@ -400,7 +400,7 @@ pub(crate) async fn books_duplicates(
                     }
                     Err(error) => return internal_error_response(error),
                 };
-                let payload = match super::super::detail::book_detail_payload(&detail, true) {
+                let payload = match BookDto::from_read_model(&detail, true) {
                     Ok(payload) => payload,
                     Err(error) => return internal_error_response(error),
                 };

@@ -16,12 +16,6 @@ use crate::media_assets::access_control::{
 use crate::media_assets::http_helpers::internal_error_response;
 use crate::state::MediaAssetsState;
 
-fn series_tachiyomi_progress_payload(
-    progress: komga_application::media_assets::SeriesTachiyomiProgress,
-) -> TachiyomiSeriesProgressDto {
-    progress.into()
-}
-
 async fn series_exists(app: &MediaAssetsState, series_id: &str) -> Result<bool, Response> {
     app.read_progress_reader
         .series_exists(series_id)
@@ -117,7 +111,7 @@ pub(crate) async fn series_tachiyomi_read_progress_get(
         .series_tachiyomi_progress(&resolved_series_id, user_id(&user))
         .await
     {
-        Ok(progress) => Json(series_tachiyomi_progress_payload(progress)).into_response(),
+        Ok(progress) => Json(TachiyomiSeriesProgressDto::from(progress)).into_response(),
         Err(error) => internal_error_response(error),
     }
 }

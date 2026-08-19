@@ -6,12 +6,12 @@ use komga_application::identity_access::{user_id, user_is_admin};
 use serde_json::Value;
 
 use super::helpers::{
-    api_key_comment_from_request, authentication_activity_page_payload,
-    authentication_activity_payload, query_value, required_authenticated_user,
+    api_key_comment_from_request, authentication_activity_page_payload, query_value,
+    required_authenticated_user,
 };
 use crate::access_log::RequestConnectionInfo;
 use crate::contracts::common::MessageDto;
-use crate::contracts::identity_access::ApiKeyDto;
+use crate::contracts::identity_access::{ApiKeyDto, AuthenticationActivityDto};
 use crate::identity_access::auth::{
     persisted_api_key_comment_exists, persisted_create_api_key, persisted_delete_api_key_by_id,
     persisted_list_api_keys, persisted_list_authentication_activity, persisted_users,
@@ -217,7 +217,7 @@ pub(crate) async fn users_by_id_authentication_activity_latest(
         return StatusCode::NOT_FOUND.into_response();
     };
 
-    match authentication_activity_payload(&activity) {
+    match AuthenticationActivityDto::from_persisted(&activity) {
         Ok(payload) => Json(payload).into_response(),
         Err(_) => StatusCode::INTERNAL_SERVER_ERROR.into_response(),
     }

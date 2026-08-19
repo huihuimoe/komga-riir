@@ -1,14 +1,4 @@
 use crate::contracts::common::PageDto;
-use komga_application::discovery::PersistedAuthorEntry;
-
-pub(in crate::discovery) fn authors_v2_page_payload(
-    authors: Vec<PersistedAuthorEntry>,
-    page: usize,
-    size: usize,
-    unpaged: bool,
-) -> PageDto<PersistedAuthorEntry> {
-    paged_values_payload(authors, page, size, unpaged)
-}
 
 pub(in crate::discovery) fn paged_values_payload<T>(
     values: Vec<T>,

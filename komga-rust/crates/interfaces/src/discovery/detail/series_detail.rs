@@ -17,7 +17,7 @@ use super::detail_utils::internal_error_response;
 use super::series_persistence::{
     load_persisted_series_collections, load_persisted_series_detail, load_persisted_series_resource,
 };
-use super::{series_collections_payload, series_detail_payload};
+use crate::contracts::discovery::{CollectionDto, SeriesDto};
 use crate::discovery_auth::context::{DetailContentContext, DetailResourceContext};
 use crate::helpers::{
     detail_access_denial_response, spring_error_response, to_domain_query_context,
@@ -73,7 +73,7 @@ pub(crate) async fn series_detail(
         return StatusCode::NOT_FOUND.into_response();
     };
 
-    match series_detail_payload(&series, is_admin) {
+    match SeriesDto::from_detail(&series, is_admin) {
         Ok(payload) => Json(payload).into_response(),
         Err(error) => internal_error_response(error),
     }
@@ -128,7 +128,11 @@ pub(crate) async fn series_collections(
                     Err(error) => return internal_error_response(error),
                 };
 
-                match series_collections_payload(&visible_collections) {
+                match visible_collections
+                    .iter()
+                    .map(CollectionDto::from_read_model)
+                    .collect::<anyhow::Result<Vec<_>>>()
+                {
                     Ok(payload) => Json(payload).into_response(),
                     Err(error) => internal_error_response(error),
                 }

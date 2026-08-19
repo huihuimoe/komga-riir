@@ -1,8 +1,6 @@
 use crate::contracts::common::PageDto;
-use crate::contracts::discovery::{ReadListDto, ReadListRequestMatchDto};
-use komga_application::discovery::{
-    ComicRackReadListMatchResult, ReadListReadModel, ReadlistMutationInput,
-};
+use crate::contracts::discovery::ReadListDto;
+use komga_application::discovery::{ReadListReadModel, ReadlistMutationInput};
 use komga_domain::discovery::PageEnvelope;
 use serde_json::Value;
 
@@ -44,12 +42,6 @@ pub(super) fn merge_readlist_write_input(
     }
 }
 
-pub(super) fn comicrack_match_payload(
-    result: &ComicRackReadListMatchResult,
-) -> anyhow::Result<ReadListRequestMatchDto> {
-    ReadListRequestMatchDto::from_result(result)
-}
-
 pub(super) fn readlists_page_payload(
     page: PageEnvelope<ReadListReadModel>,
     paged: bool,
@@ -71,18 +63,9 @@ pub(super) fn readlists_page_payload(
     ))
 }
 
-pub(super) fn readlist_payload(readlist: &ReadListReadModel) -> anyhow::Result<ReadListDto> {
-    ReadListDto::from_read_model(readlist)
-}
-
-pub(super) fn readlists_payload(
-    readlists: &[ReadListReadModel],
-) -> anyhow::Result<Vec<ReadListDto>> {
-    readlists.iter().map(readlist_payload).collect()
-}
-
 #[cfg(test)]
 mod tests {
+    use crate::contracts::discovery::ReadListRequestMatchDto;
     use komga_application::discovery::{
         ComicRackMatchBook, ComicRackMatchSeries, ComicRackReadListMatchError,
         ComicRackReadListMatchGroup, ComicRackReadListMatchResult, ComicRackReadListRequestBook,
@@ -92,7 +75,7 @@ mod tests {
     #[test]
     fn comicrack_match_payload_serializes_matches_and_error_codes() {
         let payload = serde_json::to_value(
-            super::comicrack_match_payload(&ComicRackReadListMatchResult {
+            ReadListRequestMatchDto::from_result(&ComicRackReadListMatchResult {
                 name: "ReadList 1".to_string(),
                 error: Some(ComicRackReadListMatchError::DuplicateName),
                 requests: vec![ComicRackReadListRequestMatch {

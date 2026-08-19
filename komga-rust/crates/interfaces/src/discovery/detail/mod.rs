@@ -1,6 +1,5 @@
-use crate::contracts::discovery::{BookDto, CollectionDto, SeriesDto};
 use komga_application::discovery::{
-    BookMetadataAuthorReadModel, BookReadModel, CollectionReadModel, SeriesAlternateTitleRecord,
+    BookMetadataAuthorReadModel, BookReadModel, SeriesAlternateTitleRecord,
     SeriesMetadataLinkRecord, SeriesReadingDirection,
 };
 use komga_domain::discovery::SeriesStatus;
@@ -25,7 +24,6 @@ pub(crate) use collections::{
     collection_create, collection_delete, collection_detail, collection_series, collection_update,
     collections,
 };
-use collections_support::collection_payload;
 pub(crate) use readlists::{
     readlist_book_sibling_next, readlist_book_sibling_previous, readlist_books, readlist_create,
     readlist_delete, readlist_detail, readlist_match_comicrack, readlist_update, readlists,
@@ -97,34 +95,18 @@ pub(super) async fn load_persisted_book_detail(
     books_persistence::load_persisted_book_detail(app, book_id, user_id).await
 }
 
-pub(super) fn book_detail_payload(book: &BookReadModel, is_admin: bool) -> anyhow::Result<BookDto> {
-    BookDto::from_read_model(book, is_admin)
-}
-
-fn series_detail_payload(
-    series: &SeriesDetailReadModel,
-    is_admin: bool,
-) -> anyhow::Result<SeriesDto> {
-    SeriesDto::from_detail(series, is_admin)
-}
-
-fn series_collections_payload(
-    collections: &[CollectionReadModel],
-) -> anyhow::Result<Vec<CollectionDto>> {
-    collections.iter().map(collection_payload).collect()
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::contracts::discovery::{BookDto, SeriesDto};
     use komga_application::discovery::BookMetadataLinkReadModel;
     use komga_domain::discovery::MediaStatus;
     use serde_json::{Value, json};
 
     #[test]
-    fn book_detail_payload_uses_persisted_lock_link_and_media_flags() {
+    fn book_dto_uses_persisted_lock_link_and_media_flags() {
         let payload = serde_json::to_value(
-            book_detail_payload(
+            BookDto::from_read_model(
                 &BookDetailReadModel {
                     id: "book-1".to_string(),
                     series_id: "series-1".to_string(),
@@ -206,9 +188,9 @@ mod tests {
     }
 
     #[test]
-    fn book_detail_payload_decodes_legacy_admin_file_urls() {
+    fn book_dto_decodes_legacy_admin_file_urls() {
         let payload = serde_json::to_value(
-            book_detail_payload(
+            BookDto::from_read_model(
                 &BookDetailReadModel {
                     id: "book-1".to_string(),
                     series_id: "series-1".to_string(),
@@ -266,9 +248,9 @@ mod tests {
     }
 
     #[test]
-    fn series_detail_payload_formats_datetime_fields() {
+    fn series_dto_formats_datetime_fields() {
         let payload = serde_json::to_value(
-            series_detail_payload(
+            SeriesDto::from_detail(
                 &SeriesDetailReadModel {
                     id: "series-1".to_string(),
                     library_id: "library-1".to_string(),

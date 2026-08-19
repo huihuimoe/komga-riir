@@ -395,7 +395,7 @@ pub(super) fn authentication_activity_page_payload(
 
     let content = page_rows
         .iter()
-        .map(authentication_activity_payload)
+        .map(AuthenticationActivityDto::from_persisted)
         .collect::<anyhow::Result<Vec<_>>>()?;
     let total_pages = if total_elements == 0 {
         0
@@ -474,12 +474,6 @@ fn compare_authentication_activity(
     }
 
     Ordering::Equal
-}
-
-pub(super) fn authentication_activity_payload(
-    activity: &PersistedAuthenticationActivity,
-) -> anyhow::Result<AuthenticationActivityDto> {
-    AuthenticationActivityDto::from_persisted(activity)
 }
 
 pub(super) fn query_value<'a>(query: &'a str, key: &str) -> Option<&'a str> {

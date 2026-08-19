@@ -1,4 +1,5 @@
 use crate::contracts::common::{SpringErrorDto, ViolationDto};
+use crate::contracts::discovery::CollectionDto;
 use crate::discovery::persisted::common_helpers::decode_query_component;
 use crate::discovery::series::series_read_model_page_payload;
 use crate::discovery::series_routes::author_query_to_author_match;
@@ -22,14 +23,12 @@ use serde_json::{Value, json};
 use std::collections::{BTreeSet, HashMap};
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use super::collections_support::{
-    collection_payload, collections_page_payload, collections_unpaged_payload,
-};
+use super::collections_support::{collections_page_payload, collections_unpaged_payload};
 use super::detail_utils::internal_error_response;
 use crate::discovery::query::{parse_series_filter_from_json, resolve_collection_list_request};
 
 fn collection_response(collection: &CollectionReadModel) -> Response {
-    match collection_payload(collection) {
+    match CollectionDto::from_read_model(collection) {
         Ok(payload) => Json(payload).into_response(),
         Err(error) => internal_error_response(format!("{error:#}")),
     }

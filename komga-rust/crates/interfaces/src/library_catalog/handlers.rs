@@ -7,6 +7,7 @@ use komga_application::library_catalog::{LibraryDetailAccess, LibraryRecord};
 use komga_domain::discovery::DiscoveryError;
 use serde_json::Value;
 
+use crate::contracts::library_catalog::LibraryDto;
 use crate::discovery_auth::context::DiscoveryQueryContext;
 use crate::helpers::{spring_error_response, to_domain_query_context};
 use crate::identity_access::auth::{Admin, Authenticated};
@@ -15,7 +16,6 @@ use crate::state::LibraryCatalogState;
 use super::request_mapping::{
     is_deep_scan_query, parse_create_library_change_set, parse_update_library_change_set,
 };
-use super::response_mapping::{libraries_payload, library_payload};
 use super::task_mapping::LibraryCatalogCommands;
 
 pub(crate) async fn libraries_route(
@@ -154,7 +154,13 @@ async fn runtime_owned_libraries_response(
     app: &LibraryCatalogState,
 ) -> Response {
     match runtime_owned_libraries(context.clone(), app).await {
-        Ok(libraries) => Json(libraries_payload(libraries, context.is_admin)).into_response(),
+        Ok(libraries) => Json(
+            libraries
+                .iter()
+                .map(|library| LibraryDto::from_record(library, context.is_admin))
+                .collect::<Vec<_>>(),
+        )
+        .into_response(),
         Err(error) => spring_error_response(
             StatusCode::INTERNAL_SERVER_ERROR,
             discovery_error_message(&error),
@@ -174,7 +180,7 @@ async fn runtime_owned_library_detail_response(
         .await
     {
         Ok(LibraryDetailAccess::Visible(library)) => {
-            Json(library_payload(&library, context.is_admin)).into_response()
+            Json(LibraryDto::from_record(&library, context.is_admin)).into_response()
         }
         Ok(LibraryDetailAccess::Forbidden) => StatusCode::FORBIDDEN.into_response(),
         Ok(LibraryDetailAccess::NotFound) => StatusCode::NOT_FOUND.into_response(),

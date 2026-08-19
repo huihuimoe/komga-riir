@@ -12,20 +12,18 @@ use serde_json::Value;
 use std::collections::BTreeSet;
 use std::time::{SystemTime, UNIX_EPOCH};
 
+use super::BookDetailReadModel;
 use super::detail_utils::internal_error_response;
-use super::readlists_support::{
-    comicrack_match_payload, merge_readlist_write_input, readlist_payload, readlists_page_payload,
-};
-use super::{BookDetailReadModel, book_detail_payload};
+use super::readlists_support::{merge_readlist_write_input, readlists_page_payload};
 use crate::contracts::common::{PageDto, SpringErrorDto, ViolationDto};
-use crate::contracts::discovery::BookDto;
+use crate::contracts::discovery::{BookDto, ReadListDto, ReadListRequestMatchDto};
 use crate::discovery::query::{resolve_readlist_books_query, resolve_readlists_query};
 use crate::helpers::{to_domain_query_context, validation_error_response};
 use crate::identity_access::auth::{Admin, Authenticated};
 use crate::state::DiscoveryState;
 
 fn readlist_response(readlist: &ReadListReadModel) -> Response {
-    match readlist_payload(readlist) {
+    match ReadListDto::from_read_model(readlist) {
         Ok(payload) => Json(payload).into_response(),
         Err(error) => internal_error_response(format!("{error:#}")),
     }
@@ -255,7 +253,7 @@ pub(crate) async fn readlist_match_comicrack(
     };
 
     match app.persisted_sets.match_comicrack_readlist(&request).await {
-        Ok(result) => match comicrack_match_payload(&result) {
+        Ok(result) => match ReadListRequestMatchDto::from_result(&result) {
             Ok(payload) => Json(payload).into_response(),
             Err(error) => internal_error_response(format!("{error:#}")),
         },
@@ -452,7 +450,7 @@ async fn sibling_response(
         Err(error) => return internal_error_response(error),
     };
 
-    match book_detail_payload(&sibling, is_admin) {
+    match BookDto::from_read_model(&sibling, is_admin) {
         Ok(payload) => Json(payload).into_response(),
         Err(error) => internal_error_response(error),
     }
@@ -466,7 +464,7 @@ fn book_details_page_payload(
     let content = page
         .content
         .iter()
-        .map(|book| book_detail_payload(book, is_admin))
+        .map(|book| BookDto::from_read_model(book, is_admin))
         .collect::<anyhow::Result<Vec<_>>>()?;
 
     Ok(PageDto::from_parts(

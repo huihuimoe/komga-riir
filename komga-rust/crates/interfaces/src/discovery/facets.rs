@@ -1,4 +1,4 @@
-use super::persisted::authors_queries::{authors_v2_page_payload, paged_values_payload};
+use super::persisted::authors_queries::paged_values_payload;
 use super::persisted::common_helpers::{
     decode_query_component, discovery_error_response, internal_error_response,
 };
@@ -214,7 +214,7 @@ pub(crate) async fn authors_v2(
         Err(response) => return response,
     };
 
-    Json(authors_v2_page_payload(authors, page, size, unpaged)).into_response()
+    Json(paged_values_payload(authors, page, size, unpaged)).into_response()
 }
 
 async fn scoped_authors_v2(

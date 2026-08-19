@@ -32,9 +32,3 @@ pub(super) fn collections_unpaged_payload(
 
     Ok(PageDto::unpaged(content, true))
 }
-
-pub(super) fn collection_payload(
-    collection: &CollectionReadModel,
-) -> anyhow::Result<CollectionDto> {
-    CollectionDto::from_read_model(collection)
-}

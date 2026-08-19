@@ -1,3 +1,4 @@
+use crate::contracts::library_catalog::LibraryDto;
 use crate::helpers::spring_error_response;
 use crate::state::LibraryCatalogState;
 use axum::Json;
@@ -7,8 +8,6 @@ use komga_application::library_catalog::{LibraryCatalogMutationError, LibraryCha
 use komga_application::task_processing::{
     SubmitUrgency, TaskQueueRecord as ApplicationTaskQueueRecord,
 };
-
-use super::response_mapping::library_payload;
 
 pub(super) struct LibraryCatalogCommands<'a> {
     app: &'a LibraryCatalogState,
@@ -26,7 +25,7 @@ impl<'a> LibraryCatalogCommands<'a> {
                 if enqueue_response.status().is_server_error() {
                     return enqueue_response;
                 }
-                Json(library_payload(&result.library, true)).into_response()
+                Json(LibraryDto::from_record(&result.library, true)).into_response()
             }
             Err(error) => mutation_error_response(error),
         }

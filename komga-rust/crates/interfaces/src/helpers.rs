@@ -185,10 +185,6 @@ pub(crate) fn detail_access_denial_response(denial: DetailAccessDenial) -> Respo
     }
 }
 
-pub(crate) fn invalid_read_progress_payload() -> Response {
-    spring_error_response(StatusCode::BAD_REQUEST, "invalid read progress payload")
-}
-
 pub(crate) fn validation_error_response(violations: Vec<ViolationDto>) -> Response {
     (
         StatusCode::BAD_REQUEST,
@@ -196,14 +192,6 @@ pub(crate) fn validation_error_response(violations: Vec<ViolationDto>) -> Respon
         Json(ValidationErrorDto { violations }),
     )
         .into_response()
-}
-
-pub(crate) fn read_progress_validation_error_response(violations: Vec<ViolationDto>) -> Response {
-    validation_error_response(violations)
-}
-
-pub(crate) fn invalid_progression_payload() -> Response {
-    spring_error_response(StatusCode::BAD_REQUEST, "invalid progression payload")
 }
 
 #[cfg(test)]
