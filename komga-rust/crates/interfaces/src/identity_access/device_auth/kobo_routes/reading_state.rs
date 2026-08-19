@@ -59,52 +59,53 @@ struct KoboReadingStateStatusInfo {
 
 #[derive(Serialize)]
 #[serde(rename_all = "PascalCase")]
-struct KoboReadingStatePayload {
-    created: String,
-    current_bookmark: KoboReadingStateBookmarkPayload,
-    entitlement_id: String,
-    last_modified: String,
-    priority_timestamp: String,
-    statistics: KoboReadingStateStatisticsPayload,
-    status_info: KoboReadingStateStatusPayload,
+pub(super) struct KoboReadingStatePayload {
+    pub(super) created: String,
+    pub(super) current_bookmark: KoboReadingStateBookmarkPayload,
+    pub(super) entitlement_id: String,
+    pub(super) last_modified: String,
+    pub(super) priority_timestamp: String,
+    pub(super) statistics: KoboReadingStateStatisticsPayload,
+    pub(super) status_info: KoboReadingStateStatusPayload,
 }
 
 #[derive(Serialize)]
 #[serde(rename_all = "PascalCase")]
-struct KoboReadingStateBookmarkPayload {
-    last_modified: String,
+pub(super) struct KoboReadingStateBookmarkPayload {
+    pub(super) last_modified: String,
     #[serde(skip_serializing_if = "Option::is_none")]
-    progress_percent: Option<f64>,
+    pub(super) progress_percent: Option<f64>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    content_source_progress_percent: Option<f64>,
+    pub(super) content_source_progress_percent: Option<f64>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    location: Option<KoboReadingStateLocationPayload>,
+    pub(super) location: Option<KoboReadingStateLocationPayload>,
 }
 
 #[derive(Serialize)]
 #[serde(rename_all = "PascalCase")]
-struct KoboReadingStateLocationPayload {
-    source: String,
+pub(super) struct KoboReadingStateLocationPayload {
+    pub(super) source: String,
     #[serde(rename = "Type")]
-    location_type: &'static str,
+    pub(super) location_type: &'static str,
+    // Outer None omits the field; Some(None) preserves Kobo sync's explicit null.
     #[serde(skip_serializing_if = "Option::is_none")]
-    value: Option<String>,
+    pub(super) value: Option<Option<String>>,
 }
 
 #[derive(Serialize)]
 #[serde(rename_all = "PascalCase")]
-struct KoboReadingStateStatisticsPayload {
-    last_modified: String,
+pub(super) struct KoboReadingStateStatisticsPayload {
+    pub(super) last_modified: String,
 }
 
 #[derive(Serialize)]
 #[serde(rename_all = "PascalCase")]
-struct KoboReadingStateStatusPayload {
-    last_modified: String,
-    status: &'static str,
-    times_started_reading: u64,
-    last_time_finished: Option<String>,
-    last_time_started_reading: Option<String>,
+pub(super) struct KoboReadingStateStatusPayload {
+    pub(super) last_modified: String,
+    pub(super) status: &'static str,
+    pub(super) times_started_reading: u64,
+    pub(super) last_time_finished: Option<String>,
+    pub(super) last_time_started_reading: Option<String>,
 }
 
 #[derive(Serialize)]
@@ -228,7 +229,7 @@ fn kobo_reading_state_payload(reading_state: KoboReadingStateSnapshot) -> KoboRe
                 .map(|location| KoboReadingStateLocationPayload {
                     source: location.source,
                     location_type: "KoboSpan",
-                    value: location.kobo_span,
+                    value: location.kobo_span.map(Some),
                 }),
         },
         entitlement_id: reading_state.book_id,
