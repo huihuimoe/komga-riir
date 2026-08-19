@@ -1,10 +1,13 @@
+use anyhow::Result;
 use axum::Json;
 use axum::extract::State;
 use axum::http::StatusCode;
 use axum::http::Uri;
 use axum::response::{IntoResponse, Response};
-use serde_json::{Value, json};
+use serde_json::json;
 
+use crate::contracts::common::{KotlinLocalDateTime, PageDto};
+use crate::contracts::history::HistoryEventDto;
 use crate::identity_access::auth::{Admin, Authenticated};
 use crate::state::OperationalApiState;
 use komga_application::identity_access::user_id;
@@ -41,56 +44,44 @@ pub(crate) async fn get_history(
         Err(_) => return StatusCode::INTERNAL_SERVER_ERROR.into_response(),
     };
 
-    Json(history_page_payload(&page_data)).into_response()
+    match history_page_dto(&page_data) {
+        Ok(payload) => Json(payload).into_response(),
+        Err(error) => {
+            tracing::error!(?error, "history response mapping failed");
+            StatusCode::INTERNAL_SERVER_ERROR.into_response()
+        }
+    }
 }
 
-fn history_page_payload(page: &HistoryPage) -> Value {
+fn history_page_dto(page: &HistoryPage) -> Result<PageDto<HistoryEventDto>> {
+    let page_number = usize::try_from(page.page)?;
+    let page_size = usize::try_from(page.size)?;
+    let total_elements = usize::try_from(page.total_elements)?;
+    let total_pages = usize::try_from(page.total_pages)?;
     let content = page
         .content
         .iter()
-        .map(history_event_payload)
-        .collect::<Vec<_>>();
-    let sort = history_sort_payload(page.sorted);
-    let number_of_elements = page.number_of_elements();
+        .map(history_event_dto)
+        .collect::<Result<Vec<_>, _>>()?;
 
-    json!({
-        "content": content,
-        "pageable": {
-            "pageNumber": page.page,
-            "pageSize": page.size,
-            "sort": sort.clone(),
-            "offset": page.offset(),
-            "paged": true,
-            "unpaged": false,
-        },
-        "last": page.total_pages == 0 || page.page + 1 >= page.total_pages,
-        "totalElements": page.total_elements,
-        "totalPages": page.total_pages,
-        "first": page.page == 0,
-        "size": page.size,
-        "number": page.page,
-        "sort": sort,
-        "numberOfElements": number_of_elements,
-        "empty": number_of_elements == 0,
-    })
+    Ok(PageDto::paged(
+        content,
+        page_number,
+        page_size,
+        total_elements,
+        total_pages,
+        page.sorted,
+    ))
 }
 
-fn history_event_payload(event: &HistoryEvent) -> Value {
-    json!({
-        "id": &event.id,
-        "type": &event.event_type,
-        "bookId": &event.book_id,
-        "seriesId": &event.series_id,
-        "timestamp": &event.timestamp,
-        "properties": &event.properties,
-    })
-}
-
-fn history_sort_payload(sorted: bool) -> Value {
-    json!({
-        "empty": !sorted,
-        "sorted": sorted,
-        "unsorted": !sorted,
+fn history_event_dto(event: &HistoryEvent) -> Result<HistoryEventDto> {
+    Ok(HistoryEventDto {
+        id: event.id.clone(),
+        event_type: event.event_type.clone(),
+        timestamp: KotlinLocalDateTime::parse(&event.timestamp)?,
+        book_id: event.book_id.clone(),
+        series_id: event.series_id.clone(),
+        properties: event.properties.clone(),
     })
 }
 

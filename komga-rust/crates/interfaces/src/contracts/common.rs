@@ -105,6 +105,25 @@ impl std::error::Error for WireDateTimeError {}
 pub struct KotlinLocalDateTime(PrimitiveDateTime);
 
 impl KotlinLocalDateTime {
+    pub fn parse(raw: &str) -> Result<Self, WireDateTimeError> {
+        let parsed = OffsetDateTime::parse(raw, &Rfc3339)
+            .ok()
+            .or_else(|| parse_naive_datetime(raw, SQLITE_DATETIME).ok())
+            .or_else(|| parse_naive_datetime(raw, SQLITE_DATETIME_WITH_SUBSECOND).ok())
+            .or_else(|| parse_naive_datetime(raw, ISO_DATETIME).ok())
+            .or_else(|| parse_naive_datetime(raw, ISO_DATETIME_WITH_SUBSECOND).ok())
+            .or_else(|| {
+                raw.parse::<i64>()
+                    .ok()
+                    .and_then(|seconds| OffsetDateTime::from_unix_timestamp(seconds).ok())
+            })
+            .ok_or_else(|| WireDateTimeError {
+                input: raw.to_string(),
+            })?;
+
+        Ok(Self(PrimitiveDateTime::new(parsed.date(), parsed.time())))
+    }
+
     pub fn from_unix_timestamp_nanos(unix_nanos: i128) -> Result<Self, WireDateTimeError> {
         let local_offset = UtcOffset::current_local_offset().unwrap_or(UtcOffset::UTC);
         let datetime = OffsetDateTime::from_unix_timestamp_nanos(unix_nanos)
