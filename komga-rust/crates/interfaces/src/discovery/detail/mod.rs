@@ -1,6 +1,6 @@
 use serde_json::{Map, Value, json};
 
-use crate::contracts::discovery::BookDto;
+use crate::contracts::discovery::{BookDto, CollectionDto};
 use crate::helpers::{api_file_path, normalized_date_time, normalized_file_last_modified};
 use komga_application::discovery::{
     BookMetadataAuthorReadModel, BookReadModel, CollectionReadModel, SeriesAlternateTitleRecord,
@@ -327,8 +327,10 @@ fn series_detail_payload(series: &SeriesDetailReadModel, is_admin: bool) -> Valu
     Value::Object(payload)
 }
 
-fn series_collections_payload(collections: &[CollectionReadModel]) -> Value {
-    Value::Array(collections.iter().map(collection_payload).collect())
+fn series_collections_payload(
+    collections: &[CollectionReadModel],
+) -> anyhow::Result<Vec<CollectionDto>> {
+    collections.iter().map(collection_payload).collect()
 }
 
 #[cfg(test)]

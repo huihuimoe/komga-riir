@@ -4,13 +4,12 @@ use axum::extract::State;
 use axum::http::{HeaderMap, StatusCode};
 use axum::response::{IntoResponse, Response};
 use komga_application::discovery::resolve_persisted_book_id;
-use serde_json::Value;
 
 use super::books_persistence::{
     PersistedBookSiblingDirection, load_persisted_book_resource, load_persisted_book_sibling_detail,
 };
 use super::detail_utils::internal_error_response;
-use super::readlists_support::readlist_payload;
+use super::readlists_support::readlists_payload;
 use super::{BookDetailReadModel, book_detail_payload, load_persisted_book_detail};
 use crate::discovery_auth::context::{DetailContentContext, DetailResourceContext};
 use crate::helpers::{detail_access_denial_response, to_domain_query_context};
@@ -212,11 +211,8 @@ pub(crate) async fn book_readlists(
         Err(error) => return internal_error_response(error),
     };
 
-    Json(Value::Array(
-        visible_readlists
-            .iter()
-            .map(readlist_payload)
-            .collect::<Vec<_>>(),
-    ))
-    .into_response()
+    match readlists_payload(&visible_readlists) {
+        Ok(payload) => Json(payload).into_response(),
+        Err(error) => internal_error_response(format!("{error:#}")),
+    }
 }

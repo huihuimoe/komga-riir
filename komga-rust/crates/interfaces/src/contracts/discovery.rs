@@ -1,13 +1,193 @@
 use anyhow::{Context, Result};
 use komga_application::discovery::{
     BookMetadataAuthorReadModel, BookMetadataLinkReadModel, BookReadModel,
-    BookReadProgressReadModel, SeriesReadModel,
+    BookReadProgressReadModel, CollectionReadModel, ComicRackReadListMatchResult,
+    ReadListReadModel, SeriesReadModel,
 };
 use komga_domain::discovery::MediaProfile;
 use serde::Serialize;
 
 use super::common::{KotlinLocalDate, KotlinUtcDateTime};
 use crate::helpers::{api_file_path, restricted_book_url};
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CollectionDto {
+    pub id: String,
+    pub name: String,
+    pub ordered: bool,
+    pub series_ids: Vec<String>,
+    pub created_date: KotlinUtcDateTime,
+    pub last_modified_date: KotlinUtcDateTime,
+    pub filtered: bool,
+}
+
+impl CollectionDto {
+    pub fn from_read_model(collection: &CollectionReadModel) -> Result<Self> {
+        Ok(Self {
+            id: collection.id.clone(),
+            name: collection.name.clone(),
+            ordered: collection.ordered,
+            series_ids: collection.series_ids.clone(),
+            created_date: parse_datetime("collection.createdDate", &collection.created_date)?,
+            last_modified_date: parse_datetime(
+                "collection.lastModifiedDate",
+                &collection.last_modified_date,
+            )?,
+            filtered: collection.filtered,
+        })
+    }
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ReadListDto {
+    pub id: String,
+    pub name: String,
+    pub summary: String,
+    pub ordered: bool,
+    pub book_ids: Vec<String>,
+    pub created_date: KotlinUtcDateTime,
+    pub last_modified_date: KotlinUtcDateTime,
+    pub filtered: bool,
+}
+
+impl ReadListDto {
+    pub fn from_read_model(readlist: &ReadListReadModel) -> Result<Self> {
+        Ok(Self {
+            id: readlist.id.clone(),
+            name: readlist.name.clone(),
+            summary: readlist.summary.clone(),
+            ordered: readlist.ordered,
+            book_ids: readlist.book_ids.clone(),
+            created_date: parse_datetime("readList.createdDate", &readlist.created_date)?,
+            last_modified_date: parse_datetime(
+                "readList.lastModifiedDate",
+                &readlist.last_modified_date,
+            )?,
+            filtered: readlist.filtered,
+        })
+    }
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ReadListRequestMatchDto {
+    pub read_list_match: ReadListMatchDto,
+    pub requests: Vec<ReadListRequestBookMatchesDto>,
+    pub error_code: String,
+}
+
+impl ReadListRequestMatchDto {
+    pub fn from_result(result: &ComicRackReadListMatchResult) -> Result<Self> {
+        Ok(Self {
+            read_list_match: ReadListMatchDto {
+                name: result.name.clone(),
+                error_code: result
+                    .error
+                    .map(|error| error.error_code().to_string())
+                    .unwrap_or_default(),
+            },
+            requests: result
+                .requests
+                .iter()
+                .map(ReadListRequestBookMatchesDto::from_result)
+                .collect::<Result<Vec<_>>>()?,
+            error_code: String::new(),
+        })
+    }
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ReadListMatchDto {
+    pub name: String,
+    pub error_code: String,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ReadListRequestBookMatchesDto {
+    pub request: ReadListRequestBookDto,
+    pub matches: Vec<ReadListRequestBookMatchDto>,
+}
+
+impl ReadListRequestBookMatchesDto {
+    fn from_result(
+        request: &komga_application::discovery::ComicRackReadListRequestMatch,
+    ) -> Result<Self> {
+        Ok(Self {
+            request: ReadListRequestBookDto {
+                series: request.request.series_candidates.clone(),
+                number: request.request.number.clone(),
+            },
+            matches: request
+                .matches
+                .iter()
+                .map(ReadListRequestBookMatchDto::from_result)
+                .collect::<Result<Vec<_>>>()?,
+        })
+    }
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ReadListRequestBookDto {
+    pub series: Vec<String>,
+    pub number: String,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ReadListRequestBookMatchDto {
+    pub series: ReadListRequestBookMatchSeriesDto,
+    pub books: Vec<ReadListRequestBookMatchBookDto>,
+}
+
+impl ReadListRequestBookMatchDto {
+    fn from_result(
+        group: &komga_application::discovery::ComicRackReadListMatchGroup,
+    ) -> Result<Self> {
+        Ok(Self {
+            series: ReadListRequestBookMatchSeriesDto {
+                series_id: group.series.series_id.clone(),
+                title: group.series.title.clone(),
+                release_date: group
+                    .series
+                    .release_date
+                    .as_deref()
+                    .map(KotlinLocalDate::parse)
+                    .transpose()
+                    .context("readListMatch.series.releaseDate")?,
+            },
+            books: group
+                .books
+                .iter()
+                .map(|book| ReadListRequestBookMatchBookDto {
+                    book_id: book.book_id.clone(),
+                    number: book.number.clone(),
+                    title: book.title.clone(),
+                })
+                .collect(),
+        })
+    }
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ReadListRequestBookMatchSeriesDto {
+    pub series_id: String,
+    pub title: String,
+    pub release_date: Option<KotlinLocalDate>,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ReadListRequestBookMatchBookDto {
+    pub book_id: String,
+    pub number: String,
+    pub title: String,
+}
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]

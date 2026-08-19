@@ -5,7 +5,7 @@ use axum::http::{HeaderMap, StatusCode, Uri};
 use axum::response::{IntoResponse, Response};
 use axum_extra::extract::{Multipart, multipart::MultipartRejection};
 use komga_application::discovery::{
-    ReadlistMutationError, ReadlistMutationInput, parse_comicrack_readlist,
+    ReadListReadModel, ReadlistMutationError, ReadlistMutationInput, parse_comicrack_readlist,
 };
 use komga_domain::discovery::PageEnvelope;
 use serde_json::{Value, json};
@@ -23,6 +23,14 @@ use crate::discovery::query::{resolve_readlist_books_query, resolve_readlists_qu
 use crate::helpers::{to_domain_query_context, validation_error_response};
 use crate::identity_access::auth::{Admin, Authenticated};
 use crate::state::DiscoveryState;
+
+fn readlist_response(readlist: &ReadListReadModel) -> Response {
+    match readlist_payload(readlist) {
+        Ok(payload) => Json(payload).into_response(),
+        Err(error) => internal_error_response(format!("{error:#}")),
+    }
+}
+
 pub(crate) async fn readlists(
     State(app): State<DiscoveryState>,
     _: Authenticated,
@@ -30,6 +38,7 @@ pub(crate) async fn readlists(
     uri: Uri,
 ) -> Response {
     let query = resolve_readlists_query(&uri);
+    let paged = !query.unpaged;
 
     let requested_context = match app
         .discovery_auth
@@ -67,7 +76,10 @@ pub(crate) async fn readlists(
         Err(error) => return internal_error_response(error),
     };
 
-    Json(readlists_page_payload(page)).into_response()
+    match readlists_page_payload(page, paged) {
+        Ok(payload) => Json(payload).into_response(),
+        Err(error) => internal_error_response(format!("{error:#}")),
+    }
 }
 
 pub(crate) async fn readlist_create(
@@ -96,7 +108,7 @@ pub(crate) async fn readlist_create(
         .readlist_for_mutation(&created.readlist_id)
         .await
     {
-        Ok(Some(readlist)) => Json(readlist_payload(&readlist)).into_response(),
+        Ok(Some(readlist)) => readlist_response(&readlist),
         Ok(None) => StatusCode::NOT_FOUND.into_response(),
         Err(error) => internal_error_response(error),
     }
@@ -243,7 +255,10 @@ pub(crate) async fn readlist_match_comicrack(
     };
 
     match app.persisted_sets.match_comicrack_readlist(&request).await {
-        Ok(result) => Json(comicrack_match_payload(&result)).into_response(),
+        Ok(result) => match comicrack_match_payload(&result) {
+            Ok(payload) => Json(payload).into_response(),
+            Err(error) => internal_error_response(format!("{error:#}")),
+        },
         Err(error) => internal_error_response(error),
     }
 }
@@ -381,7 +396,7 @@ pub(crate) async fn readlist_detail(
         .readlist_detail(&to_domain_query_context(context), &readlist_id)
         .await
     {
-        Ok(Some(readlist)) => Json(readlist_payload(&readlist)).into_response(),
+        Ok(Some(readlist)) => readlist_response(&readlist),
         Ok(None) => StatusCode::NOT_FOUND.into_response(),
         Err(error) => internal_error_response(error),
     }

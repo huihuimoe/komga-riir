@@ -25,6 +25,14 @@ use super::collections_support::{
 };
 use super::detail_utils::internal_error_response;
 use crate::discovery::query::{parse_series_filter_from_json, resolve_collection_list_request};
+
+fn collection_response(collection: &CollectionReadModel) -> Response {
+    match collection_payload(collection) {
+        Ok(payload) => Json(payload).into_response(),
+        Err(error) => internal_error_response(format!("{error:#}")),
+    }
+}
+
 struct CollectionPatchInput {
     name: Option<String>,
     ordered: Option<bool>,
@@ -345,11 +353,16 @@ pub(crate) async fn collections(
     };
 
     if unpaged {
-        let payload = collections_unpaged_payload(page.content);
-        return Json(payload).into_response();
+        return match collections_unpaged_payload(page.content) {
+            Ok(payload) => Json(payload).into_response(),
+            Err(error) => internal_error_response(format!("{error:#}")),
+        };
     }
 
-    Json(collections_page_payload(page)).into_response()
+    match collections_page_payload(page) {
+        Ok(payload) => Json(payload).into_response(),
+        Err(error) => internal_error_response(format!("{error:#}")),
+    }
 }
 
 pub(crate) async fn collection_create(
@@ -378,7 +391,7 @@ pub(crate) async fn collection_create(
         .collection_for_mutation(&created.collection_id)
         .await
     {
-        Ok(Some(collection)) => Json(collection_payload(&collection)).into_response(),
+        Ok(Some(collection)) => collection_response(&collection),
         Ok(None) => StatusCode::NOT_FOUND.into_response(),
         Err(error) => internal_error_response(error),
     }
@@ -646,7 +659,7 @@ pub(crate) async fn collection_detail(
         .collection_detail(&to_domain_query_context(context), &collection_id)
         .await
     {
-        Ok(Some(collection)) => Json(collection_payload(&collection)).into_response(),
+        Ok(Some(collection)) => collection_response(&collection),
         Ok(None) => StatusCode::NOT_FOUND.into_response(),
         Err(error) => internal_error_response(error),
     }

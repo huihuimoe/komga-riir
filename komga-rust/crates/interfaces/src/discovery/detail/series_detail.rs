@@ -123,7 +123,10 @@ pub(crate) async fn series_collections(
                     Err(error) => return internal_error_response(error),
                 };
 
-                Json(series_collections_payload(&visible_collections)).into_response()
+                match series_collections_payload(&visible_collections) {
+                    Ok(payload) => Json(payload).into_response(),
+                    Err(error) => internal_error_response(error),
+                }
             }
             Err(error) => internal_error_response(error),
         },
