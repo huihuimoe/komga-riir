@@ -8,6 +8,7 @@ pub(in crate::discovery) fn series_read_model_page_payload(
     paged: bool,
     sorted: bool,
     kotlin_unpaged_shape: bool,
+    is_admin: bool,
 ) -> anyhow::Result<PageDto<SeriesDto>> {
     let (page_number, page_size, total_pages) = if kotlin_unpaged_shape {
         let page_size = page.total_elements.max(20);
@@ -23,7 +24,7 @@ pub(in crate::discovery) fn series_read_model_page_payload(
     let content = page
         .content
         .iter()
-        .map(SeriesDto::from_read_model)
+        .map(|series| SeriesDto::from_read_model(series, is_admin))
         .collect::<anyhow::Result<Vec<_>>>()?;
 
     Ok(PageDto::from_parts(

@@ -212,6 +212,7 @@ pub(crate) async fn collection_series(
         },
         false,
         false,
+        domain_context.is_admin,
     ) {
         Ok(payload) => Json(payload).into_response(),
         Err(error) => internal_error_response(format!("{error:#}")),

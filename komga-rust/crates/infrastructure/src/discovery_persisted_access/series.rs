@@ -47,6 +47,7 @@ async fn fetch_persisted_series_summary_rows(
     let mut query = QueryBuilder::<Sqlite>::new(
         r#"SELECT s.ID,
                   s.LIBRARY_ID,
+                  s.URL AS URL,
                   s.CREATED_DATE,
                   s.LAST_MODIFIED_DATE,
                   CAST(s.FILE_LAST_MODIFIED AS TEXT) AS FILE_LAST_MODIFIED,
@@ -144,6 +145,7 @@ fn series_read_model(summary: SeriesSummary) -> SeriesReadModel {
         id: summary.id,
         library_id: summary.library_id,
         name: summary.name,
+        url: summary.url,
         title: summary.title,
         title_sort: summary.title_sort,
         labels: summary.labels,
@@ -182,6 +184,7 @@ fn map_series_summary(row: SqliteRow) -> SeriesSummary {
         id: row.get::<String, _>("ID"),
         library_id: row.get::<String, _>("LIBRARY_ID"),
         name: row.get::<String, _>("NAME"),
+        url: row.get::<String, _>("URL"),
         title: row.get::<String, _>("TITLE"),
         title_sort: row.get::<String, _>("TITLE_SORT"),
         labels: common::parse_group_concat_values(&row.get::<String, _>("LABELS")),
@@ -260,6 +263,7 @@ mod tests {
             .first()
             .expect("series summary should include seeded series");
 
+        assert_eq!(summary.url, "series");
         assert_eq!(summary.labels, vec!["Kids, Family"]);
         assert_eq!(summary.genres, vec!["Sci, Fi"]);
         assert_eq!(summary.tags, vec!["Slice, Life"]);

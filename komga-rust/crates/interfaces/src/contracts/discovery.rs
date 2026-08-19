@@ -2,12 +2,13 @@ use anyhow::{Context, Result};
 use komga_application::discovery::{
     BookMetadataAuthorReadModel, BookMetadataLinkReadModel, BookReadModel,
     BookReadProgressReadModel, CollectionReadModel, ComicRackReadListMatchResult,
-    ReadListReadModel, SeriesReadModel,
+    ReadListReadModel, SeriesAlternateTitleRecord, SeriesMetadataLinkRecord, SeriesReadModel,
 };
 use komga_domain::discovery::MediaProfile;
 use serde::Serialize;
 
 use super::common::{KotlinLocalDate, KotlinUtcDateTime};
+use crate::discovery::detail::SeriesDetailReadModel;
 use crate::helpers::{api_file_path, restricted_book_url};
 
 #[derive(Debug, Serialize)]
@@ -210,12 +211,16 @@ pub struct SeriesDto {
 }
 
 impl SeriesDto {
-    pub fn from_read_model(series: &SeriesReadModel) -> Result<Self> {
+    pub fn from_read_model(series: &SeriesReadModel, is_admin: bool) -> Result<Self> {
         Ok(Self {
             id: series.id.clone(),
             library_id: series.library_id.clone(),
             name: series.name.clone(),
-            url: format!("series/{}", series.id),
+            url: if is_admin {
+                api_file_path(&series.url)
+            } else {
+                String::new()
+            },
             created: parse_datetime("series.created", &series.created)?,
             last_modified: parse_datetime("series.lastModified", &series.last_modified)?,
             file_last_modified: parse_datetime(
@@ -228,6 +233,33 @@ impl SeriesDto {
             books_in_progress_count: series.books_in_progress_count,
             metadata: SeriesMetadataDto::from_read_model(series)?,
             books_metadata: BookMetadataAggregationDto::from_read_model(series)?,
+            deleted: series.deleted,
+            oneshot: series.oneshot,
+        })
+    }
+
+    pub(crate) fn from_detail(series: &SeriesDetailReadModel, is_admin: bool) -> Result<Self> {
+        Ok(Self {
+            id: series.id.clone(),
+            library_id: series.library_id.clone(),
+            name: series.name.clone(),
+            url: if is_admin {
+                api_file_path(&series.url)
+            } else {
+                String::new()
+            },
+            created: parse_datetime("series.created", &series.created)?,
+            last_modified: parse_datetime("series.lastModified", &series.last_modified)?,
+            file_last_modified: parse_datetime(
+                "series.fileLastModified",
+                &series.file_last_modified,
+            )?,
+            books_count: u64::from(series.books_count),
+            books_read_count: u64::from(series.books_read_count),
+            books_unread_count: u64::from(series.books_unread_count),
+            books_in_progress_count: u64::from(series.books_in_progress_count),
+            metadata: SeriesMetadataDto::from_detail(series)?,
+            books_metadata: BookMetadataAggregationDto::from_detail(series)?,
             deleted: series.deleted,
             oneshot: series.oneshot,
         })
@@ -314,6 +346,55 @@ impl SeriesMetadataDto {
             )?,
         })
     }
+
+    fn from_detail(series: &SeriesDetailReadModel) -> Result<Self> {
+        Ok(Self {
+            status: series.status.persisted_name().to_string(),
+            status_lock: series.status_lock,
+            title: series.title.clone(),
+            title_lock: series.title_lock,
+            title_sort: series.title_sort.clone(),
+            title_sort_lock: series.title_sort_lock,
+            summary: series.summary.clone(),
+            summary_lock: series.summary_lock,
+            reading_direction: series
+                .reading_direction
+                .map(|value| value.persisted_name().to_string())
+                .unwrap_or_default(),
+            reading_direction_lock: series.reading_direction_lock,
+            publisher: series.publisher.clone(),
+            publisher_lock: series.publisher_lock,
+            age_rating: series.age_rating,
+            age_rating_lock: series.age_rating_lock,
+            language: series.language.clone(),
+            language_lock: series.language_lock,
+            genres: series.genres.clone(),
+            genres_lock: series.genres_lock,
+            tags: series.tags.clone(),
+            tags_lock: series.tags_lock,
+            total_book_count: series.total_book_count.map(u64::from),
+            total_book_count_lock: series.total_book_count_lock,
+            sharing_labels: series.sharing_labels.clone(),
+            sharing_labels_lock: series.sharing_labels_lock,
+            links: series
+                .links
+                .iter()
+                .map(WebLinkDto::from_series_record)
+                .collect(),
+            links_lock: series.links_lock,
+            alternate_titles: series
+                .alternate_titles
+                .iter()
+                .map(AlternateTitleDto::from_series_record)
+                .collect(),
+            alternate_titles_lock: series.alternate_titles_lock,
+            created: parse_datetime("series.metadata.created", &series.metadata_created)?,
+            last_modified: parse_datetime(
+                "series.metadata.lastModified",
+                &series.metadata_last_modified,
+            )?,
+        })
+    }
 }
 
 #[derive(Debug, Serialize)]
@@ -355,6 +436,33 @@ impl BookMetadataAggregationDto {
             )?,
         })
     }
+
+    fn from_detail(series: &SeriesDetailReadModel) -> Result<Self> {
+        Ok(Self {
+            authors: series
+                .books_metadata_authors
+                .iter()
+                .map(AuthorDto::from_read_model)
+                .collect(),
+            tags: series.books_metadata_tags.clone(),
+            release_date: series
+                .books_metadata_release_date
+                .as_deref()
+                .map(KotlinLocalDate::parse)
+                .transpose()
+                .context("series.booksMetadata.releaseDate")?,
+            summary: series.books_metadata_summary.clone(),
+            summary_number: series.books_metadata_summary_number.clone(),
+            created: parse_datetime(
+                "series.booksMetadata.created",
+                &series.books_metadata_created,
+            )?,
+            last_modified: parse_datetime(
+                "series.booksMetadata.lastModified",
+                &series.books_metadata_last_modified,
+            )?,
+        })
+    }
 }
 
 #[derive(Debug, Serialize)]
@@ -373,6 +481,13 @@ impl AlternateTitleDto {
         Self {
             label: label.to_string(),
             title: title.to_string(),
+        }
+    }
+
+    fn from_series_record(value: &SeriesAlternateTitleRecord) -> Self {
+        Self {
+            label: value.label.clone(),
+            title: value.title.clone(),
         }
     }
 }
@@ -564,6 +679,13 @@ pub struct WebLinkDto {
 
 impl WebLinkDto {
     fn from_read_model(link: &BookMetadataLinkReadModel) -> Self {
+        Self {
+            label: link.label.clone(),
+            url: link.url.clone(),
+        }
+    }
+
+    fn from_series_record(link: &SeriesMetadataLinkRecord) -> Self {
         Self {
             label: link.label.clone(),
             url: link.url.clone(),

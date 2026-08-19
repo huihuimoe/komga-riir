@@ -8,6 +8,7 @@ fn series() -> SeriesReadModel {
         id: "series-1".to_string(),
         library_id: "library-1".to_string(),
         name: "Series File Name".to_string(),
+        url: "file:///data/series/series-1".to_string(),
         title: "Series Title".to_string(),
         title_sort: "Series Sort".to_string(),
         labels: vec!["Team".to_string()],
@@ -43,9 +44,10 @@ fn series() -> SeriesReadModel {
 
 #[test]
 fn series_dto_matches_kotlin_field_shape_and_formats() {
-    let payload =
-        serde_json::to_value(SeriesDto::from_read_model(&series()).expect("series should map"))
-            .expect("series should serialize");
+    let payload = serde_json::to_value(
+        SeriesDto::from_read_model(&series(), true).expect("series should map"),
+    )
+    .expect("series should serialize");
 
     assert_eq!(
         payload
@@ -72,7 +74,7 @@ fn series_dto_matches_kotlin_field_shape_and_formats() {
             "url",
         ]
     );
-    assert_eq!(payload["url"], json!("series/series-1"));
+    assert_eq!(payload["url"], json!("/data/series/series-1"));
     assert_eq!(payload["created"], json!("2024-01-01T00:00:00Z"));
     assert_eq!(payload["fileLastModified"], json!("2024-01-03T00:00:00Z"));
     assert_eq!(payload["metadata"]["status"], json!("ONGOING"));
@@ -89,6 +91,12 @@ fn series_dto_matches_kotlin_field_shape_and_formats() {
         json!([{ "name": "Author", "role": "Writer" }])
     );
     assert_eq!(payload["booksMetadata"]["releaseDate"], json!("2024-01-15"));
+
+    let restricted = serde_json::to_value(
+        SeriesDto::from_read_model(&series(), false).expect("series should map"),
+    )
+    .expect("series should serialize");
+    assert_eq!(restricted["url"], json!(""));
 }
 
 #[test]
@@ -96,5 +104,5 @@ fn series_dto_rejects_invalid_wire_dates() {
     let mut invalid = series();
     invalid.metadata_created = "not-a-date".to_string();
 
-    assert!(SeriesDto::from_read_model(&invalid).is_err());
+    assert!(SeriesDto::from_read_model(&invalid, true).is_err());
 }

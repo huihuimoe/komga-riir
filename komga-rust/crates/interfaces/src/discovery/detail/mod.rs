@@ -1,7 +1,4 @@
-use serde_json::{Map, Value, json};
-
-use crate::contracts::discovery::{BookDto, CollectionDto};
-use crate::helpers::{api_file_path, normalized_date_time, normalized_file_last_modified};
+use crate::contracts::discovery::{BookDto, CollectionDto, SeriesDto};
 use komga_application::discovery::{
     BookMetadataAuthorReadModel, BookReadModel, CollectionReadModel, SeriesAlternateTitleRecord,
     SeriesMetadataLinkRecord, SeriesReadingDirection,
@@ -39,57 +36,57 @@ pub(in crate::discovery) use series_persistence::load_persisted_series_resource;
 pub(super) type BookDetailReadModel = BookReadModel;
 
 #[derive(Clone)]
-pub(super) struct SeriesDetailReadModel {
-    id: String,
-    library_id: String,
-    name: String,
-    title: String,
-    title_sort: String,
-    url: String,
-    created: String,
-    last_modified: String,
-    file_last_modified: String,
-    books_count: u32,
-    books_read_count: u32,
-    books_unread_count: u32,
-    books_in_progress_count: u32,
-    status: SeriesStatus,
-    status_lock: bool,
-    summary: String,
-    summary_lock: bool,
-    reading_direction: Option<SeriesReadingDirection>,
-    reading_direction_lock: bool,
-    publisher: String,
-    publisher_lock: bool,
-    age_rating: Option<u32>,
-    age_rating_lock: bool,
-    language: String,
-    language_lock: bool,
-    genres: Vec<String>,
-    genres_lock: bool,
-    tags: Vec<String>,
-    tags_lock: bool,
-    total_book_count: Option<u32>,
-    total_book_count_lock: bool,
-    sharing_labels: Vec<String>,
-    sharing_labels_lock: bool,
-    links: Vec<SeriesMetadataLinkRecord>,
-    links_lock: bool,
-    alternate_titles: Vec<SeriesAlternateTitleRecord>,
-    alternate_titles_lock: bool,
-    title_lock: bool,
-    title_sort_lock: bool,
-    metadata_created: String,
-    metadata_last_modified: String,
-    books_metadata_tags: Vec<String>,
-    books_metadata_authors: Vec<BookMetadataAuthorReadModel>,
-    books_metadata_release_date: Option<String>,
-    books_metadata_summary: String,
-    books_metadata_summary_number: String,
-    books_metadata_created: String,
-    books_metadata_last_modified: String,
-    deleted: bool,
-    oneshot: bool,
+pub(crate) struct SeriesDetailReadModel {
+    pub(crate) id: String,
+    pub(crate) library_id: String,
+    pub(crate) name: String,
+    pub(crate) title: String,
+    pub(crate) title_sort: String,
+    pub(crate) url: String,
+    pub(crate) created: String,
+    pub(crate) last_modified: String,
+    pub(crate) file_last_modified: String,
+    pub(crate) books_count: u32,
+    pub(crate) books_read_count: u32,
+    pub(crate) books_unread_count: u32,
+    pub(crate) books_in_progress_count: u32,
+    pub(crate) status: SeriesStatus,
+    pub(crate) status_lock: bool,
+    pub(crate) summary: String,
+    pub(crate) summary_lock: bool,
+    pub(crate) reading_direction: Option<SeriesReadingDirection>,
+    pub(crate) reading_direction_lock: bool,
+    pub(crate) publisher: String,
+    pub(crate) publisher_lock: bool,
+    pub(crate) age_rating: Option<u32>,
+    pub(crate) age_rating_lock: bool,
+    pub(crate) language: String,
+    pub(crate) language_lock: bool,
+    pub(crate) genres: Vec<String>,
+    pub(crate) genres_lock: bool,
+    pub(crate) tags: Vec<String>,
+    pub(crate) tags_lock: bool,
+    pub(crate) total_book_count: Option<u32>,
+    pub(crate) total_book_count_lock: bool,
+    pub(crate) sharing_labels: Vec<String>,
+    pub(crate) sharing_labels_lock: bool,
+    pub(crate) links: Vec<SeriesMetadataLinkRecord>,
+    pub(crate) links_lock: bool,
+    pub(crate) alternate_titles: Vec<SeriesAlternateTitleRecord>,
+    pub(crate) alternate_titles_lock: bool,
+    pub(crate) title_lock: bool,
+    pub(crate) title_sort_lock: bool,
+    pub(crate) metadata_created: String,
+    pub(crate) metadata_last_modified: String,
+    pub(crate) books_metadata_tags: Vec<String>,
+    pub(crate) books_metadata_authors: Vec<BookMetadataAuthorReadModel>,
+    pub(crate) books_metadata_release_date: Option<String>,
+    pub(crate) books_metadata_summary: String,
+    pub(crate) books_metadata_summary_number: String,
+    pub(crate) books_metadata_created: String,
+    pub(crate) books_metadata_last_modified: String,
+    pub(crate) deleted: bool,
+    pub(crate) oneshot: bool,
 }
 
 pub(super) async fn load_persisted_book_detail(
@@ -104,227 +101,11 @@ pub(super) fn book_detail_payload(book: &BookReadModel, is_admin: bool) -> anyho
     BookDto::from_read_model(book, is_admin)
 }
 
-fn series_detail_payload(series: &SeriesDetailReadModel, is_admin: bool) -> Value {
-    let url = if is_admin {
-        api_file_path(&series.url)
-    } else {
-        String::new()
-    };
-
-    let mut metadata = Map::new();
-    metadata.insert(
-        "status".to_string(),
-        Value::String(series.status.persisted_name().to_string()),
-    );
-    metadata.insert("statusLock".to_string(), Value::Bool(series.status_lock));
-    metadata.insert("title".to_string(), Value::String(series.title.clone()));
-    metadata.insert("titleLock".to_string(), Value::Bool(series.title_lock));
-    metadata.insert(
-        "titleSort".to_string(),
-        Value::String(series.title_sort.clone()),
-    );
-    metadata.insert(
-        "titleSortLock".to_string(),
-        Value::Bool(series.title_sort_lock),
-    );
-    metadata.insert("summary".to_string(), Value::String(series.summary.clone()));
-    metadata.insert("summaryLock".to_string(), Value::Bool(series.summary_lock));
-    metadata.insert(
-        "readingDirection".to_string(),
-        Value::String(
-            series
-                .reading_direction
-                .map(|value| value.persisted_name().to_string())
-                .unwrap_or_default(),
-        ),
-    );
-    metadata.insert(
-        "readingDirectionLock".to_string(),
-        Value::Bool(series.reading_direction_lock),
-    );
-    metadata.insert(
-        "publisher".to_string(),
-        Value::String(series.publisher.clone()),
-    );
-    metadata.insert(
-        "publisherLock".to_string(),
-        Value::Bool(series.publisher_lock),
-    );
-    metadata.insert(
-        "ageRating".to_string(),
-        series
-            .age_rating
-            .map_or(Value::Null, |it| Value::Number(it.into())),
-    );
-    metadata.insert(
-        "ageRatingLock".to_string(),
-        Value::Bool(series.age_rating_lock),
-    );
-    metadata.insert(
-        "language".to_string(),
-        Value::String(series.language.clone()),
-    );
-    metadata.insert(
-        "languageLock".to_string(),
-        Value::Bool(series.language_lock),
-    );
-    metadata.insert(
-        "genres".to_string(),
-        Value::Array(series.genres.iter().cloned().map(Value::String).collect()),
-    );
-    metadata.insert("genresLock".to_string(), Value::Bool(series.genres_lock));
-    metadata.insert(
-        "tags".to_string(),
-        Value::Array(series.tags.iter().cloned().map(Value::String).collect()),
-    );
-    metadata.insert("tagsLock".to_string(), Value::Bool(series.tags_lock));
-    metadata.insert(
-        "totalBookCount".to_string(),
-        series
-            .total_book_count
-            .map_or(Value::Null, |it| Value::Number(it.into())),
-    );
-    metadata.insert(
-        "totalBookCountLock".to_string(),
-        Value::Bool(series.total_book_count_lock),
-    );
-    metadata.insert(
-        "sharingLabels".to_string(),
-        Value::Array(
-            series
-                .sharing_labels
-                .iter()
-                .cloned()
-                .map(Value::String)
-                .collect(),
-        ),
-    );
-    metadata.insert(
-        "sharingLabelsLock".to_string(),
-        Value::Bool(series.sharing_labels_lock),
-    );
-    metadata.insert(
-        "links".to_string(),
-        Value::Array(
-            series
-                .links
-                .iter()
-                .map(|link| json!({ "label": link.label, "url": link.url }))
-                .collect(),
-        ),
-    );
-    metadata.insert("linksLock".to_string(), Value::Bool(series.links_lock));
-    metadata.insert(
-        "alternateTitles".to_string(),
-        Value::Array(
-            series
-                .alternate_titles
-                .iter()
-                .map(|title| json!({ "label": title.label, "title": title.title }))
-                .collect(),
-        ),
-    );
-    metadata.insert(
-        "alternateTitlesLock".to_string(),
-        Value::Bool(series.alternate_titles_lock),
-    );
-    metadata.insert(
-        "created".to_string(),
-        Value::String(normalized_date_time(&series.metadata_created)),
-    );
-    metadata.insert(
-        "lastModified".to_string(),
-        Value::String(normalized_date_time(&series.metadata_last_modified)),
-    );
-
-    let mut books_metadata = Map::new();
-    books_metadata.insert(
-        "authors".to_string(),
-        Value::Array(
-            series
-                .books_metadata_authors
-                .iter()
-                .map(|author| json!({ "name": author.name, "role": author.role }))
-                .collect(),
-        ),
-    );
-    books_metadata.insert(
-        "tags".to_string(),
-        Value::Array(
-            series
-                .books_metadata_tags
-                .iter()
-                .cloned()
-                .map(Value::String)
-                .collect(),
-        ),
-    );
-    books_metadata.insert(
-        "releaseDate".to_string(),
-        series
-            .books_metadata_release_date
-            .clone()
-            .map_or(Value::Null, Value::String),
-    );
-    books_metadata.insert(
-        "summary".to_string(),
-        Value::String(series.books_metadata_summary.clone()),
-    );
-    books_metadata.insert(
-        "summaryNumber".to_string(),
-        Value::String(series.books_metadata_summary_number.clone()),
-    );
-    books_metadata.insert(
-        "created".to_string(),
-        Value::String(normalized_date_time(&series.books_metadata_created)),
-    );
-    books_metadata.insert(
-        "lastModified".to_string(),
-        Value::String(normalized_date_time(&series.books_metadata_last_modified)),
-    );
-
-    let mut payload = Map::new();
-    payload.insert("id".to_string(), Value::String(series.id.clone()));
-    payload.insert(
-        "libraryId".to_string(),
-        Value::String(series.library_id.clone()),
-    );
-    payload.insert("name".to_string(), Value::String(series.name.clone()));
-    payload.insert("url".to_string(), Value::String(url));
-    payload.insert(
-        "created".to_string(),
-        Value::String(normalized_date_time(&series.created)),
-    );
-    payload.insert(
-        "lastModified".to_string(),
-        Value::String(normalized_date_time(&series.last_modified)),
-    );
-    payload.insert(
-        "fileLastModified".to_string(),
-        Value::String(normalized_file_last_modified(&series.file_last_modified)),
-    );
-    payload.insert(
-        "booksCount".to_string(),
-        Value::Number(series.books_count.into()),
-    );
-    payload.insert(
-        "booksReadCount".to_string(),
-        Value::Number(series.books_read_count.into()),
-    );
-    payload.insert(
-        "booksUnreadCount".to_string(),
-        Value::Number(series.books_unread_count.into()),
-    );
-    payload.insert(
-        "booksInProgressCount".to_string(),
-        Value::Number(series.books_in_progress_count.into()),
-    );
-    payload.insert("metadata".to_string(), Value::Object(metadata));
-    payload.insert("booksMetadata".to_string(), Value::Object(books_metadata));
-    payload.insert("deleted".to_string(), Value::Bool(series.deleted));
-    payload.insert("oneshot".to_string(), Value::Bool(series.oneshot));
-
-    Value::Object(payload)
+fn series_detail_payload(
+    series: &SeriesDetailReadModel,
+    is_admin: bool,
+) -> anyhow::Result<SeriesDto> {
+    SeriesDto::from_detail(series, is_admin)
 }
 
 fn series_collections_payload(
@@ -338,6 +119,7 @@ mod tests {
     use super::*;
     use komga_application::discovery::BookMetadataLinkReadModel;
     use komga_domain::discovery::MediaStatus;
+    use serde_json::{Value, json};
 
     #[test]
     fn book_detail_payload_uses_persisted_lock_link_and_media_flags() {
@@ -484,71 +266,75 @@ mod tests {
     }
 
     #[test]
-    fn series_detail_payload_normalizes_datetime_fields() {
-        let payload = series_detail_payload(
-            &SeriesDetailReadModel {
-                id: "series-1".to_string(),
-                library_id: "library-1".to_string(),
-                name: "Series Shelf Name".to_string(),
-                title: "Series Metadata Title".to_string(),
-                title_sort: "Series Sort".to_string(),
-                url: "file:///data/series".to_string(),
-                created: "2024-01-01 00:00:00".to_string(),
-                last_modified: "2024-01-02 00:00:00".to_string(),
-                file_last_modified: "1704240000".to_string(),
-                books_count: 2,
-                books_read_count: 1,
-                books_unread_count: 1,
-                books_in_progress_count: 0,
-                status: SeriesStatus::Ongoing,
-                status_lock: false,
-                summary: "Summary".to_string(),
-                summary_lock: false,
-                reading_direction: Some(SeriesReadingDirection::LeftToRight),
-                reading_direction_lock: false,
-                publisher: "Publisher".to_string(),
-                publisher_lock: false,
-                age_rating: Some(13),
-                age_rating_lock: false,
-                language: "en".to_string(),
-                language_lock: false,
-                genres: vec!["Drama".to_string()],
-                genres_lock: false,
-                tags: vec!["Favorite".to_string()],
-                tags_lock: false,
-                total_book_count: Some(2),
-                total_book_count_lock: false,
-                sharing_labels: vec!["Team".to_string()],
-                sharing_labels_lock: false,
-                links: vec![SeriesMetadataLinkRecord {
-                    label: "Wiki".to_string(),
-                    url: "https://example.com".to_string(),
-                }],
-                links_lock: false,
-                alternate_titles: vec![SeriesAlternateTitleRecord {
-                    label: "en".to_string(),
-                    title: "Alt Title".to_string(),
-                }],
-                alternate_titles_lock: false,
-                title_lock: false,
-                title_sort_lock: false,
-                metadata_created: "2024-01-03 00:00:00".to_string(),
-                metadata_last_modified: "2024-01-04 00:00:00".to_string(),
-                books_metadata_tags: vec!["tag".to_string()],
-                books_metadata_authors: vec![BookMetadataAuthorReadModel {
-                    name: "Author".to_string(),
-                    role: "Writer".to_string(),
-                }],
-                books_metadata_release_date: Some("2024-01-15".to_string()),
-                books_metadata_summary: "Books summary".to_string(),
-                books_metadata_summary_number: "2".to_string(),
-                books_metadata_created: "2024-01-05 00:00:00".to_string(),
-                books_metadata_last_modified: "2024-01-06 00:00:00".to_string(),
-                deleted: false,
-                oneshot: true,
-            },
-            false,
-        );
+    fn series_detail_payload_formats_datetime_fields() {
+        let payload = serde_json::to_value(
+            series_detail_payload(
+                &SeriesDetailReadModel {
+                    id: "series-1".to_string(),
+                    library_id: "library-1".to_string(),
+                    name: "Series Shelf Name".to_string(),
+                    title: "Series Metadata Title".to_string(),
+                    title_sort: "Series Sort".to_string(),
+                    url: "file:///data/series".to_string(),
+                    created: "2024-01-01 00:00:00".to_string(),
+                    last_modified: "2024-01-02 00:00:00".to_string(),
+                    file_last_modified: "1704240000".to_string(),
+                    books_count: 2,
+                    books_read_count: 1,
+                    books_unread_count: 1,
+                    books_in_progress_count: 0,
+                    status: SeriesStatus::Ongoing,
+                    status_lock: false,
+                    summary: "Summary".to_string(),
+                    summary_lock: false,
+                    reading_direction: Some(SeriesReadingDirection::LeftToRight),
+                    reading_direction_lock: false,
+                    publisher: "Publisher".to_string(),
+                    publisher_lock: false,
+                    age_rating: Some(13),
+                    age_rating_lock: false,
+                    language: "en".to_string(),
+                    language_lock: false,
+                    genres: vec!["Drama".to_string()],
+                    genres_lock: false,
+                    tags: vec!["Favorite".to_string()],
+                    tags_lock: false,
+                    total_book_count: Some(2),
+                    total_book_count_lock: false,
+                    sharing_labels: vec!["Team".to_string()],
+                    sharing_labels_lock: false,
+                    links: vec![SeriesMetadataLinkRecord {
+                        label: "Wiki".to_string(),
+                        url: "https://example.com".to_string(),
+                    }],
+                    links_lock: false,
+                    alternate_titles: vec![SeriesAlternateTitleRecord {
+                        label: "en".to_string(),
+                        title: "Alt Title".to_string(),
+                    }],
+                    alternate_titles_lock: false,
+                    title_lock: false,
+                    title_sort_lock: false,
+                    metadata_created: "2024-01-03 00:00:00".to_string(),
+                    metadata_last_modified: "2024-01-04 00:00:00".to_string(),
+                    books_metadata_tags: vec!["tag".to_string()],
+                    books_metadata_authors: vec![BookMetadataAuthorReadModel {
+                        name: "Author".to_string(),
+                        role: "Writer".to_string(),
+                    }],
+                    books_metadata_release_date: Some("2024-01-15".to_string()),
+                    books_metadata_summary: "Books summary".to_string(),
+                    books_metadata_summary_number: "2".to_string(),
+                    books_metadata_created: "2024-01-05 00:00:00".to_string(),
+                    books_metadata_last_modified: "2024-01-06 00:00:00".to_string(),
+                    deleted: false,
+                    oneshot: true,
+                },
+                false,
+            )
+            .expect("series detail should map"),
+        )
+        .expect("series detail should serialize");
 
         assert_eq!(payload.get("created"), Some(&json!("2024-01-01T00:00:00Z")));
         assert_eq!(
@@ -588,6 +374,23 @@ mod tests {
                 .get("booksMetadata")
                 .and_then(|value| value.get("releaseDate")),
             Some(&json!("2024-01-15"))
+        );
+        assert_eq!(payload.get("url"), Some(&json!("")));
+        assert_eq!(
+            payload
+                .get("metadata")
+                .and_then(|value| value.get("totalBookCount")),
+            Some(&json!(2))
+        );
+        assert_eq!(
+            payload.get("metadata").and_then(|value| value.get("links")),
+            Some(&json!([{ "label": "Wiki", "url": "https://example.com" }]))
+        );
+        assert_eq!(
+            payload
+                .get("metadata")
+                .and_then(|value| value.get("alternateTitles")),
+            Some(&json!([{ "label": "en", "title": "Alt Title" }]))
         );
     }
 }

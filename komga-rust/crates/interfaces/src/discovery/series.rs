@@ -60,6 +60,7 @@ async fn series_feed(
                 resolved.response.paged,
                 resolved.response.sorted,
                 resolved.response.kotlin_unpaged_shape,
+                context.is_admin,
             ) {
                 Ok(payload) => Json(payload).into_response(),
                 Err(error) => internal_error_response(format!("{error:#}")),
@@ -124,6 +125,7 @@ pub(crate) async fn series_deprecated_get(
             resolved.response.paged,
             resolved.response.sorted,
             resolved.response.kotlin_unpaged_shape,
+            context.is_admin,
         ) {
             Ok(payload) => Json(payload).into_response(),
             Err(error) => internal_error_response(format!("{error:#}")),
@@ -253,6 +255,7 @@ pub(crate) async fn series_list(
             resolved.response.paged,
             resolved.response.sorted,
             resolved.response.kotlin_unpaged_shape,
+            context.is_admin,
         ) {
             Ok(payload) => Json(payload).into_response(),
             Err(error) => internal_error_response(format!("{error:#}")),

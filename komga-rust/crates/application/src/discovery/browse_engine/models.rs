@@ -91,6 +91,7 @@ pub struct SeriesRow {
     pub id: String,
     pub library_id: String,
     pub name: String,
+    pub url: String,
     pub title: String,
     pub title_sort: String,
     pub labels: Vec<String>,

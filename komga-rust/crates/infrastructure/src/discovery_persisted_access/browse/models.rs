@@ -83,6 +83,7 @@ pub(super) struct PersistedSeriesSummary {
     pub(super) id: String,
     pub(super) library_id: String,
     pub(super) name: String,
+    pub(super) url: String,
     pub(super) title: String,
     pub(super) title_sort: String,
     pub(super) labels: Vec<String>,

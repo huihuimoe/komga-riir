@@ -9,8 +9,6 @@ use komga_domain::common_ids::{LibraryId, UserId};
 use komga_domain::discovery::{DiscoveryQueryContext as DomainDiscoveryQueryContext, PageEnvelope};
 use reqwest::Url;
 use serde_json::{Value, json};
-use time::OffsetDateTime;
-use time::format_description::well_known::Rfc3339;
 
 pub(crate) fn books_page_payload(
     page: PageEnvelope<BookReadModel>,
@@ -33,36 +31,6 @@ pub(crate) fn books_page_payload(
         paged,
         sorted,
     ))
-}
-
-pub(crate) fn normalized_file_last_modified(value: &str) -> String {
-    if let Ok(epoch_seconds) = value.parse::<i64>()
-        && let Ok(datetime) = OffsetDateTime::from_unix_timestamp(epoch_seconds)
-        && let Ok(formatted) = datetime.format(&Rfc3339)
-    {
-        return formatted;
-    }
-
-    normalized_date_time(value)
-}
-
-pub(crate) fn normalized_date_time(value: &str) -> String {
-    if let Ok(datetime) = OffsetDateTime::parse(value, &Rfc3339)
-        && let Ok(formatted) = datetime.format(&Rfc3339)
-    {
-        return formatted;
-    }
-
-    if !value.is_empty() && !value.contains('T') && value.contains(' ') {
-        let replaced = value.replacen(' ', "T", 1);
-        return format!("{replaced}Z");
-    }
-
-    if !value.is_empty() && value.contains('T') && !value.ends_with('Z') && !value.contains('+') {
-        return format!("{value}Z");
-    }
-
-    value.to_string()
 }
 
 pub(crate) fn api_file_path(value: &str) -> String {

@@ -71,7 +71,10 @@ pub(crate) async fn series_detail(
         return StatusCode::NOT_FOUND.into_response();
     };
 
-    Json(series_detail_payload(&series, is_admin)).into_response()
+    match series_detail_payload(&series, is_admin) {
+        Ok(payload) => Json(payload).into_response(),
+        Err(error) => internal_error_response(error),
+    }
 }
 
 pub(crate) async fn series_collections(
