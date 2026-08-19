@@ -9,10 +9,9 @@ use komga_application::opds::{
 
 use super::super::feed_endpoints::{opds_v2_collections_feed, opds_v2_readlists_feed};
 use super::super::feeds::{
-    OpdsV2PagedFeed, normalize_opds_updated, opds_navigation_link,
-    opds_navigation_response_with_paging, opds_now_timestamp, opds_publication_for_feed_entry,
-    opds_publications_response_with_paging, paginate_vec, parse_page_size, percent_decode,
-    query_escape,
+    OpdsV2PagedFeed, opds_navigation_link, opds_navigation_response_with_paging,
+    opds_publication_for_feed_entry, opds_publications_response_with_paging, opds_v2_updated,
+    paginate_vec, parse_page_size, percent_decode, query_escape,
 };
 use super::super::persisted::load_series_tags;
 use crate::contracts::opds::{
@@ -217,12 +216,7 @@ pub(crate) async fn opds_v2_series(
     } else {
         format!("{self_path}?size={}", page_request.size)
     };
-    let modified = series
-        .last_modified
-        .trim()
-        .is_empty()
-        .then(opds_now_timestamp)
-        .unwrap_or_else(|| normalize_opds_updated(series.last_modified.as_str()));
+    let modified = opds_v2_updated(Some(series.last_modified.as_str()));
 
     let mut links = vec![
         OpdsV2LinkDto {
@@ -520,7 +514,7 @@ pub(crate) async fn opds_v2_search(
         Json(OpdsV2SearchFeedDto {
             metadata: OpdsV2RecommendedMetadataDto {
                 title: "Search results".to_string(),
-                modified: opds_now_timestamp(),
+                modified: opds_v2_updated(None),
             },
             links,
             groups,

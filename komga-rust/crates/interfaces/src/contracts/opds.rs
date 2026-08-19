@@ -1,4 +1,39 @@
 use serde::Serialize;
+use time::format_description::well_known::Rfc3339;
+use time::{OffsetDateTime, UtcOffset};
+
+#[derive(Clone, Debug, Serialize)]
+#[serde(transparent)]
+pub struct OpdsV2UpdatedDto(String);
+
+impl OpdsV2UpdatedDto {
+    pub fn now() -> Self {
+        let now_utc = OffsetDateTime::now_utc();
+        let offset = UtcOffset::current_local_offset().unwrap_or(UtcOffset::UTC);
+        let value = now_utc
+            .to_offset(offset)
+            .format(&Rfc3339)
+            .unwrap_or_else(|_| "2000-01-01T00:00:00Z".to_string());
+        Self(value)
+    }
+
+    pub fn from_storage(value: &str) -> Self {
+        let trimmed = value.trim();
+        if trimmed.is_empty() {
+            return Self::now();
+        }
+        if OffsetDateTime::parse(trimmed, &Rfc3339).is_ok() {
+            return Self(trimmed.to_string());
+        }
+        if let Some((date, time)) = trimmed.split_once(' ') {
+            return Self(format!("{date}T{time}Z"));
+        }
+        if trimmed.contains('T') {
+            return Self(format!("{trimmed}Z"));
+        }
+        Self(trimmed.to_string())
+    }
+}
 
 #[derive(Debug, Serialize)]
 pub struct OpdsAuthenticationDto {
@@ -64,7 +99,7 @@ pub struct OpdsV2FeedMetadataDto {
     pub title: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
-    pub modified: String,
+    pub modified: OpdsV2UpdatedDto,
     pub items_per_page: usize,
     pub current_page: usize,
     pub number_of_items: usize,
@@ -74,7 +109,7 @@ pub struct OpdsV2FeedMetadataDto {
 #[serde(rename_all = "camelCase")]
 pub struct OpdsV2RecommendedMetadataDto {
     pub title: String,
-    pub modified: String,
+    pub modified: OpdsV2UpdatedDto,
 }
 
 #[derive(Debug, Serialize)]
@@ -188,7 +223,7 @@ pub struct OpdsV2PublicationMetadataDto {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub published: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub modified: Option<String>,
+    pub modified: Option<OpdsV2UpdatedDto>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub subject: Option<Vec<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]

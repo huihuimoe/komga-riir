@@ -16,10 +16,9 @@ use crate::state::OpdsState;
 use komga_application::identity_access::AuthUser;
 
 use super::feeds::{
-    OpdsV2PagedFeed, normalize_opds_updated, opds_navigation_link,
-    opds_navigation_response_with_paging, opds_publication_for_feed_entry,
-    opds_publications_response_with_paging, opds_subsection_navigation_link, paginate_vec,
-    parse_page_size,
+    OpdsV2PagedFeed, opds_navigation_link, opds_navigation_response_with_paging,
+    opds_publication_for_feed_entry, opds_publications_response_with_paging,
+    opds_subsection_navigation_link, opds_v2_updated, paginate_vec, parse_page_size,
 };
 use super::persisted::{
     allowed_library_ids_for_user, load_libraries, load_library, validate_library_scope,
@@ -350,11 +349,7 @@ pub(super) async fn opds_v2_collections_feed(
         ));
     }
 
-    let modified = selected_library
-        .map(|library| library.last_modified.as_str())
-        .filter(|value| !value.is_empty())
-        .map(normalize_opds_updated)
-        .unwrap_or_else(super::feeds::opds_now_timestamp);
+    let modified = opds_v2_updated(selected_library.map(|library| library.last_modified.as_str()));
 
     let mut links = vec![
         OpdsV2LinkDto {
@@ -544,12 +539,11 @@ pub(super) async fn opds_v2_readlists_feed(
         ));
     }
 
-    let modified = selected_library
-        .as_ref()
-        .map(|library| library.last_modified.as_str())
-        .filter(|value| !value.is_empty())
-        .map(normalize_opds_updated)
-        .unwrap_or_else(super::feeds::opds_now_timestamp);
+    let modified = opds_v2_updated(
+        selected_library
+            .as_ref()
+            .map(|library| library.last_modified.as_str()),
+    );
     let self_path = format!("/opds/v2/libraries{library_segment}/readlists");
     let mut links = vec![
         OpdsV2LinkDto {

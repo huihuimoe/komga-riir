@@ -10,6 +10,7 @@ use crate::contracts::opds::{
     OpdsV2AuthenticationLinkDto, OpdsV2BelongsToDto, OpdsV2FeedMetadataDto, OpdsV2LinkDto,
     OpdsV2LinkPropertiesDto, OpdsV2NavigationFeedDto, OpdsV2PublicationDto,
     OpdsV2PublicationFeedDto, OpdsV2PublicationMetadataDto, OpdsV2PublicationSeriesDto,
+    OpdsV2UpdatedDto,
 };
 use crate::request_urls::app_absolute_url;
 
@@ -406,6 +407,13 @@ pub(super) fn opds_now_timestamp() -> String {
     format_opds_timestamp(now_utc, offset)
 }
 
+pub(super) fn opds_v2_updated(value: Option<&str>) -> OpdsV2UpdatedDto {
+    value
+        .filter(|value| !value.trim().is_empty())
+        .map(OpdsV2UpdatedDto::from_storage)
+        .unwrap_or_else(OpdsV2UpdatedDto::now)
+}
+
 pub(super) fn normalize_opds_updated(value: &str) -> String {
     let trimmed = value.trim();
     if trimmed.is_empty() {
@@ -507,14 +515,9 @@ pub(super) fn opds_publications_response_with_paging(
 }
 
 fn opds_v2_feed_metadata(feed: &OpdsV2PagedFeed<'_>) -> OpdsV2FeedMetadataDto {
-    let modified = feed
-        .modified
-        .filter(|value| !value.is_empty())
-        .map(normalize_opds_updated)
-        .unwrap_or_else(opds_now_timestamp);
     OpdsV2FeedMetadataDto {
         title: feed.title.to_string(),
-        modified,
+        modified: opds_v2_updated(feed.modified),
         description: None,
         items_per_page: feed.size,
         current_page: feed.page + 1,
@@ -637,7 +640,7 @@ pub(super) fn opds_publication_for_feed_entry(
             .filter(|value| !value.is_empty())
             .cloned(),
         modified: (!book.last_modified.is_empty())
-            .then(|| normalize_opds_updated(&book.last_modified)),
+            .then(|| OpdsV2UpdatedDto::from_storage(&book.last_modified)),
         subject: (!book.tags.is_empty()).then(|| book.tags.clone()),
         author: roles.author,
         translator: roles.translator,

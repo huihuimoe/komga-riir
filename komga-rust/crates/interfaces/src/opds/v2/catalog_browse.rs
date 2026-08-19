@@ -15,8 +15,8 @@ use super::super::feed_endpoints::{
     opds_v2_readlists_path, opds_v2_recommended_path,
 };
 use super::super::feeds::{
-    normalize_opds_updated, opds_navigation_link, opds_now_timestamp,
-    opds_publication_for_feed_entry, opds_subsection_navigation_link, percent_decode, query_value,
+    opds_navigation_link, opds_publication_for_feed_entry, opds_subsection_navigation_link,
+    opds_v2_updated, percent_decode, query_value,
 };
 use super::super::persisted::{
     allowed_library_ids_for_user, load_browse_publisher_navigation, load_browse_series_navigation,
@@ -84,12 +84,7 @@ fn render_opds_v2_recommended(headers: &HeaderMap, page: OpdsV2RecommendedPage) 
         .into_iter()
         .map(|group| opds_v2_recommended_group(headers, page.library_id.as_deref(), group))
         .collect::<Vec<_>>();
-    let modified = page
-        .modified
-        .as_deref()
-        .filter(|value| !value.is_empty())
-        .map(normalize_opds_updated)
-        .unwrap_or_else(opds_now_timestamp);
+    let modified = opds_v2_updated(page.modified.as_deref());
     let links = vec![
         OpdsV2LinkDto {
             title: None,
@@ -574,12 +569,11 @@ pub(crate) async fn opds_v2_library_browse(
         });
     }
 
-    let modified = selected_library
-        .as_ref()
-        .map(|library| library.last_modified.as_str())
-        .filter(|value| !value.is_empty())
-        .map(str::to_string)
-        .unwrap_or_else(opds_now_timestamp);
+    let modified = opds_v2_updated(
+        selected_library
+            .as_ref()
+            .map(|library| library.last_modified.as_str()),
+    );
 
     (
         StatusCode::OK,
