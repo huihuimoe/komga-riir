@@ -1,4 +1,4 @@
-use crate::contracts::common::ViolationDto;
+use crate::contracts::common::{ErrorMessageDto, SpringErrorDto, ViolationDto};
 use crate::discovery::persisted::common_helpers::decode_query_component;
 use crate::discovery::series::series_read_model_page_payload;
 use crate::discovery::series_routes::author_query_to_author_match;
@@ -157,7 +157,9 @@ pub(crate) async fn collection_series(
         Err(e) => {
             return (
                 StatusCode::BAD_REQUEST,
-                Json(json!({ "error": format!("invalid series filter: {e:?}") })),
+                Json(ErrorMessageDto {
+                    error: format!("invalid series filter: {e:?}"),
+                }),
             )
                 .into_response();
         }
@@ -506,16 +508,16 @@ fn collection_mutation_error_response(error: CollectionMutationError, path: &str
 fn collection_bad_request(path: &str, message: &str) -> Response {
     (
         StatusCode::BAD_REQUEST,
-        Json(json!({
-            "error": "Bad Request",
-            "message": message,
-            "path": path,
-            "status": 400,
-            "timestamp": SystemTime::now()
+        Json(SpringErrorDto {
+            error: "Bad Request".to_string(),
+            message: message.to_string(),
+            path: path.to_string(),
+            status: 400,
+            timestamp: SystemTime::now()
                 .duration_since(UNIX_EPOCH)
                 .unwrap_or_default()
-                .as_millis(),
-        })),
+                .as_millis() as u64,
+        }),
     )
         .into_response()
 }

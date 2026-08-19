@@ -2,7 +2,8 @@ use axum::Json;
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
 use komga_application::task_processing::{SubmitUrgency, TaskQueueAdmin, TaskQueueRecord};
-use serde_json::json;
+
+use crate::contracts::common::ErrorMessageDto;
 
 pub(crate) mod access_control;
 mod files;
@@ -30,7 +31,9 @@ async fn enqueue_task_records(
         tracing::error!(?error, "media asset task enqueue failed");
         return (
             StatusCode::INTERNAL_SERVER_ERROR,
-            Json(json!({ "error": format!("{error:#}") })),
+            Json(ErrorMessageDto {
+                error: format!("{error:#}"),
+            }),
         )
             .into_response();
     }

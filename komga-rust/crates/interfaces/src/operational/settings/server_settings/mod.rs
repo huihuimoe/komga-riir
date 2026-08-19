@@ -9,9 +9,8 @@ use komga_application::operational::{
 };
 use serde_json::Value;
 
-use crate::contracts::operational::{
-    MessageDto, SettingMultiSourceDto, SettingsDto, ThumbnailSizeDto,
-};
+use crate::contracts::common::MessageDto;
+use crate::contracts::operational::{SettingMultiSourceDto, SettingsDto, ThumbnailSizeDto};
 use crate::identity_access::auth::Admin;
 use crate::state::{RuntimeState, ServerSettingsState};
 

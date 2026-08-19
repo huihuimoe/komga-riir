@@ -5,8 +5,9 @@ use axum::http::{HeaderMap, StatusCode, Uri};
 use axum::response::{IntoResponse, Response};
 use komga_application::library_catalog::{LibraryDetailAccess, LibraryRecord};
 use komga_domain::discovery::DiscoveryError;
-use serde_json::{Value, json};
+use serde_json::Value;
 
+use crate::contracts::common::ErrorMessageDto;
 use crate::discovery_auth::context::DiscoveryQueryContext;
 use crate::helpers::to_domain_query_context;
 use crate::identity_access::auth::{Admin, Authenticated};
@@ -137,7 +138,13 @@ pub(crate) async fn library_empty_trash_route(
 }
 
 pub(super) fn bad_request_response(message: &str) -> Response {
-    (StatusCode::BAD_REQUEST, Json(json!({ "error": message }))).into_response()
+    (
+        StatusCode::BAD_REQUEST,
+        Json(ErrorMessageDto {
+            error: message.to_string(),
+        }),
+    )
+        .into_response()
 }
 
 fn discovery_error_message(error: &DiscoveryError) -> String {
@@ -157,7 +164,9 @@ async fn runtime_owned_libraries_response(
         Ok(libraries) => Json(libraries_payload(libraries, context.is_admin)).into_response(),
         Err(error) => (
             StatusCode::INTERNAL_SERVER_ERROR,
-            Json(json!({ "error": discovery_error_message(&error) })),
+            Json(ErrorMessageDto {
+                error: discovery_error_message(&error),
+            }),
         )
             .into_response(),
     }
@@ -181,7 +190,9 @@ async fn runtime_owned_library_detail_response(
         Ok(LibraryDetailAccess::NotFound) => StatusCode::NOT_FOUND.into_response(),
         Err(error) => (
             StatusCode::INTERNAL_SERVER_ERROR,
-            Json(json!({ "error": discovery_error_message(&error) })),
+            Json(ErrorMessageDto {
+                error: discovery_error_message(&error),
+            }),
         )
             .into_response(),
     }

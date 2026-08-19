@@ -55,8 +55,3 @@ pub struct OAuth2ClientDto {
     pub name: String,
     pub registration_id: String,
 }
-
-#[derive(Debug, Serialize)]
-pub struct MessageDto {
-    pub message: String,
-}

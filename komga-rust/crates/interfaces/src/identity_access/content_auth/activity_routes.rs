@@ -3,7 +3,7 @@ use axum::extract::Path;
 use axum::http::{HeaderMap, StatusCode, Uri};
 use axum::response::{IntoResponse, Response};
 use komga_application::identity_access::{user_id, user_is_admin};
-use serde_json::{Value, json};
+use serde_json::Value;
 
 use super::helpers::{
     api_key_comment_from_request, authentication_activity_page_payload,
@@ -11,6 +11,7 @@ use super::helpers::{
     sqlite_datetime_to_utc,
 };
 use crate::access_log::RequestConnectionInfo;
+use crate::contracts::common::MessageDto;
 use crate::identity_access::auth::{
     persisted_api_key_comment_exists, persisted_create_api_key, persisted_delete_api_key_by_id,
     persisted_list_api_keys, persisted_list_authentication_activity, persisted_users,
@@ -42,7 +43,9 @@ pub(crate) async fn users_me_api_keys_create(
         Ok(true) => {
             return (
                 StatusCode::BAD_REQUEST,
-                Json(json!({ "message": "api key comment already exists for this user" })),
+                Json(MessageDto {
+                    message: "api key comment already exists for this user".to_string(),
+                }),
             )
                 .into_response();
         }

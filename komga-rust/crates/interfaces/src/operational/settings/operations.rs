@@ -5,9 +5,10 @@ use axum::http::StatusCode;
 use axum::http::Uri;
 use axum::response::{IntoResponse, Response};
 
+use crate::contracts::common::MessageDto;
 use crate::contracts::common::{KotlinLocalDateTime, PageDto};
 use crate::contracts::history::HistoryEventDto;
-use crate::contracts::operational::{MessageDto, OAuth2ClientDto};
+use crate::contracts::operational::OAuth2ClientDto;
 use crate::identity_access::auth::{Admin, Authenticated};
 use crate::state::OperationalApiState;
 use komga_application::identity_access::user_id;

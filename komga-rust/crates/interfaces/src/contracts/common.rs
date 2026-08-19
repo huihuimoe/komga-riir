@@ -292,6 +292,11 @@ pub struct ErrorMessageDto {
 }
 
 #[derive(Debug, Serialize)]
+pub struct MessageDto {
+    pub message: String,
+}
+
+#[derive(Debug, Serialize)]
 pub struct ValidationErrorDto {
     pub violations: Vec<ViolationDto>,
 }

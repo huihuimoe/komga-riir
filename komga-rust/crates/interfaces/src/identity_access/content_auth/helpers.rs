@@ -13,6 +13,7 @@ use komga_application::identity_access::{
 use serde_json::{Value, json};
 
 use crate::access_log::RequestConnectionInfo;
+use crate::contracts::common::{MessageDto, SpringErrorDto, ValidationErrorDto, ViolationDto};
 use crate::discovery_auth::principal::principal_from_user;
 use crate::identity_access::auth::{
     AuthenticationActivityApiKey, authentication_activity_headers_metadata_with_remote_addr,
@@ -44,20 +45,24 @@ pub(super) struct AgeRestrictionPatch {
 }
 
 pub(super) fn bad_request(message: &str) -> Response {
-    (StatusCode::BAD_REQUEST, Json(json!({ "message": message }))).into_response()
+    (
+        StatusCode::BAD_REQUEST,
+        Json(MessageDto {
+            message: message.to_string(),
+        }),
+    )
+        .into_response()
 }
 
 pub(super) fn validation_error(field_name: &str, message: &str) -> Response {
     (
         StatusCode::BAD_REQUEST,
-        Json(json!({
-            "violations": [
-                {
-                    "fieldName": field_name,
-                    "message": message,
-                }
-            ]
-        })),
+        Json(ValidationErrorDto {
+            violations: vec![ViolationDto {
+                field_name: Some(field_name.to_string()),
+                message: Some(message.to_string()),
+            }],
+        }),
     )
         .into_response()
 }
@@ -66,16 +71,16 @@ pub(super) fn spring_error(status: StatusCode, message: &str, path: &str) -> Res
     let reason = status.canonical_reason().unwrap_or("Error");
     (
         status,
-        Json(json!({
-            "error": reason,
-            "message": message,
-            "path": path,
-            "status": status.as_u16(),
-            "timestamp": SystemTime::now()
+        Json(SpringErrorDto {
+            error: reason.to_string(),
+            message: message.to_string(),
+            path: path.to_string(),
+            status: status.as_u16(),
+            timestamp: SystemTime::now()
                 .duration_since(UNIX_EPOCH)
                 .unwrap_or_default()
-                .as_millis(),
-        })),
+                .as_millis() as u64,
+        }),
     )
         .into_response()
 }

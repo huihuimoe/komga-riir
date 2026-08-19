@@ -1,4 +1,5 @@
-use komga_interfaces::contracts::operational::{MessageDto, OAuth2ClientDto};
+use komga_interfaces::contracts::common::MessageDto;
+use komga_interfaces::contracts::operational::OAuth2ClientDto;
 use serde_json::json;
 
 #[test]

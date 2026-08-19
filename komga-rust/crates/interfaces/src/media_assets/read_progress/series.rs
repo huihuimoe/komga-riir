@@ -7,6 +7,7 @@ use komga_application::discovery::resolve_persisted_series_id;
 use komga_application::identity_access::user_id;
 use serde_json::{Value, json};
 
+use crate::contracts::common::ErrorMessageDto;
 use crate::identity_access::auth::Authenticated;
 use crate::media_assets::access_control::{
     user_can_access_series_media, user_has_unrestricted_all_libraries,
@@ -136,7 +137,9 @@ pub(crate) async fn series_tachiyomi_read_progress_put(
     let Ok(payload) = serde_json::from_slice::<Value>(&body) else {
         return (
             StatusCode::BAD_REQUEST,
-            Json(json!({ "error": "invalid tachiyomi series read progress payload" })),
+            Json(ErrorMessageDto {
+                error: "invalid tachiyomi series read progress payload".to_string(),
+            }),
         )
             .into_response();
     };
@@ -146,7 +149,9 @@ pub(crate) async fn series_tachiyomi_read_progress_put(
     else {
         return (
             StatusCode::BAD_REQUEST,
-            Json(json!({ "error": "lastBookNumberSortRead must be a number" })),
+            Json(ErrorMessageDto {
+                error: "lastBookNumberSortRead must be a number".to_string(),
+            }),
         )
             .into_response();
     };

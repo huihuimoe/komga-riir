@@ -3,6 +3,7 @@ mod payload;
 pub(in crate::discovery) use payload::series_read_model_page_payload;
 
 use super::persisted::common_helpers::{internal_error_response, requested_query_values};
+use crate::contracts::common::ErrorMessageDto;
 use crate::helpers::to_domain_query_context;
 use crate::identity_access::auth::Authenticated;
 use crate::state::DiscoveryState;
@@ -261,7 +262,7 @@ pub(crate) async fn series_list(
             Err(error) => internal_error_response(format!("{error:#}")),
         },
         Err(DiscoveryError::InvalidSemantics(e)) => {
-            (StatusCode::BAD_REQUEST, Json(json!({ "error": e }))).into_response()
+            (StatusCode::BAD_REQUEST, Json(ErrorMessageDto { error: e })).into_response()
         }
         Err(e) => internal_error_response(format!("{e:?}")),
     }

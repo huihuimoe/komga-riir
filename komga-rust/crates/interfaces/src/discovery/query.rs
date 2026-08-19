@@ -11,6 +11,8 @@ use super::request_resolution::{
     ResolvedSeriesBrowseRequest,
 };
 
+use crate::contracts::common::ErrorMessageDto;
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(in crate::discovery) enum QueryResolveError {
     BadRequest,
@@ -28,11 +30,9 @@ impl QueryResolveError {
     pub(super) fn into_response(self) -> Response {
         match self {
             Self::BadRequest => StatusCode::BAD_REQUEST.into_response(),
-            Self::InvalidSemantics(error) => (
-                StatusCode::BAD_REQUEST,
-                Json(serde_json::json!({ "error": error })),
-            )
-                .into_response(),
+            Self::InvalidSemantics(error) => {
+                (StatusCode::BAD_REQUEST, Json(ErrorMessageDto { error })).into_response()
+            }
         }
     }
 }

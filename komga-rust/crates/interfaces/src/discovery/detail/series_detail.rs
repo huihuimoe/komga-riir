@@ -11,13 +11,14 @@ use komga_application::discovery::{
 };
 use komga_application::runtime_sse::{RuntimeSseEvent, RuntimeSseEventSource};
 use komga_domain::discovery::SeriesStatus;
-use serde_json::{Value, json};
+use serde_json::Value;
 
 use super::detail_utils::internal_error_response;
 use super::series_persistence::{
     load_persisted_series_collections, load_persisted_series_detail, load_persisted_series_resource,
 };
 use super::{series_collections_payload, series_detail_payload};
+use crate::contracts::common::ErrorMessageDto;
 use crate::discovery_auth::context::{DetailContentContext, DetailResourceContext};
 use crate::helpers::{detail_access_denial_response, to_domain_query_context};
 use crate::identity_access::auth::{Admin, Authenticated};
@@ -150,7 +151,9 @@ pub(crate) async fn series_metadata_update(
         None => {
             return (
                 StatusCode::BAD_REQUEST,
-                Json(json!({ "error": "series metadata update payload must be a JSON object" })),
+                Json(ErrorMessageDto {
+                    error: "series metadata update payload must be a JSON object".to_string(),
+                }),
             )
                 .into_response();
         }
@@ -175,7 +178,7 @@ pub(crate) async fn series_metadata_update(
 fn series_metadata_update_error_response(error: SeriesMetadataUpdateError) -> Response {
     match error {
         SeriesMetadataUpdateError::Validation(error) => {
-            (StatusCode::BAD_REQUEST, Json(json!({ "error": error }))).into_response()
+            (StatusCode::BAD_REQUEST, Json(ErrorMessageDto { error })).into_response()
         }
         SeriesMetadataUpdateError::Persistence(error) => internal_error_response(error),
     }
@@ -241,7 +244,9 @@ fn optional_reading_direction_field(
             .ok_or_else(|| {
                 (
                     StatusCode::BAD_REQUEST,
-                    Json(json!({ "error": format!("{key} has an invalid value") })),
+                    Json(ErrorMessageDto {
+                        error: format!("{key} has an invalid value"),
+                    }),
                 )
                     .into_response()
             }),
@@ -258,7 +263,9 @@ fn optional_series_status_field(
         Some(value) => SeriesStatus::parse(&value).map(Some).ok_or_else(|| {
             (
                 StatusCode::BAD_REQUEST,
-                Json(json!({ "error": format!("{key} has an invalid value") })),
+                Json(ErrorMessageDto {
+                    error: format!("{key} has an invalid value"),
+                }),
             )
                 .into_response()
         }),
@@ -448,5 +455,11 @@ fn optional_alternate_titles_field(
 }
 
 fn bad_request_response(message: &str) -> Response {
-    (StatusCode::BAD_REQUEST, Json(json!({ "error": message }))).into_response()
+    (
+        StatusCode::BAD_REQUEST,
+        Json(ErrorMessageDto {
+            error: message.to_string(),
+        }),
+    )
+        .into_response()
 }

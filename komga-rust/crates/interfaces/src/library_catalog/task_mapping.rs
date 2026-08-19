@@ -1,3 +1,5 @@
+use crate::contracts::common::ErrorMessageDto;
+use crate::state::LibraryCatalogState;
 use axum::Json;
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
@@ -5,9 +7,6 @@ use komga_application::library_catalog::{LibraryCatalogMutationError, LibraryCha
 use komga_application::task_processing::{
     SubmitUrgency, TaskQueueRecord as ApplicationTaskQueueRecord,
 };
-use serde_json::json;
-
-use crate::state::LibraryCatalogState;
 
 use super::response_mapping::library_payload;
 
@@ -120,7 +119,9 @@ async fn enqueue_task_records_with_status(
         tracing::error!(?error, "library catalog task enqueue failed");
         return (
             StatusCode::INTERNAL_SERVER_ERROR,
-            Json(json!({ "error": format!("{error:#}") })),
+            Json(ErrorMessageDto {
+                error: format!("{error:#}"),
+            }),
         )
             .into_response();
     }
@@ -137,14 +138,22 @@ fn mutation_error_response(error: LibraryCatalogMutationError) -> Response {
 }
 
 fn bad_request_response(message: &str) -> Response {
-    (StatusCode::BAD_REQUEST, Json(json!({ "error": message }))).into_response()
+    (
+        StatusCode::BAD_REQUEST,
+        Json(ErrorMessageDto {
+            error: message.to_string(),
+        }),
+    )
+        .into_response()
 }
 
 fn internal_error_response(error: impl std::fmt::Display + std::fmt::Debug) -> Response {
     tracing::error!(?error, "library catalog mutation failed");
     (
         StatusCode::INTERNAL_SERVER_ERROR,
-        Json(json!({ "error": format!("{error:#}") })),
+        Json(ErrorMessageDto {
+            error: format!("{error:#}"),
+        }),
     )
         .into_response()
 }

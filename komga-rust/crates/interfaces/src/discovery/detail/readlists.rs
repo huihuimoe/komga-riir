@@ -8,7 +8,7 @@ use komga_application::discovery::{
     ReadListReadModel, ReadlistMutationError, ReadlistMutationInput, parse_comicrack_readlist,
 };
 use komga_domain::discovery::PageEnvelope;
-use serde_json::{Value, json};
+use serde_json::Value;
 use std::collections::BTreeSet;
 use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -17,8 +17,7 @@ use super::readlists_support::{
     comicrack_match_payload, merge_readlist_write_input, readlist_payload, readlists_page_payload,
 };
 use super::{BookDetailReadModel, book_detail_payload};
-use crate::contracts::common::PageDto;
-use crate::contracts::common::ViolationDto;
+use crate::contracts::common::{PageDto, SpringErrorDto, ViolationDto};
 use crate::contracts::discovery::BookDto;
 use crate::discovery::query::{resolve_readlist_books_query, resolve_readlists_query};
 use crate::helpers::{to_domain_query_context, validation_error_response};
@@ -217,16 +216,16 @@ fn readlist_create_bad_request(message: &str) -> Response {
 fn readlist_bad_request(message: &str, path: &str) -> Response {
     (
         StatusCode::BAD_REQUEST,
-        Json(json!({
-            "error": "Bad Request",
-            "message": message,
-            "path": path,
-            "status": 400,
-            "timestamp": SystemTime::now()
+        Json(SpringErrorDto {
+            error: "Bad Request".to_string(),
+            message: message.to_string(),
+            path: path.to_string(),
+            status: 400,
+            timestamp: SystemTime::now()
                 .duration_since(UNIX_EPOCH)
                 .unwrap_or_default()
-                .as_millis(),
-        })),
+                .as_millis() as u64,
+        }),
     )
         .into_response()
 }
@@ -267,16 +266,16 @@ pub(crate) async fn readlist_match_comicrack(
 fn comicrack_bad_request_response(error_code: &str) -> Response {
     (
         StatusCode::BAD_REQUEST,
-        Json(json!({
-            "error": "Bad Request",
-            "message": error_code,
-            "path": "/api/v1/readlists/match/comicrack",
-            "status": 400,
-            "timestamp": SystemTime::now()
+        Json(SpringErrorDto {
+            error: "Bad Request".to_string(),
+            message: error_code.to_string(),
+            path: "/api/v1/readlists/match/comicrack".to_string(),
+            status: 400,
+            timestamp: SystemTime::now()
                 .duration_since(UNIX_EPOCH)
                 .unwrap_or_default()
-                .as_millis(),
-        })),
+                .as_millis() as u64,
+        }),
     )
         .into_response()
 }

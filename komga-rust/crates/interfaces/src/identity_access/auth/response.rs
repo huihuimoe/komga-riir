@@ -2,10 +2,10 @@ use axum::Json;
 use axum::http::{HeaderName, HeaderValue, StatusCode, header};
 use axum::response::{IntoResponse, Response};
 use axum_extra::extract::cookie::{Cookie, SameSite};
-use serde_json::json;
 use std::time::{SystemTime, UNIX_EPOCH};
 use time::Duration;
 
+use crate::contracts::common::SpringErrorDto;
 use crate::identity_access::user_payload;
 use komga_application::identity_access::AuthUser;
 
@@ -121,13 +121,13 @@ pub(crate) fn bootstrap_api_key_user(user: AuthUser, token: String) -> Response 
 pub(crate) fn unauthorized_json_response(path: &str) -> Response {
     (
         StatusCode::UNAUTHORIZED,
-        Json(json!({
-            "error": "Unauthorized",
-            "message": "Unauthorized",
-            "path": path,
-            "status": 401,
-            "timestamp": now_epoch_millis(),
-        })),
+        Json(SpringErrorDto {
+            error: "Unauthorized".to_string(),
+            message: "Unauthorized".to_string(),
+            path: path.to_string(),
+            status: 401,
+            timestamp: now_epoch_millis() as u64,
+        }),
     )
         .into_response()
 }

@@ -15,7 +15,7 @@ use komga_application::media_assets::{
 };
 use serde_json::{Value, json};
 
-use crate::contracts::common::ViolationDto;
+use crate::contracts::common::{ErrorMessageDto, ViolationDto};
 use crate::helpers::{
     invalid_progression_payload, invalid_read_progress_payload,
     read_progress_validation_error_response,
@@ -165,11 +165,11 @@ pub(crate) async fn book_read_progress(
     if page > page_count {
         return (
             StatusCode::BAD_REQUEST,
-            Json(json!({
-                "error": format!(
+            Json(ErrorMessageDto {
+                error: format!(
                     "Page argument ({page}) must be within 1 and book page count ({page_count})"
-                )
-            })),
+                ),
+            }),
         )
             .into_response();
     }
@@ -273,7 +273,9 @@ async fn book_progression_response(
         BookProgressionOutcome::BadRequest(error) => progression_bad_request_response(error),
         BookProgressionOutcome::Conflict => (
             StatusCode::CONFLICT,
-            Json(json!({ "error": "Progression is older than existing" })),
+            Json(ErrorMessageDto {
+                error: "Progression is older than existing".to_string(),
+            }),
         )
             .into_response(),
         BookProgressionOutcome::Internal(error) => internal_error_response(error),
@@ -378,7 +380,9 @@ async fn book_progression_get_response(
 fn progression_bad_request_response(message: impl Into<String>) -> Response {
     (
         StatusCode::BAD_REQUEST,
-        Json(json!({ "error": message.into() })),
+        Json(ErrorMessageDto {
+            error: message.into(),
+        }),
     )
         .into_response()
 }

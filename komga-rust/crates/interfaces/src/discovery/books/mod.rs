@@ -20,8 +20,9 @@ use axum::http::{HeaderMap, StatusCode, Uri};
 use axum::response::{IntoResponse, Response};
 use komga_application::discovery::resolve_persisted_series_id;
 use komga_domain::discovery::{DiscoveryError, PageEnvelope};
-use serde_json::{Value, json};
+use serde_json::Value;
 
+use crate::contracts::common::ErrorMessageDto;
 fn empty_books_page_response(page: usize, size: usize, unpaged: bool, sorted: bool) -> Response {
     match books_page_payload(
         PageEnvelope {
@@ -87,7 +88,7 @@ pub(crate) async fn books_list(
             Err(error) => internal_error_response(error),
         },
         Err(DiscoveryError::InvalidSemantics(e)) => {
-            (StatusCode::BAD_REQUEST, Json(json!({ "error": e }))).into_response()
+            (StatusCode::BAD_REQUEST, Json(ErrorMessageDto { error: e })).into_response()
         }
         Err(e) => internal_error_response(format!("{e:?}")),
     }
@@ -163,7 +164,7 @@ pub(crate) async fn books_deprecated_get(
             Err(error) => internal_error_response(error),
         },
         Err(DiscoveryError::InvalidSemantics(e)) => {
-            (StatusCode::BAD_REQUEST, Json(json!({ "error": e }))).into_response()
+            (StatusCode::BAD_REQUEST, Json(ErrorMessageDto { error: e })).into_response()
         }
         Err(e) => internal_error_response(format!("{e:?}")),
     }
@@ -234,7 +235,7 @@ pub(crate) async fn series_books_deprecated(
             Err(error) => internal_error_response(error),
         },
         Err(DiscoveryError::InvalidSemantics(e)) => {
-            (StatusCode::BAD_REQUEST, Json(json!({ "error": e }))).into_response()
+            (StatusCode::BAD_REQUEST, Json(ErrorMessageDto { error: e })).into_response()
         }
         Err(e) => internal_error_response(format!("{e:?}")),
     }
