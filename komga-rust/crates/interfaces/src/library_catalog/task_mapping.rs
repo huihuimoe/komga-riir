@@ -1,4 +1,4 @@
-use crate::contracts::common::ErrorMessageDto;
+use crate::helpers::spring_error_response;
 use crate::state::LibraryCatalogState;
 use axum::Json;
 use axum::http::StatusCode;
@@ -117,13 +117,7 @@ async fn enqueue_task_records_with_status(
         .await
     {
         tracing::error!(?error, "library catalog task enqueue failed");
-        return (
-            StatusCode::INTERNAL_SERVER_ERROR,
-            Json(ErrorMessageDto {
-                error: format!("{error:#}"),
-            }),
-        )
-            .into_response();
+        return spring_error_response(StatusCode::INTERNAL_SERVER_ERROR, format!("{error:#}"));
     }
 
     status.into_response()
@@ -138,22 +132,10 @@ fn mutation_error_response(error: LibraryCatalogMutationError) -> Response {
 }
 
 fn bad_request_response(message: &str) -> Response {
-    (
-        StatusCode::BAD_REQUEST,
-        Json(ErrorMessageDto {
-            error: message.to_string(),
-        }),
-    )
-        .into_response()
+    spring_error_response(StatusCode::BAD_REQUEST, message)
 }
 
 fn internal_error_response(error: impl std::fmt::Display + std::fmt::Debug) -> Response {
     tracing::error!(?error, "library catalog mutation failed");
-    (
-        StatusCode::INTERNAL_SERVER_ERROR,
-        Json(ErrorMessageDto {
-            error: format!("{error:#}"),
-        }),
-    )
-        .into_response()
+    spring_error_response(StatusCode::INTERNAL_SERVER_ERROR, format!("{error:#}"))
 }

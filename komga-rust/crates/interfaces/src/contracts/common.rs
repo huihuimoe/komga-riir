@@ -291,8 +291,6 @@ pub struct SpringInternalErrorDto {
     pub error: String,
 }
 
-pub type ErrorMessageDto = SpringInternalErrorDto;
-
 #[derive(Debug, Serialize)]
 pub struct MessageDto {
     pub message: String,

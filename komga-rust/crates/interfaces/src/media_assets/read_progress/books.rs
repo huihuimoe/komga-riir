@@ -15,11 +15,11 @@ use komga_application::media_assets::{
 };
 use serde_json::Value;
 
-use crate::contracts::common::{ErrorMessageDto, ViolationDto};
+use crate::contracts::common::ViolationDto;
 use crate::contracts::media_assets::BookProgressionDto;
 use crate::helpers::{
     invalid_progression_payload, invalid_read_progress_payload,
-    read_progress_validation_error_response,
+    read_progress_validation_error_response, spring_error_response,
 };
 use crate::identity_access::auth::{resolved_auth_user, resolved_token};
 use crate::media_assets::access_control::user_can_access_book_media;
@@ -164,15 +164,10 @@ pub(crate) async fn book_read_progress(
     };
 
     if page > page_count {
-        return (
+        return spring_error_response(
             StatusCode::BAD_REQUEST,
-            Json(ErrorMessageDto {
-                error: format!(
-                    "Page argument ({page}) must be within 1 and book page count ({page_count})"
-                ),
-            }),
-        )
-            .into_response();
+            format!("Page argument ({page}) must be within 1 and book page count ({page_count})"),
+        );
     }
 
     if !(1..=page_count).contains(&page) {
@@ -272,13 +267,9 @@ async fn book_progression_response(
         BookProgressionOutcome::Forbidden => StatusCode::FORBIDDEN.into_response(),
         BookProgressionOutcome::InvalidPayload => invalid_progression_payload(),
         BookProgressionOutcome::BadRequest(error) => progression_bad_request_response(error),
-        BookProgressionOutcome::Conflict => (
-            StatusCode::CONFLICT,
-            Json(ErrorMessageDto {
-                error: "Progression is older than existing".to_string(),
-            }),
-        )
-            .into_response(),
+        BookProgressionOutcome::Conflict => {
+            spring_error_response(StatusCode::CONFLICT, "Progression is older than existing")
+        }
         BookProgressionOutcome::Internal(error) => internal_error_response(error),
     }
 }
@@ -379,13 +370,7 @@ async fn book_progression_get_response(
 }
 
 fn progression_bad_request_response(message: impl Into<String>) -> Response {
-    (
-        StatusCode::BAD_REQUEST,
-        Json(ErrorMessageDto {
-            error: message.into(),
-        }),
-    )
-        .into_response()
+    spring_error_response(StatusCode::BAD_REQUEST, message.into())
 }
 
 fn book_progression_payload(progression: BookProgressionRecord) -> BookProgressionDto {

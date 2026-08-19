@@ -19,7 +19,7 @@ use serde_json::{Value, json};
 
 use super::enqueue_task_records;
 use super::http_helpers::internal_error_response;
-use crate::contracts::common::ErrorMessageDto;
+use crate::helpers::spring_error_response;
 
 #[derive(Deserialize)]
 pub(crate) struct BooksThumbnailsRegenerateQuery {
@@ -80,26 +80,17 @@ pub(crate) async fn book_metadata_update(
     let patch = match body.as_object() {
         Some(value) => value,
         None => {
-            return (
+            return spring_error_response(
                 StatusCode::BAD_REQUEST,
-                Json(ErrorMessageDto {
-                    error: "book metadata update payload must be a JSON object".to_string(),
-                }),
-            )
-                .into_response();
+                "book metadata update payload must be a JSON object",
+            );
         }
     };
 
     let patch = match parse_book_metadata_patch(patch) {
         Ok(value) => value,
         Err(error) => {
-            return (
-                StatusCode::BAD_REQUEST,
-                Json(ErrorMessageDto {
-                    error: format!("{error:#}"),
-                }),
-            )
-                .into_response();
+            return spring_error_response(StatusCode::BAD_REQUEST, error);
         }
     };
 
@@ -118,14 +109,10 @@ pub(crate) async fn book_metadata_batch_update(
     let batch = match body.as_object() {
         Some(value) => value,
         None => {
-            return (
+            return spring_error_response(
                 StatusCode::BAD_REQUEST,
-                Json(ErrorMessageDto {
-                    error: "book metadata batch update payload must be a JSON object map"
-                        .to_string(),
-                }),
-            )
-                .into_response();
+                "book metadata batch update payload must be a JSON object map",
+            );
         }
     };
 
@@ -134,26 +121,20 @@ pub(crate) async fn book_metadata_batch_update(
         let patch = match patch_value.as_object() {
             Some(value) => value,
             None => {
-                return (
+                return spring_error_response(
                     StatusCode::BAD_REQUEST,
-                    Json(ErrorMessageDto {
-                        error: format!("book metadata patch for {book_id} must be a JSON object"),
-                    }),
-                )
-                    .into_response();
+                    format!("book metadata patch for {book_id} must be a JSON object"),
+                );
             }
         };
 
         let patch = match parse_book_metadata_patch(patch) {
             Ok(value) => value,
             Err(error) => {
-                return (
+                return spring_error_response(
                     StatusCode::BAD_REQUEST,
-                    Json(ErrorMessageDto {
-                        error: format!("invalid metadata patch for {book_id}: {error:#}"),
-                    }),
-                )
-                    .into_response();
+                    format!("invalid metadata patch for {book_id}: {error:#}"),
+                );
             }
         };
 
@@ -172,7 +153,7 @@ pub(crate) async fn book_metadata_batch_update(
 fn metadata_update_error_response(error: BookMetadataUpdateError) -> Response {
     match error {
         BookMetadataUpdateError::Validation(error) => {
-            (StatusCode::BAD_REQUEST, Json(ErrorMessageDto { error })).into_response()
+            spring_error_response(StatusCode::BAD_REQUEST, error)
         }
         BookMetadataUpdateError::Persistence(error) => internal_error_response(error),
     }

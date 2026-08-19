@@ -1,4 +1,3 @@
-use axum::Json;
 use axum::http::{StatusCode, Uri};
 use axum::response::{IntoResponse, Response};
 use komga_application::discovery::{ReadListBooksQuery, ReadListsQuery};
@@ -11,7 +10,7 @@ use super::request_resolution::{
     ResolvedSeriesBrowseRequest,
 };
 
-use crate::contracts::common::ErrorMessageDto;
+use crate::helpers::spring_error_response;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(in crate::discovery) enum QueryResolveError {
@@ -30,9 +29,7 @@ impl QueryResolveError {
     pub(super) fn into_response(self) -> Response {
         match self {
             Self::BadRequest => StatusCode::BAD_REQUEST.into_response(),
-            Self::InvalidSemantics(error) => {
-                (StatusCode::BAD_REQUEST, Json(ErrorMessageDto { error })).into_response()
-            }
+            Self::InvalidSemantics(error) => spring_error_response(StatusCode::BAD_REQUEST, error),
         }
     }
 }

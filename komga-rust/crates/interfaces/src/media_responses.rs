@@ -1,8 +1,8 @@
 use crate::cache::{
     asset_not_modified_response, file_last_modified_header_value, if_modified_since_matches,
 };
-use crate::contracts::common::ErrorMessageDto;
 use crate::contracts::media_assets::BookPageDto;
+use crate::helpers::spring_error_response;
 use crate::media_assets::http_helpers::{
     attachment_disposition, inline_disposition, internal_error_response,
 };
@@ -422,13 +422,7 @@ fn content_disposition(
 }
 
 fn json_error_response(status: StatusCode, error: &str) -> Response {
-    (
-        status,
-        Json(ErrorMessageDto {
-            error: error.to_string(),
-        }),
-    )
-        .into_response()
+    spring_error_response(status, error)
 }
 
 fn page_rows_response(page_rows: Vec<BookPageRecord>) -> Response {

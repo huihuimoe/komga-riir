@@ -18,9 +18,10 @@ use super::series_persistence::{
     load_persisted_series_collections, load_persisted_series_detail, load_persisted_series_resource,
 };
 use super::{series_collections_payload, series_detail_payload};
-use crate::contracts::common::ErrorMessageDto;
 use crate::discovery_auth::context::{DetailContentContext, DetailResourceContext};
-use crate::helpers::{detail_access_denial_response, to_domain_query_context};
+use crate::helpers::{
+    detail_access_denial_response, spring_error_response, to_domain_query_context,
+};
 use crate::identity_access::auth::{Admin, Authenticated};
 use crate::state::DiscoveryState;
 
@@ -149,13 +150,10 @@ pub(crate) async fn series_metadata_update(
     let body = match body.as_object() {
         Some(body) => body,
         None => {
-            return (
+            return spring_error_response(
                 StatusCode::BAD_REQUEST,
-                Json(ErrorMessageDto {
-                    error: "series metadata update payload must be a JSON object".to_string(),
-                }),
-            )
-                .into_response();
+                "series metadata update payload must be a JSON object",
+            );
         }
     };
 
@@ -178,7 +176,7 @@ pub(crate) async fn series_metadata_update(
 fn series_metadata_update_error_response(error: SeriesMetadataUpdateError) -> Response {
     match error {
         SeriesMetadataUpdateError::Validation(error) => {
-            (StatusCode::BAD_REQUEST, Json(ErrorMessageDto { error })).into_response()
+            spring_error_response(StatusCode::BAD_REQUEST, error)
         }
         SeriesMetadataUpdateError::Persistence(error) => internal_error_response(error),
     }
@@ -242,13 +240,10 @@ fn optional_reading_direction_field(
             .map(Some)
             .map(Some)
             .ok_or_else(|| {
-                (
+                spring_error_response(
                     StatusCode::BAD_REQUEST,
-                    Json(ErrorMessageDto {
-                        error: format!("{key} has an invalid value"),
-                    }),
+                    format!("{key} has an invalid value"),
                 )
-                    .into_response()
             }),
         Some(None) => Ok(Some(None)),
         None => Ok(None),
@@ -261,13 +256,10 @@ fn optional_series_status_field(
 ) -> Result<Option<SeriesStatus>, Response> {
     match optional_string_field(body, key)? {
         Some(value) => SeriesStatus::parse(&value).map(Some).ok_or_else(|| {
-            (
+            spring_error_response(
                 StatusCode::BAD_REQUEST,
-                Json(ErrorMessageDto {
-                    error: format!("{key} has an invalid value"),
-                }),
+                format!("{key} has an invalid value"),
             )
-                .into_response()
         }),
         None => Ok(None),
     }
@@ -455,11 +447,5 @@ fn optional_alternate_titles_field(
 }
 
 fn bad_request_response(message: &str) -> Response {
-    (
-        StatusCode::BAD_REQUEST,
-        Json(ErrorMessageDto {
-            error: message.to_string(),
-        }),
-    )
-        .into_response()
+    spring_error_response(StatusCode::BAD_REQUEST, message)
 }

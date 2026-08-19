@@ -1,6 +1,4 @@
-use crate::contracts::common::{
-    ErrorMessageDto, PageDto, SpringInternalErrorDto, ValidationErrorDto, ViolationDto,
-};
+use crate::contracts::common::{PageDto, SpringInternalErrorDto, ValidationErrorDto, ViolationDto};
 use crate::contracts::discovery::BookDto;
 use crate::discovery_auth::context::{DetailAccessDenial, DiscoveryQueryContext};
 use axum::Json;
@@ -11,15 +9,22 @@ use komga_domain::common_ids::{LibraryId, UserId};
 use komga_domain::discovery::{DiscoveryQueryContext as DomainDiscoveryQueryContext, PageEnvelope};
 use reqwest::Url;
 
-pub(crate) fn internal_error_response(error: impl std::fmt::Display + std::fmt::Debug) -> Response {
-    tracing::error!(?error, "internal server error");
+pub(crate) fn spring_error_response(
+    status: StatusCode,
+    error: impl std::fmt::Display + std::fmt::Debug,
+) -> Response {
     (
-        StatusCode::INTERNAL_SERVER_ERROR,
+        status,
         Json(SpringInternalErrorDto {
             error: format!("{error:#}"),
         }),
     )
         .into_response()
+}
+
+pub(crate) fn internal_error_response(error: impl std::fmt::Display + std::fmt::Debug) -> Response {
+    tracing::error!(?error, "internal server error");
+    spring_error_response(StatusCode::INTERNAL_SERVER_ERROR, error)
 }
 
 pub(crate) fn books_page_payload(
@@ -158,14 +163,7 @@ pub(crate) fn detail_access_denial_response(denial: DetailAccessDenial) -> Respo
 }
 
 pub(crate) fn invalid_read_progress_payload() -> Response {
-    (
-        StatusCode::BAD_REQUEST,
-        [(header::CONTENT_TYPE, "application/json")],
-        Json(ErrorMessageDto {
-            error: "invalid read progress payload".to_string(),
-        }),
-    )
-        .into_response()
+    spring_error_response(StatusCode::BAD_REQUEST, "invalid read progress payload")
 }
 
 pub(crate) fn validation_error_response(violations: Vec<ViolationDto>) -> Response {
@@ -182,14 +180,7 @@ pub(crate) fn read_progress_validation_error_response(violations: Vec<ViolationD
 }
 
 pub(crate) fn invalid_progression_payload() -> Response {
-    (
-        StatusCode::BAD_REQUEST,
-        [(header::CONTENT_TYPE, "application/json")],
-        Json(ErrorMessageDto {
-            error: "invalid progression payload".to_string(),
-        }),
-    )
-        .into_response()
+    spring_error_response(StatusCode::BAD_REQUEST, "invalid progression payload")
 }
 
 #[cfg(test)]

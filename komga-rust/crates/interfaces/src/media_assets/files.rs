@@ -1,10 +1,9 @@
-use axum::Json;
 use axum::extract::{Path, State};
 use axum::http::{HeaderMap, HeaderValue, StatusCode, header};
 use axum::response::{IntoResponse, Response};
 use komga_application::identity_access::{AuthUser, AuthUserRole, user_has_role};
 
-use crate::contracts::common::ErrorMessageDto;
+use crate::helpers::spring_error_response;
 
 use super::access_control::{
     user_can_access_book_media, user_can_access_series_media, visible_readlist_book_ids_for_user,
@@ -246,16 +245,13 @@ async fn load_epub_book_media(
     };
 
     if !book_media_is_epub(&media) {
-        return Err((
+        return Err(spring_error_response(
             StatusCode::BAD_REQUEST,
-            Json(ErrorMessageDto {
-                error: format!(
-                    "Book media type '{}' not compatible with requested profile",
-                    media.media_type
-                ),
-            }),
-        )
-            .into_response());
+            format!(
+                "Book media type '{}' not compatible with requested profile",
+                media.media_type
+            ),
+        ));
     }
 
     Ok(media)

@@ -9,7 +9,10 @@ pub(crate) use tags::book_tags;
 use super::persisted::common_helpers::{internal_error_response, requested_query_values};
 use super::persisted::library_mappings::remap_requested_library_ids_for_persisted;
 use crate::discovery_auth::context::{DetailContentContext, DetailResourceContext};
-use crate::helpers::{books_page_payload, detail_access_denial_response, to_domain_query_context};
+use crate::helpers::{
+    books_page_payload, detail_access_denial_response, spring_error_response,
+    to_domain_query_context,
+};
 use crate::identity_access::auth::Authenticated;
 use crate::state::DiscoveryState;
 use axum::Json;
@@ -22,7 +25,6 @@ use komga_application::discovery::resolve_persisted_series_id;
 use komga_domain::discovery::{DiscoveryError, PageEnvelope};
 use serde_json::Value;
 
-use crate::contracts::common::ErrorMessageDto;
 fn empty_books_page_response(page: usize, size: usize, unpaged: bool, sorted: bool) -> Response {
     match books_page_payload(
         PageEnvelope {
@@ -88,7 +90,7 @@ pub(crate) async fn books_list(
             Err(error) => internal_error_response(error),
         },
         Err(DiscoveryError::InvalidSemantics(e)) => {
-            (StatusCode::BAD_REQUEST, Json(ErrorMessageDto { error: e })).into_response()
+            spring_error_response(StatusCode::BAD_REQUEST, e)
         }
         Err(e) => internal_error_response(format!("{e:?}")),
     }
@@ -164,7 +166,7 @@ pub(crate) async fn books_deprecated_get(
             Err(error) => internal_error_response(error),
         },
         Err(DiscoveryError::InvalidSemantics(e)) => {
-            (StatusCode::BAD_REQUEST, Json(ErrorMessageDto { error: e })).into_response()
+            spring_error_response(StatusCode::BAD_REQUEST, e)
         }
         Err(e) => internal_error_response(format!("{e:?}")),
     }
@@ -235,7 +237,7 @@ pub(crate) async fn series_books_deprecated(
             Err(error) => internal_error_response(error),
         },
         Err(DiscoveryError::InvalidSemantics(e)) => {
-            (StatusCode::BAD_REQUEST, Json(ErrorMessageDto { error: e })).into_response()
+            spring_error_response(StatusCode::BAD_REQUEST, e)
         }
         Err(e) => internal_error_response(format!("{e:?}")),
     }

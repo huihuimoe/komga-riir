@@ -6,11 +6,11 @@ use komga_application::media_assets::{
     ManifestBuildOutcome, ManifestVariant, build_persisted_book_manifest,
 };
 
-use crate::contracts::common::ErrorMessageDto;
 use crate::contracts::media_assets::{
     WebPubManifestAuthenticationLinkDto, WebPubManifestDto, WebPubManifestLinkDto,
     WebPubManifestLinkPropertiesDto,
 };
+use crate::helpers::spring_error_response;
 use crate::media_assets::manifest_renderer::{ManifestHrefSurface, render_manifest_payload};
 use crate::request_urls::app_absolute_url;
 use crate::state::OpdsState;
@@ -65,13 +65,10 @@ async fn opds_manifest_variant(
                 match render_manifest_payload(&headers, &manifest, ManifestHrefSurface::OpdsV2) {
                     Ok(payload) => payload,
                     Err(error) => {
-                        return (
+                        return spring_error_response(
                             StatusCode::INTERNAL_SERVER_ERROR,
-                            Json(ErrorMessageDto {
-                                error: format!("render persisted OPDS manifest: {error:#}"),
-                            }),
-                        )
-                            .into_response();
+                            format!("render persisted OPDS manifest: {error:#}"),
+                        );
                     }
                 };
             adapt_manifest_payload_to_opds(
@@ -87,20 +84,15 @@ async fn opds_manifest_variant(
             )
                 .into_response()
         }
-        Ok(ManifestBuildOutcome::BadRequest(message)) => (
-            StatusCode::BAD_REQUEST,
-            Json(ErrorMessageDto { error: message }),
-        )
-            .into_response(),
+        Ok(ManifestBuildOutcome::BadRequest(message)) => {
+            spring_error_response(StatusCode::BAD_REQUEST, message)
+        }
         Ok(ManifestBuildOutcome::NotFound) => StatusCode::NOT_FOUND.into_response(),
         Ok(ManifestBuildOutcome::Forbidden) => StatusCode::FORBIDDEN.into_response(),
-        Err(error) => (
+        Err(error) => spring_error_response(
             StatusCode::INTERNAL_SERVER_ERROR,
-            Json(ErrorMessageDto {
-                error: format!("load persisted OPDS manifest: {error:#}"),
-            }),
-        )
-            .into_response(),
+            format!("load persisted OPDS manifest: {error:#}"),
+        ),
     }
 }
 

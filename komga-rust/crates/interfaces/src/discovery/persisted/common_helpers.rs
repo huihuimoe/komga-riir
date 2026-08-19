@@ -1,9 +1,7 @@
-use axum::Json;
 use axum::http::StatusCode;
-use axum::response::{IntoResponse, Response};
+use axum::response::Response;
 
-use crate::contracts::common::ErrorMessageDto;
-use crate::helpers::query_values;
+use crate::helpers::{query_values, spring_error_response};
 use komga_domain::discovery::DiscoveryError;
 
 pub(in crate::discovery) fn requested_query_values(query: &str, key: &str) -> Option<Vec<String>> {
@@ -52,23 +50,11 @@ pub(in crate::discovery) fn internal_error_response(
     error: impl std::fmt::Display + std::fmt::Debug,
 ) -> Response {
     tracing::error!(?error, "internal persisted discovery error");
-    (
-        StatusCode::INTERNAL_SERVER_ERROR,
-        Json(ErrorMessageDto {
-            error: format!("{error:#}"),
-        }),
-    )
-        .into_response()
+    spring_error_response(StatusCode::INTERNAL_SERVER_ERROR, format!("{error:#}"))
 }
 
 pub(in crate::discovery) fn discovery_error_response(error: DiscoveryError) -> Response {
-    (
-        StatusCode::INTERNAL_SERVER_ERROR,
-        Json(ErrorMessageDto {
-            error: format!("{error:?}"),
-        }),
-    )
-        .into_response()
+    spring_error_response(StatusCode::INTERNAL_SERVER_ERROR, format!("{error:?}"))
 }
 
 pub(in crate::discovery) fn filter_rows<T>(

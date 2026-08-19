@@ -5,8 +5,8 @@ use axum::response::{IntoResponse, Response};
 use komga_application::identity_access::{AuthUser, user_id};
 use serde_json::Value;
 
-use crate::contracts::common::ErrorMessageDto;
 use crate::contracts::media_assets::TachiyomiReadListProgressDto;
+use crate::helpers::spring_error_response;
 use crate::identity_access::auth::Authenticated;
 use crate::media_assets::access_control::visible_readlist_book_ids_for_user;
 use crate::media_assets::http_helpers::internal_error_response;
@@ -57,13 +57,10 @@ pub(crate) async fn readlist_tachiyomi_read_progress_put(
         .and_then(Value::as_i64)
         .filter(|value| *value >= 0)
     else {
-        return (
+        return spring_error_response(
             StatusCode::BAD_REQUEST,
-            Json(ErrorMessageDto {
-                error: "lastBookRead must be a non-negative integer".to_string(),
-            }),
-        )
-            .into_response();
+            "lastBookRead must be a non-negative integer",
+        );
     };
 
     let Some(ordered_book_ids) =

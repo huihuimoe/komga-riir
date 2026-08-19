@@ -7,8 +7,8 @@ use komga_application::discovery::resolve_persisted_series_id;
 use komga_application::identity_access::user_id;
 use serde_json::Value;
 
-use crate::contracts::common::ErrorMessageDto;
 use crate::contracts::media_assets::TachiyomiSeriesProgressDto;
+use crate::helpers::spring_error_response;
 use crate::identity_access::auth::Authenticated;
 use crate::media_assets::access_control::{
     user_can_access_series_media, user_has_unrestricted_all_libraries,
@@ -129,25 +129,19 @@ pub(crate) async fn series_tachiyomi_read_progress_put(
     body: Bytes,
 ) -> Response {
     let Ok(payload) = serde_json::from_slice::<Value>(&body) else {
-        return (
+        return spring_error_response(
             StatusCode::BAD_REQUEST,
-            Json(ErrorMessageDto {
-                error: "invalid tachiyomi series read progress payload".to_string(),
-            }),
-        )
-            .into_response();
+            "invalid tachiyomi series read progress payload",
+        );
     };
     let Some(last_number_sort_read) = payload
         .get("lastBookNumberSortRead")
         .and_then(Value::as_f64)
     else {
-        return (
+        return spring_error_response(
             StatusCode::BAD_REQUEST,
-            Json(ErrorMessageDto {
-                error: "lastBookNumberSortRead must be a number".to_string(),
-            }),
-        )
-            .into_response();
+            "lastBookNumberSortRead must be a number",
+        );
     };
 
     let resolved_series_id =

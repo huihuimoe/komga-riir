@@ -1,9 +1,10 @@
-use crate::contracts::common::{ErrorMessageDto, SpringErrorDto, ViolationDto};
+use crate::contracts::common::{SpringErrorDto, ViolationDto};
 use crate::discovery::persisted::common_helpers::decode_query_component;
 use crate::discovery::series::series_read_model_page_payload;
 use crate::discovery::series_routes::author_query_to_author_match;
 use crate::helpers::{
-    query_bool, query_value, query_values, to_domain_query_context, validation_error_response,
+    query_bool, query_value, query_values, spring_error_response, to_domain_query_context,
+    validation_error_response,
 };
 use crate::identity_access::auth::{Admin, Authenticated};
 use crate::state::DiscoveryState;
@@ -155,13 +156,10 @@ pub(crate) async fn collection_series(
     let filter = match parse_series_filter_from_json(body.get("condition")) {
         Ok(f) => f,
         Err(e) => {
-            return (
+            return spring_error_response(
                 StatusCode::BAD_REQUEST,
-                Json(ErrorMessageDto {
-                    error: format!("invalid series filter: {e:?}"),
-                }),
-            )
-                .into_response();
+                format!("invalid series filter: {e:?}"),
+            );
         }
     };
 

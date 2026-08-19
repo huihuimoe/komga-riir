@@ -1,9 +1,8 @@
-use axum::Json;
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
 use komga_application::task_processing::{SubmitUrgency, TaskQueueAdmin, TaskQueueRecord};
 
-use crate::contracts::common::ErrorMessageDto;
+use crate::helpers::spring_error_response;
 
 pub(crate) mod access_control;
 mod files;
@@ -29,13 +28,7 @@ async fn enqueue_task_records(
         .await
     {
         tracing::error!(?error, "media asset task enqueue failed");
-        return (
-            StatusCode::INTERNAL_SERVER_ERROR,
-            Json(ErrorMessageDto {
-                error: format!("{error:#}"),
-            }),
-        )
-            .into_response();
+        return spring_error_response(StatusCode::INTERNAL_SERVER_ERROR, error);
     }
 
     StatusCode::ACCEPTED.into_response()
