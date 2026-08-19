@@ -6,6 +6,7 @@ use serde_json::json;
 use crate::cache::{
     asset_not_modified_response, file_last_modified_header_value, if_modified_since_matches,
 };
+use crate::contracts::common::ErrorMessageDto;
 use crate::media_assets::http_helpers::{
     attachment_disposition, format_size_bytes, inline_disposition, internal_error_response,
 };
@@ -422,7 +423,13 @@ fn content_disposition(
 }
 
 fn json_error_response(status: StatusCode, error: &str) -> Response {
-    (status, Json(json!({ "error": error }))).into_response()
+    (
+        status,
+        Json(ErrorMessageDto {
+            error: error.to_string(),
+        }),
+    )
+        .into_response()
 }
 
 fn page_rows_response(page_rows: Vec<BookPageRecord>) -> Response {

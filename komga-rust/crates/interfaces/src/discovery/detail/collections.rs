@@ -1,3 +1,4 @@
+use crate::contracts::common::ViolationDto;
 use crate::discovery::persisted::common_helpers::decode_query_component;
 use crate::discovery::series::series_read_model_page_payload;
 use crate::discovery::series_routes::author_query_to_author_match;
@@ -442,16 +443,16 @@ fn parse_collection_create_input(payload: &Value) -> Result<CollectionMutationIn
 
     let mut violations = Vec::new();
     if name.trim().is_empty() {
-        violations.push(json!({
-            "fieldName": "name",
-            "message": "must not be blank",
-        }));
+        violations.push(ViolationDto {
+            field_name: Some("name".to_string()),
+            message: Some("must not be blank".to_string()),
+        });
     }
     if series_values.is_empty() {
-        violations.push(json!({
-            "fieldName": "seriesIds",
-            "message": "must not be empty",
-        }));
+        violations.push(ViolationDto {
+            field_name: Some("seriesIds".to_string()),
+            message: Some("must not be empty".to_string()),
+        });
     }
 
     let mut seen_series_ids = BTreeSet::new();
@@ -472,10 +473,10 @@ fn parse_collection_create_input(payload: &Value) -> Result<CollectionMutationIn
     }
 
     if saw_duplicate_series_id {
-        violations.push(json!({
-            "fieldName": "seriesIds",
-            "message": "must only contain unique elements",
-        }));
+        violations.push(ViolationDto {
+            field_name: Some("seriesIds".to_string()),
+            message: Some("must only contain unique elements".to_string()),
+        });
     }
 
     if !violations.is_empty() {
@@ -570,19 +571,19 @@ fn parse_collection_update_input(
 
     let mut violations = Vec::new();
     if name.as_ref().is_some_and(|value| value.trim().is_empty()) {
-        violations.push(json!({
-            "fieldName": "name",
-            "message": "must not be blank",
-        }));
+        violations.push(ViolationDto {
+            field_name: Some("name".to_string()),
+            message: Some("must not be blank".to_string()),
+        });
     }
 
     let series_ids = match series_values {
         Some(series_values) => {
             if series_values.is_empty() {
-                violations.push(json!({
-                    "fieldName": "seriesIds",
-                    "message": "must not be empty",
-                }));
+                violations.push(ViolationDto {
+                    field_name: Some("seriesIds".to_string()),
+                    message: Some("must not be empty".to_string()),
+                });
             }
 
             let mut seen_series_ids = BTreeSet::new();
@@ -604,10 +605,10 @@ fn parse_collection_update_input(
             }
 
             if saw_duplicate_series_id {
-                violations.push(json!({
-                    "fieldName": "seriesIds",
-                    "message": "must only contain unique elements",
-                }));
+                violations.push(ViolationDto {
+                    field_name: Some("seriesIds".to_string()),
+                    message: Some("must only contain unique elements".to_string()),
+                });
             }
 
             Some(parsed_series_ids)

@@ -4,6 +4,7 @@ use axum::response::{IntoResponse, Response};
 use serde_json::Value;
 use serde_json::json;
 
+use crate::contracts::common::ErrorMessageDto;
 use crate::helpers::query_values;
 use komga_domain::discovery::DiscoveryError;
 
@@ -55,7 +56,9 @@ pub(in crate::discovery) fn internal_error_response(
     tracing::error!(?error, "internal persisted discovery error");
     (
         StatusCode::INTERNAL_SERVER_ERROR,
-        Json(json!({ "error": format!("{error:#}") })),
+        Json(ErrorMessageDto {
+            error: format!("{error:#}"),
+        }),
     )
         .into_response()
 }
@@ -63,7 +66,9 @@ pub(in crate::discovery) fn internal_error_response(
 pub(in crate::discovery) fn discovery_error_response(error: DiscoveryError) -> Response {
     (
         StatusCode::INTERNAL_SERVER_ERROR,
-        Json(json!({ "error": format!("{error:?}") })),
+        Json(ErrorMessageDto {
+            error: format!("{error:?}"),
+        }),
     )
         .into_response()
 }

@@ -1,7 +1,8 @@
 use axum::Json;
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
-use serde_json::json;
+
+use crate::contracts::common::ErrorMessageDto;
 
 pub(super) fn parse_group_concat_values(raw: &str) -> Vec<String> {
     const SEPARATOR: char = '\u{1e}';
@@ -21,7 +22,9 @@ pub(super) fn internal_error_response(error: impl std::fmt::Display + std::fmt::
     tracing::error!(?error, "internal discovery detail error");
     (
         StatusCode::INTERNAL_SERVER_ERROR,
-        Json(json!({ "error": format!("{error:#}") })),
+        Json(ErrorMessageDto {
+            error: format!("{error:#}"),
+        }),
     )
         .into_response()
 }

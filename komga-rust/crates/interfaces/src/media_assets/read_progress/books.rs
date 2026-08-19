@@ -15,6 +15,7 @@ use komga_application::media_assets::{
 };
 use serde_json::{Value, json};
 
+use crate::contracts::common::ViolationDto;
 use crate::helpers::{
     invalid_progression_payload, invalid_read_progress_payload,
     read_progress_validation_error_response,
@@ -134,10 +135,10 @@ pub(crate) async fn book_read_progress(
     let completed_true = payload.get("completed").and_then(|value| value.as_bool()) == Some(true);
 
     if matches!(page_value.and_then(Value::as_i64), Some(value) if value <= 0) {
-        return read_progress_validation_error_response(vec![json!({
-            "fieldName": "page",
-            "message": "must be greater than 0"
-        })]);
+        return read_progress_validation_error_response(vec![ViolationDto {
+            field_name: Some("page".to_string()),
+            message: Some("must be greater than 0".to_string()),
+        }]);
     }
 
     if completed_true {

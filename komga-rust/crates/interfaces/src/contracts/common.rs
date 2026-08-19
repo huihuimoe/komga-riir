@@ -285,3 +285,20 @@ pub struct SpringErrorDto {
     pub status: u16,
     pub timestamp: u64,
 }
+
+#[derive(Debug, Serialize)]
+pub struct ErrorMessageDto {
+    pub error: String,
+}
+
+#[derive(Debug, Serialize)]
+pub struct ValidationErrorDto {
+    pub violations: Vec<ViolationDto>,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ViolationDto {
+    pub field_name: Option<String>,
+    pub message: Option<String>,
+}

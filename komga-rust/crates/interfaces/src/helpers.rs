@@ -1,4 +1,4 @@
-use crate::contracts::common::PageDto;
+use crate::contracts::common::{ErrorMessageDto, PageDto, ValidationErrorDto, ViolationDto};
 use crate::contracts::discovery::BookDto;
 use crate::discovery_auth::context::{DetailAccessDenial, DiscoveryQueryContext};
 use axum::Json;
@@ -8,7 +8,6 @@ use komga_application::discovery::BookReadModel;
 use komga_domain::common_ids::{LibraryId, UserId};
 use komga_domain::discovery::{DiscoveryQueryContext as DomainDiscoveryQueryContext, PageEnvelope};
 use reqwest::Url;
-use serde_json::{Value, json};
 
 pub(crate) fn books_page_payload(
     page: PageEnvelope<BookReadModel>,
@@ -149,25 +148,23 @@ pub(crate) fn invalid_read_progress_payload() -> Response {
     (
         StatusCode::BAD_REQUEST,
         [(header::CONTENT_TYPE, "application/json")],
-        Json(json!({
-            "error": "invalid read progress payload",
-        })),
+        Json(ErrorMessageDto {
+            error: "invalid read progress payload".to_string(),
+        }),
     )
         .into_response()
 }
 
-pub(crate) fn validation_error_response(violations: Vec<Value>) -> Response {
+pub(crate) fn validation_error_response(violations: Vec<ViolationDto>) -> Response {
     (
         StatusCode::BAD_REQUEST,
         [(header::CONTENT_TYPE, "application/json")],
-        Json(json!({
-            "violations": violations,
-        })),
+        Json(ValidationErrorDto { violations }),
     )
         .into_response()
 }
 
-pub(crate) fn read_progress_validation_error_response(violations: Vec<Value>) -> Response {
+pub(crate) fn read_progress_validation_error_response(violations: Vec<ViolationDto>) -> Response {
     validation_error_response(violations)
 }
 
@@ -175,9 +172,9 @@ pub(crate) fn invalid_progression_payload() -> Response {
     (
         StatusCode::BAD_REQUEST,
         [(header::CONTENT_TYPE, "application/json")],
-        Json(json!({
-            "error": "invalid progression payload",
-        })),
+        Json(ErrorMessageDto {
+            error: "invalid progression payload".to_string(),
+        }),
     )
         .into_response()
 }

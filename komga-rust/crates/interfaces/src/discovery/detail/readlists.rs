@@ -18,6 +18,7 @@ use super::readlists_support::{
 };
 use super::{BookDetailReadModel, book_detail_payload};
 use crate::contracts::common::PageDto;
+use crate::contracts::common::ViolationDto;
 use crate::contracts::discovery::BookDto;
 use crate::discovery::query::{resolve_readlist_books_query, resolve_readlists_query};
 use crate::helpers::{to_domain_query_context, validation_error_response};
@@ -161,16 +162,16 @@ fn parse_readlist_create_input(payload: &Value) -> Result<ReadlistMutationInput,
 
     let mut violations = Vec::new();
     if name.trim().is_empty() {
-        violations.push(json!({
-            "fieldName": "name",
-            "message": "must not be blank",
-        }));
+        violations.push(ViolationDto {
+            field_name: Some("name".to_string()),
+            message: Some("must not be blank".to_string()),
+        });
     }
     if book_values.is_empty() {
-        violations.push(json!({
-            "fieldName": "bookIds",
-            "message": "must not be empty",
-        }));
+        violations.push(ViolationDto {
+            field_name: Some("bookIds".to_string()),
+            message: Some("must not be empty".to_string()),
+        });
     }
 
     let mut seen_book_ids = BTreeSet::new();
@@ -191,10 +192,10 @@ fn parse_readlist_create_input(payload: &Value) -> Result<ReadlistMutationInput,
     }
 
     if saw_duplicate_book_id {
-        violations.push(json!({
-            "fieldName": "bookIds",
-            "message": "must only contain unique elements",
-        }));
+        violations.push(ViolationDto {
+            field_name: Some("bookIds".to_string()),
+            message: Some("must only contain unique elements".to_string()),
+        });
     }
 
     if !violations.is_empty() {

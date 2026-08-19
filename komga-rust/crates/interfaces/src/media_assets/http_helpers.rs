@@ -1,13 +1,16 @@
 use axum::Json;
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
-use serde_json::json;
+
+use crate::contracts::common::ErrorMessageDto;
 
 pub(crate) fn internal_error_response(error: impl std::fmt::Display + std::fmt::Debug) -> Response {
     tracing::error!(?error, "internal media asset error");
     (
         StatusCode::INTERNAL_SERVER_ERROR,
-        Json(json!({ "error": format!("{error:#}") })),
+        Json(ErrorMessageDto {
+            error: format!("{error:#}"),
+        }),
     )
         .into_response()
 }
