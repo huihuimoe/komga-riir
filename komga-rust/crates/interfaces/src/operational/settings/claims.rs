@@ -8,7 +8,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 use komga_application::operational::ClaimInitialAdminUserResult;
 
-use crate::identity_access::user_payload_json;
+use crate::identity_access::user_payload;
 use crate::state::OperationalApiState;
 use komga_application::identity_access::{AuthUser, AuthUserRole};
 
@@ -74,7 +74,7 @@ pub(crate) async fn post_claim(
         age_restriction: None,
     };
 
-    Json(user_payload_json(&created_user)).into_response()
+    Json(user_payload(&created_user)).into_response()
 }
 
 fn email_header_value(headers: &HeaderMap, name: &str) -> Option<String> {
