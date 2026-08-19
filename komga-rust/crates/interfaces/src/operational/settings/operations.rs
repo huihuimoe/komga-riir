@@ -4,10 +4,10 @@ use axum::extract::State;
 use axum::http::StatusCode;
 use axum::http::Uri;
 use axum::response::{IntoResponse, Response};
-use serde_json::json;
 
 use crate::contracts::common::{KotlinLocalDateTime, PageDto};
 use crate::contracts::history::HistoryEventDto;
+use crate::contracts::operational::{MessageDto, OAuth2ClientDto};
 use crate::identity_access::auth::{Admin, Authenticated};
 use crate::state::OperationalApiState;
 use komga_application::identity_access::user_id;
@@ -168,11 +168,9 @@ pub(crate) async fn get_oauth2_providers(State(app): State<OperationalApiState>)
         .operational
         .oauth2_clients
         .iter()
-        .map(|provider| {
-            json!({
-                "name": provider.client_name,
-                "registrationId": provider.registration_id,
-            })
+        .map(|provider| OAuth2ClientDto {
+            name: provider.client_name.clone(),
+            registration_id: provider.registration_id.clone(),
         })
         .collect::<Vec<_>>();
 
@@ -185,13 +183,15 @@ pub(crate) async fn delete_tasks(State(app): State<OperationalApiState>, _: Admi
         Err(error) => {
             return (
                 StatusCode::INTERNAL_SERVER_ERROR,
-                Json(json!({ "message": format!("failed to delete tasks: {error:#}") })),
+                Json(MessageDto {
+                    message: format!("failed to delete tasks: {error:#}"),
+                }),
             )
                 .into_response();
         }
     };
 
-    Json(json!(deleted)).into_response()
+    Json(deleted).into_response()
 }
 
 #[cfg(test)]
