@@ -515,6 +515,7 @@ fn opds_v2_feed_metadata(feed: &OpdsV2PagedFeed<'_>) -> OpdsV2FeedMetadataDto {
     OpdsV2FeedMetadataDto {
         title: feed.title.to_string(),
         modified,
+        description: None,
         items_per_page: feed.size,
         current_page: feed.page + 1,
         number_of_items: feed.total,

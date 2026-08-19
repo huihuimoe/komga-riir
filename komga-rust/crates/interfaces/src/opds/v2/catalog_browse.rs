@@ -214,14 +214,14 @@ fn opds_v2_recommended_group(
                 .collect::<Vec<_>>();
             OpdsV2GroupDto::Publications(OpdsV2PublicationGroupDto {
                 metadata: recommended_group_metadata(title.as_str(), 5, group.total),
-                links: vec![OpdsV2LinkDto {
+                links: Some(vec![OpdsV2LinkDto {
                     title: Some(title),
                     rel: Some("self".to_string()),
                     href: app_absolute_url(headers, self_path.as_str()),
                     media_type: Some("application/opds+json".to_string()),
                     templated: None,
                     properties: None,
-                }],
+                }]),
                 publications,
             })
         }
@@ -594,6 +594,7 @@ pub(crate) async fn opds_v2_library_browse(
                     .map(|library| library.name.clone())
                     .unwrap_or_else(|| "All libraries".to_string()),
                 modified,
+                description: None,
                 items_per_page: size,
                 current_page: page + 1,
                 number_of_items: series_navigation_page.total_count,

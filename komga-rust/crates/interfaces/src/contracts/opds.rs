@@ -62,6 +62,8 @@ pub struct OpdsV2AuthenticationLinkDto {
 #[serde(rename_all = "camelCase")]
 pub struct OpdsV2FeedMetadataDto {
     pub title: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
     pub modified: String,
     pub items_per_page: usize,
     pub current_page: usize,
@@ -98,7 +100,8 @@ pub struct OpdsV2NavigationGroupDto {
 #[derive(Debug, Serialize)]
 pub struct OpdsV2PublicationGroupDto {
     pub metadata: OpdsV2GroupMetadataDto,
-    pub links: Vec<OpdsV2LinkDto>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub links: Option<Vec<OpdsV2LinkDto>>,
     pub publications: Vec<OpdsV2PublicationDto>,
 }
 
@@ -139,6 +142,27 @@ pub struct OpdsV2PublicationFeedDto {
     pub metadata: OpdsV2FeedMetadataDto,
     pub links: Vec<OpdsV2LinkDto>,
     pub publications: Vec<OpdsV2PublicationDto>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct OpdsV2PublicationFacetFeedDto {
+    pub metadata: OpdsV2FeedMetadataDto,
+    pub links: Vec<OpdsV2LinkDto>,
+    pub publications: Vec<OpdsV2PublicationDto>,
+    pub facets: Option<Vec<OpdsV2FacetDto>>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct OpdsV2FacetDto {
+    pub metadata: OpdsV2GroupMetadataDto,
+    pub links: Vec<OpdsV2LinkDto>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct OpdsV2SearchFeedDto {
+    pub metadata: OpdsV2RecommendedMetadataDto,
+    pub links: Vec<OpdsV2LinkDto>,
+    pub groups: Vec<OpdsV2GroupDto>,
 }
 
 #[derive(Debug, Serialize)]

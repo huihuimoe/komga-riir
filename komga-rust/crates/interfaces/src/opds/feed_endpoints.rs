@@ -424,6 +424,7 @@ pub(super) async fn opds_v2_collections_feed(
             metadata: OpdsV2FeedMetadataDto {
                 title,
                 modified,
+                description: None,
                 items_per_page: page_request.size,
                 current_page: page_request.page + 1,
                 number_of_items: total_visible_collections,
@@ -618,6 +619,7 @@ pub(super) async fn opds_v2_readlists_feed(
             metadata: OpdsV2FeedMetadataDto {
                 title,
                 modified,
+                description: None,
                 items_per_page: page_request.size,
                 current_page: page_request.page + 1,
                 number_of_items: total_readlists,
