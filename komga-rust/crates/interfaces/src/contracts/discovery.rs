@@ -191,6 +191,13 @@ pub struct ReadListRequestBookMatchBookDto {
 }
 
 #[derive(Debug, Serialize)]
+#[serde(untagged)]
+pub enum FacetValueDto {
+    String(String),
+    Integer(i64),
+}
+
+#[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SeriesDto {
     pub id: String,
