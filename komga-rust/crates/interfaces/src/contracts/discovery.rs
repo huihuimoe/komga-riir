@@ -1,13 +1,201 @@
 use anyhow::{Context, Result};
 use komga_application::discovery::{
     BookMetadataAuthorReadModel, BookMetadataLinkReadModel, BookReadModel,
-    BookReadProgressReadModel,
+    BookReadProgressReadModel, SeriesReadModel,
 };
 use komga_domain::discovery::MediaProfile;
 use serde::Serialize;
 
 use super::common::{KotlinLocalDate, KotlinUtcDateTime};
 use crate::helpers::{api_file_path, restricted_book_url};
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SeriesDto {
+    pub id: String,
+    pub library_id: String,
+    pub name: String,
+    pub url: String,
+    pub created: KotlinUtcDateTime,
+    pub last_modified: KotlinUtcDateTime,
+    pub file_last_modified: KotlinUtcDateTime,
+    pub books_count: u64,
+    pub books_read_count: u64,
+    pub books_unread_count: u64,
+    pub books_in_progress_count: u64,
+    pub metadata: SeriesMetadataDto,
+    pub books_metadata: BookMetadataAggregationDto,
+    pub deleted: bool,
+    pub oneshot: bool,
+}
+
+impl SeriesDto {
+    pub fn from_read_model(series: &SeriesReadModel) -> Result<Self> {
+        Ok(Self {
+            id: series.id.clone(),
+            library_id: series.library_id.clone(),
+            name: series.name.clone(),
+            url: format!("series/{}", series.id),
+            created: parse_datetime("series.created", &series.created)?,
+            last_modified: parse_datetime("series.lastModified", &series.last_modified)?,
+            file_last_modified: parse_datetime(
+                "series.fileLastModified",
+                &series.file_last_modified,
+            )?,
+            books_count: series.books_count,
+            books_read_count: series.books_read_count,
+            books_unread_count: series.books_unread_count,
+            books_in_progress_count: series.books_in_progress_count,
+            metadata: SeriesMetadataDto::from_read_model(series)?,
+            books_metadata: BookMetadataAggregationDto::from_read_model(series)?,
+            deleted: series.deleted,
+            oneshot: series.oneshot,
+        })
+    }
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SeriesMetadataDto {
+    pub status: String,
+    pub status_lock: bool,
+    pub title: String,
+    pub title_lock: bool,
+    pub title_sort: String,
+    pub title_sort_lock: bool,
+    pub summary: String,
+    pub summary_lock: bool,
+    pub reading_direction: String,
+    pub reading_direction_lock: bool,
+    pub publisher: String,
+    pub publisher_lock: bool,
+    pub age_rating: Option<u32>,
+    pub age_rating_lock: bool,
+    pub language: String,
+    pub language_lock: bool,
+    pub genres: Vec<String>,
+    pub genres_lock: bool,
+    pub tags: Vec<String>,
+    pub tags_lock: bool,
+    pub total_book_count: Option<u64>,
+    pub total_book_count_lock: bool,
+    pub sharing_labels: Vec<String>,
+    pub sharing_labels_lock: bool,
+    pub links: Vec<WebLinkDto>,
+    pub links_lock: bool,
+    pub alternate_titles: Vec<AlternateTitleDto>,
+    pub alternate_titles_lock: bool,
+    pub created: KotlinUtcDateTime,
+    pub last_modified: KotlinUtcDateTime,
+}
+
+impl SeriesMetadataDto {
+    fn from_read_model(series: &SeriesReadModel) -> Result<Self> {
+        Ok(Self {
+            status: series.status.persisted_name().to_string(),
+            status_lock: false,
+            title: series.title.clone(),
+            title_lock: false,
+            title_sort: series.title_sort.clone(),
+            title_sort_lock: false,
+            summary: series.summary.clone(),
+            summary_lock: false,
+            reading_direction: series
+                .reading_direction
+                .map(|value| value.persisted_name().to_string())
+                .unwrap_or_default(),
+            reading_direction_lock: false,
+            publisher: series.publisher.clone(),
+            publisher_lock: false,
+            age_rating: series.age_rating,
+            age_rating_lock: false,
+            language: series.language.clone(),
+            language_lock: false,
+            genres: series.genres.clone(),
+            genres_lock: false,
+            tags: series.tags.clone(),
+            tags_lock: false,
+            total_book_count: None,
+            total_book_count_lock: false,
+            sharing_labels: series.labels.clone(),
+            sharing_labels_lock: false,
+            links: vec![],
+            links_lock: false,
+            alternate_titles: series
+                .alternate_titles
+                .iter()
+                .map(|value| AlternateTitleDto::from_persisted(value))
+                .collect(),
+            alternate_titles_lock: false,
+            created: parse_datetime("series.metadata.created", &series.metadata_created)?,
+            last_modified: parse_datetime(
+                "series.metadata.lastModified",
+                &series.metadata_last_modified,
+            )?,
+        })
+    }
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct BookMetadataAggregationDto {
+    pub authors: Vec<AuthorDto>,
+    pub tags: Vec<String>,
+    pub release_date: Option<KotlinLocalDate>,
+    pub summary: String,
+    pub summary_number: String,
+    pub created: KotlinUtcDateTime,
+    pub last_modified: KotlinUtcDateTime,
+}
+
+impl BookMetadataAggregationDto {
+    fn from_read_model(series: &SeriesReadModel) -> Result<Self> {
+        Ok(Self {
+            authors: series
+                .books_metadata_authors
+                .iter()
+                .map(|value| AuthorDto::from_persisted(value))
+                .collect(),
+            tags: series.books_metadata_tags.clone(),
+            release_date: series
+                .books_metadata_release_date
+                .as_deref()
+                .map(KotlinLocalDate::parse)
+                .transpose()
+                .context("series.booksMetadata.releaseDate")?,
+            summary: series.books_metadata_summary.clone(),
+            summary_number: series.books_metadata_summary_number.clone(),
+            created: parse_datetime(
+                "series.booksMetadata.created",
+                &series.books_metadata_created,
+            )?,
+            last_modified: parse_datetime(
+                "series.booksMetadata.lastModified",
+                &series.books_metadata_last_modified,
+            )?,
+        })
+    }
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AlternateTitleDto {
+    pub label: String,
+    pub title: String,
+}
+
+impl AlternateTitleDto {
+    fn from_persisted(value: &str) -> Self {
+        let (label, title) = value
+            .split_once("::")
+            .map_or(("", value), |(label, title)| (label, title));
+
+        Self {
+            label: label.to_string(),
+            title: title.to_string(),
+        }
+    }
+}
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -172,6 +360,17 @@ impl AuthorDto {
         Self {
             name: author.name.clone(),
             role: author.role.clone(),
+        }
+    }
+
+    fn from_persisted(value: &str) -> Self {
+        let (name, role) = value
+            .split_once("::")
+            .map_or((value, ""), |(name, role)| (name, role));
+
+        Self {
+            name: name.to_string(),
+            role: role.to_string(),
         }
     }
 }

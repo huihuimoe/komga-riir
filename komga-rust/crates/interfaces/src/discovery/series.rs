@@ -12,20 +12,8 @@ use axum::extract::State;
 use axum::http::{HeaderMap, StatusCode, Uri};
 use axum::response::{IntoResponse, Response};
 use komga_application::discovery::{SeriesAlphabeticalGroup, SeriesAlphabeticalGroupsRequest};
-use komga_domain::discovery::{DiscoveryError, PageEnvelope, SeriesSort};
+use komga_domain::discovery::{DiscoveryError, SeriesSort};
 use serde_json::{Value, json};
-
-fn normalize_kotlin_unpaged_page_shape<T>(mut page: PageEnvelope<T>) -> PageEnvelope<T> {
-    let normalized_size = page.total_elements.max(20);
-    page.page = 0;
-    page.size = normalized_size;
-    page.total_pages = if page.total_elements == 0 {
-        0
-    } else {
-        ((page.total_elements - 1) / normalized_size) + 1
-    };
-    page
-}
 
 async fn series_feed(
     app: &DiscoveryState,
@@ -67,17 +55,15 @@ async fn series_feed(
         .await
     {
         Ok(page) => {
-            let page = if resolved.response.kotlin_unpaged_shape {
-                normalize_kotlin_unpaged_page_shape(page)
-            } else {
-                page
-            };
-            Json(series_read_model_page_payload(
+            match series_read_model_page_payload(
                 page,
                 resolved.response.paged,
                 resolved.response.sorted,
-            ))
-            .into_response()
+                resolved.response.kotlin_unpaged_shape,
+            ) {
+                Ok(payload) => Json(payload).into_response(),
+                Err(error) => internal_error_response(format!("{error:#}")),
+            }
         }
         Err(e) => internal_error_response(format!("{e:?}")),
     }
@@ -133,12 +119,15 @@ pub(crate) async fn series_deprecated_get(
         .list_series(&context, resolved.request)
         .await
     {
-        Ok(page) => Json(series_read_model_page_payload(
+        Ok(page) => match series_read_model_page_payload(
             page,
             resolved.response.paged,
             resolved.response.sorted,
-        ))
-        .into_response(),
+            resolved.response.kotlin_unpaged_shape,
+        ) {
+            Ok(payload) => Json(payload).into_response(),
+            Err(error) => internal_error_response(format!("{error:#}")),
+        },
         Err(e) => internal_error_response(format!("{e:?}")),
     }
 }
@@ -259,12 +248,15 @@ pub(crate) async fn series_list(
         .list_series(&context, resolved.request)
         .await
     {
-        Ok(page) => Json(series_read_model_page_payload(
+        Ok(page) => match series_read_model_page_payload(
             page,
             resolved.response.paged,
             resolved.response.sorted,
-        ))
-        .into_response(),
+            resolved.response.kotlin_unpaged_shape,
+        ) {
+            Ok(payload) => Json(payload).into_response(),
+            Err(error) => internal_error_response(format!("{error:#}")),
+        },
         Err(DiscoveryError::InvalidSemantics(e)) => {
             (StatusCode::BAD_REQUEST, Json(json!({ "error": e }))).into_response()
         }

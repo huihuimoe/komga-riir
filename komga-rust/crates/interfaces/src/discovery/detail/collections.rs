@@ -195,7 +195,7 @@ pub(crate) async fn collection_series(
         );
     }
 
-    Json(series_read_model_page_payload(
+    match series_read_model_page_payload(
         result,
         if collection.ordered {
             !requested_unpaged
@@ -203,8 +203,11 @@ pub(crate) async fn collection_series(
             !unpaged
         },
         false,
-    ))
-    .into_response()
+        false,
+    ) {
+        Ok(payload) => Json(payload).into_response(),
+        Err(error) => internal_error_response(format!("{error:#}")),
+    }
 }
 
 fn ordered_collection_series_page(
