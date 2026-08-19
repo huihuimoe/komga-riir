@@ -70,7 +70,11 @@ async fn book_manifest_variant(
     .await
     {
         Ok(ManifestBuildOutcome::Found(manifest)) => {
-            let payload = render_manifest_payload(&headers, &manifest, ManifestHrefSurface::ApiV1);
+            let payload =
+                match render_manifest_payload(&headers, &manifest, ManifestHrefSurface::ApiV1) {
+                    Ok(payload) => payload,
+                    Err(error) => return internal_error_response(error),
+                };
             (
                 StatusCode::OK,
                 [(header::CONTENT_TYPE, manifest_content_type(&manifest))],

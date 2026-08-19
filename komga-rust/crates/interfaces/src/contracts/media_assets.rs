@@ -179,6 +179,135 @@ pub struct BookPageDto {
     pub size: String,
 }
 
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct WebPubManifestDto {
+    pub context: String,
+    pub metadata: WebPubManifestMetadataDto,
+    pub links: Vec<WebPubManifestLinkDto>,
+    pub reading_order: Vec<WebPubManifestLinkDto>,
+    pub resources: Vec<WebPubManifestLinkDto>,
+    pub toc: Vec<WebPubManifestNavigationDto>,
+    pub landmarks: Vec<WebPubManifestNavigationDto>,
+    pub page_list: Vec<WebPubManifestNavigationDto>,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct WebPubManifestMetadataDto {
+    pub title: String,
+    pub conforms_to: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub identifier: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub number_of_pages: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub published: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub modified: Option<crate::contracts::common::KotlinUtcDateTime>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub subject: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub author: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub translator: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub editor: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub artist: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub illustrator: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub letterer: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub penciler: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub colorist: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub inker: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub contributor: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub belongs_to: Option<WebPubManifestBelongsToDto>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub language: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub reading_progression: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub rendition: Option<WebPubManifestRenditionDto>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct WebPubManifestBelongsToDto {
+    pub series: Vec<WebPubManifestSeriesDto>,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct WebPubManifestSeriesDto {
+    pub name: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub position: Option<f64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub links: Option<Vec<WebPubManifestLinkDto>>,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct WebPubManifestRenditionDto {
+    pub layout: String,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct WebPubManifestLinkDto {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub rel: Option<String>,
+    pub href: String,
+    #[serde(rename = "type")]
+    pub media_type: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub properties: Option<WebPubManifestLinkPropertiesDto>,
+    #[serde(flatten)]
+    pub dimensions: Option<WebPubManifestLinkDimensionsDto>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub alternate: Vec<WebPubManifestLinkDto>,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct WebPubManifestLinkPropertiesDto {
+    pub authenticate: WebPubManifestAuthenticationLinkDto,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct WebPubManifestAuthenticationLinkDto {
+    pub href: String,
+    #[serde(rename = "type")]
+    pub media_type: String,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct WebPubManifestLinkDimensionsDto {
+    pub width: Option<i64>,
+    pub height: Option<i64>,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct WebPubManifestNavigationDto {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub title: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub href: Option<String>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub children: Vec<WebPubManifestNavigationDto>,
+}
+
 impl From<BookPageRecord> for BookPageDto {
     fn from(page: BookPageRecord) -> Self {
         let (size_bytes, size) = if page.file_size < 0 {
