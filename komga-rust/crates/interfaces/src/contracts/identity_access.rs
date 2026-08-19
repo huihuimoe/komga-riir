@@ -1,7 +1,11 @@
+use anyhow::{Context, Result};
 use komga_application::identity_access::{
-    AuthUser, AuthUserAgeRestriction, user_response_role_names,
+    AuthUser, AuthUserAgeRestriction, PersistedApiKey, PersistedAuthenticationActivity,
+    user_response_role_names,
 };
 use serde::Serialize;
+
+use super::common::KotlinUtcDateTime;
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -55,4 +59,78 @@ impl AgeRestrictionDto {
 #[serde(rename_all = "camelCase")]
 pub struct ClaimStatusDto {
     pub is_claimed: bool,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ApiKeyDto {
+    pub id: String,
+    pub user_id: String,
+    pub key: String,
+    pub comment: String,
+    pub created_date: Option<KotlinUtcDateTime>,
+    pub last_modified_date: Option<KotlinUtcDateTime>,
+}
+
+impl ApiKeyDto {
+    pub fn from_persisted(api_key: &PersistedApiKey, redacted: bool) -> Result<Self> {
+        Ok(Self {
+            id: api_key.id.clone(),
+            user_id: api_key.user_id.clone(),
+            key: if redacted {
+                "******".to_string()
+            } else {
+                api_key.key.clone()
+            },
+            comment: api_key.comment.clone(),
+            created_date: parse_optional_datetime(
+                "apiKey.createdDate",
+                api_key.created_date.as_deref(),
+            )?,
+            last_modified_date: parse_optional_datetime(
+                "apiKey.lastModifiedDate",
+                api_key.last_modified_date.as_deref(),
+            )?,
+        })
+    }
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AuthenticationActivityDto {
+    pub user_id: Option<String>,
+    pub email: Option<String>,
+    pub api_key_id: Option<String>,
+    pub api_key_comment: Option<String>,
+    pub ip: Option<String>,
+    pub user_agent: Option<String>,
+    pub success: bool,
+    pub error: Option<String>,
+    pub date_time: KotlinUtcDateTime,
+    pub source: Option<String>,
+}
+
+impl AuthenticationActivityDto {
+    pub fn from_persisted(activity: &PersistedAuthenticationActivity) -> Result<Self> {
+        Ok(Self {
+            user_id: activity.user_id.clone(),
+            email: activity.email.clone(),
+            api_key_id: activity.api_key_id.clone(),
+            api_key_comment: activity.api_key_comment.clone(),
+            ip: activity.ip.clone(),
+            user_agent: activity.user_agent.clone(),
+            success: activity.success,
+            error: activity.error.clone(),
+            date_time: KotlinUtcDateTime::parse(&activity.date_time).with_context(|| {
+                format!("authenticationActivity.dateTime: {}", activity.date_time)
+            })?,
+            source: activity.source.clone(),
+        })
+    }
+}
+
+fn parse_optional_datetime(field: &str, value: Option<&str>) -> Result<Option<KotlinUtcDateTime>> {
+    value
+        .map(|value| KotlinUtcDateTime::parse(value).with_context(|| format!("{field}: {value}")))
+        .transpose()
 }

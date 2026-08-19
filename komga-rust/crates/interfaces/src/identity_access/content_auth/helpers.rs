@@ -10,10 +10,13 @@ use axum::response::{IntoResponse, Response};
 use komga_application::identity_access::{
     AuthOutcome, AuthUser, AuthUserRole, PersistedAuthenticationActivity, random_uuid_like, user_id,
 };
-use serde_json::{Value, json};
+use serde_json::Value;
 
 use crate::access_log::RequestConnectionInfo;
-use crate::contracts::common::{MessageDto, SpringErrorDto, ValidationErrorDto, ViolationDto};
+use crate::contracts::common::{
+    MessageDto, PageDto, SpringErrorDto, ValidationErrorDto, ViolationDto,
+};
+use crate::contracts::identity_access::AuthenticationActivityDto;
 use crate::discovery_auth::principal::principal_from_user;
 use crate::identity_access::auth::{
     AuthenticationActivityApiKey, authentication_activity_headers_metadata_with_remote_addr,
@@ -355,7 +358,7 @@ struct AuthenticationActivitySortOrder<'a> {
 pub(super) fn authentication_activity_page_payload(
     mut rows: Vec<PersistedAuthenticationActivity>,
     query: &str,
-) -> Value {
+) -> anyhow::Result<PageDto<AuthenticationActivityDto>> {
     let unpaged = query_bool(query, "unpaged");
     let page = query_value(query, "page")
         .and_then(|value| value.parse::<usize>().ok())
@@ -393,8 +396,7 @@ pub(super) fn authentication_activity_page_payload(
     let content = page_rows
         .iter()
         .map(authentication_activity_payload)
-        .collect::<Vec<_>>();
-    let number_of_elements = content.len();
+        .collect::<anyhow::Result<Vec<_>>>()?;
     let total_pages = if total_elements == 0 {
         0
     } else if unpaged {
@@ -403,37 +405,16 @@ pub(super) fn authentication_activity_page_payload(
         total_elements.div_ceil(page_size)
     };
     let page_number = if unpaged { 0 } else { page };
-    let first = page_number == 0;
-    let last = total_pages == 0 || page_number + 1 >= total_pages;
 
-    json!({
-        "content": content,
-        "pageable": {
-            "pageNumber": page_number,
-            "pageSize": page_size,
-            "sort": {
-                "empty": false,
-                "sorted": true,
-                "unsorted": false
-            },
-            "offset": if unpaged { 0 } else { offset },
-            "paged": !unpaged,
-            "unpaged": unpaged
-        },
-        "last": last,
-        "totalElements": total_elements,
-        "totalPages": total_pages,
-        "first": first,
-        "size": page_size,
-        "number": page_number,
-        "sort": {
-            "empty": false,
-            "sorted": true,
-            "unsorted": false
-        },
-        "numberOfElements": number_of_elements,
-        "empty": number_of_elements == 0
-    })
+    Ok(PageDto::from_parts(
+        content,
+        page_number,
+        page_size,
+        total_elements,
+        total_pages,
+        !unpaged,
+        true,
+    ))
 }
 
 fn authentication_activity_sort_orders(query: &str) -> Vec<AuthenticationActivitySortOrder<'_>> {
@@ -495,29 +476,10 @@ fn compare_authentication_activity(
     Ordering::Equal
 }
 
-pub(super) fn authentication_activity_payload(activity: &PersistedAuthenticationActivity) -> Value {
-    json!({
-        "userId": activity.user_id(),
-        "email": activity.email(),
-        "ip": activity.ip(),
-        "userAgent": activity.user_agent(),
-        "success": activity.success(),
-        "error": activity.error(),
-        "dateTime": sqlite_datetime_to_utc(activity.date_time()),
-        "source": activity.source(),
-        "apiKeyId": activity.api_key_id(),
-        "apiKeyComment": activity.api_key_comment(),
-    })
-}
-
-pub(super) fn sqlite_datetime_to_utc(value: &str) -> String {
-    if value.ends_with('Z') || value.contains('T') {
-        value.to_string()
-    } else if let Some((date, time)) = value.split_once(' ') {
-        format!("{date}T{time}Z")
-    } else {
-        value.to_string()
-    }
+pub(super) fn authentication_activity_payload(
+    activity: &PersistedAuthenticationActivity,
+) -> anyhow::Result<AuthenticationActivityDto> {
+    AuthenticationActivityDto::from_persisted(activity)
 }
 
 pub(super) fn query_value<'a>(query: &'a str, key: &str) -> Option<&'a str> {
