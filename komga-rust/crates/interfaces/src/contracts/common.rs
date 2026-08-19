@@ -101,6 +101,48 @@ impl std::fmt::Display for WireDateTimeError {
 
 impl std::error::Error for WireDateTimeError {}
 
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct KotlinLocalDateTime(PrimitiveDateTime);
+
+impl KotlinLocalDateTime {
+    pub fn from_unix_timestamp_nanos(unix_nanos: i128) -> Result<Self, WireDateTimeError> {
+        let local_offset = UtcOffset::current_local_offset().unwrap_or(UtcOffset::UTC);
+        let datetime = OffsetDateTime::from_unix_timestamp_nanos(unix_nanos)
+            .map_err(|_| WireDateTimeError {
+                input: unix_nanos.to_string(),
+            })?
+            .to_offset(local_offset);
+        Ok(Self(PrimitiveDateTime::new(
+            datetime.date(),
+            datetime.time(),
+        )))
+    }
+}
+
+impl Serialize for KotlinLocalDateTime {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let datetime = self.0;
+        let mut value = format!(
+            "{:04}-{:02}-{:02}T{:02}:{:02}:{:02}",
+            datetime.year(),
+            datetime.month() as u8,
+            datetime.day(),
+            datetime.hour(),
+            datetime.minute(),
+            datetime.second(),
+        );
+        if datetime.nanosecond() > 0 {
+            let fraction = format!("{:09}", datetime.nanosecond());
+            value.push('.');
+            value.push_str(fraction.trim_end_matches('0'));
+        }
+        serializer.serialize_str(&value)
+    }
+}
+
 fn parse_naive_datetime(
     raw: &str,
     format: &'static [time::format_description::FormatItem<'static>],
