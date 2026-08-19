@@ -1,4 +1,6 @@
-use crate::contracts::common::{ErrorMessageDto, PageDto, ValidationErrorDto, ViolationDto};
+use crate::contracts::common::{
+    ErrorMessageDto, PageDto, SpringInternalErrorDto, ValidationErrorDto, ViolationDto,
+};
 use crate::contracts::discovery::BookDto;
 use crate::discovery_auth::context::{DetailAccessDenial, DiscoveryQueryContext};
 use axum::Json;
@@ -8,6 +10,17 @@ use komga_application::discovery::BookReadModel;
 use komga_domain::common_ids::{LibraryId, UserId};
 use komga_domain::discovery::{DiscoveryQueryContext as DomainDiscoveryQueryContext, PageEnvelope};
 use reqwest::Url;
+
+pub(crate) fn internal_error_response(error: impl std::fmt::Display + std::fmt::Debug) -> Response {
+    tracing::error!(?error, "internal server error");
+    (
+        StatusCode::INTERNAL_SERVER_ERROR,
+        Json(SpringInternalErrorDto {
+            error: format!("{error:#}"),
+        }),
+    )
+        .into_response()
+}
 
 pub(crate) fn books_page_payload(
     page: PageEnvelope<BookReadModel>,

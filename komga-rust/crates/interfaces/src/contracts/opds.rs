@@ -70,6 +70,63 @@ pub struct OpdsV2FeedMetadataDto {
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
+pub struct OpdsV2RecommendedMetadataDto {
+    pub title: String,
+    pub modified: String,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct OpdsV2GroupMetadataDto {
+    pub title: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub items_per_page: Option<usize>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub current_page: Option<usize>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub number_of_items: Option<usize>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct OpdsV2NavigationGroupDto {
+    pub metadata: OpdsV2GroupMetadataDto,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub links: Option<Vec<OpdsV2LinkDto>>,
+    pub navigation: Vec<OpdsV2LinkDto>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct OpdsV2PublicationGroupDto {
+    pub metadata: OpdsV2GroupMetadataDto,
+    pub links: Vec<OpdsV2LinkDto>,
+    pub publications: Vec<OpdsV2PublicationDto>,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(untagged)]
+pub enum OpdsV2GroupDto {
+    Navigation(OpdsV2NavigationGroupDto),
+    Publications(OpdsV2PublicationGroupDto),
+}
+
+#[derive(Debug, Serialize)]
+pub struct OpdsV2RecommendedFeedDto {
+    pub metadata: OpdsV2RecommendedMetadataDto,
+    pub links: Vec<OpdsV2LinkDto>,
+    pub navigation: Vec<OpdsV2LinkDto>,
+    pub groups: Vec<OpdsV2GroupDto>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct OpdsV2GroupedFeedDto {
+    pub metadata: OpdsV2FeedMetadataDto,
+    pub links: Vec<OpdsV2LinkDto>,
+    pub navigation: Vec<OpdsV2LinkDto>,
+    pub groups: Vec<OpdsV2GroupDto>,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct OpdsV2NavigationFeedDto {
     pub metadata: OpdsV2FeedMetadataDto,
     pub links: Vec<OpdsV2LinkDto>,

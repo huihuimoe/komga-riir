@@ -1,10 +1,12 @@
-use komga_interfaces::contracts::common::{ErrorMessageDto, ValidationErrorDto, ViolationDto};
+use komga_interfaces::contracts::common::{
+    SpringInternalErrorDto, ValidationErrorDto, ViolationDto,
+};
 use serde_json::json;
 
 #[test]
 fn common_error_contracts_match_kotlin_field_names() {
     assert_eq!(
-        serde_json::to_value(ErrorMessageDto {
+        serde_json::to_value(SpringInternalErrorDto {
             error: "Bad Request".to_string(),
         })
         .expect("error message should serialize"),

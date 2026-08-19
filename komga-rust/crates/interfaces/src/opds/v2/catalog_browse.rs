@@ -8,7 +8,6 @@ use komga_application::opds::{
     OpdsV2FeedPageError, OpdsV2RecommendedGroup, OpdsV2RecommendedGroupContent,
     OpdsV2RecommendedGroupKind, OpdsV2RecommendedPage,
 };
-use serde_json::json;
 
 use super::super::feed_endpoints::{
     opds_v2_browse_path, opds_v2_collections_path, opds_v2_feed_path, opds_v2_keep_reading_feed,
@@ -23,7 +22,12 @@ use super::super::persisted::{
     allowed_library_ids_for_user, load_browse_publisher_navigation, load_browse_series_navigation,
     load_libraries, validate_library_scope,
 };
-use crate::contracts::opds::OpdsV2LinkDto;
+use crate::contracts::opds::{
+    OpdsV2FeedMetadataDto, OpdsV2GroupDto, OpdsV2GroupMetadataDto, OpdsV2GroupedFeedDto,
+    OpdsV2LinkDto, OpdsV2NavigationGroupDto, OpdsV2PublicationGroupDto, OpdsV2RecommendedFeedDto,
+    OpdsV2RecommendedMetadataDto,
+};
+use crate::helpers::internal_error_response;
 use crate::opds_auth::OpdsV2Authenticated;
 use crate::request_urls::app_absolute_url;
 use crate::state::OpdsState;
@@ -86,6 +90,32 @@ fn render_opds_v2_recommended(headers: &HeaderMap, page: OpdsV2RecommendedPage) 
         .filter(|value| !value.is_empty())
         .map(normalize_opds_updated)
         .unwrap_or_else(opds_now_timestamp);
+    let links = vec![
+        OpdsV2LinkDto {
+            title: None,
+            rel: Some("self".to_string()),
+            href: app_absolute_url(headers, self_path.as_str()),
+            media_type: None,
+            templated: None,
+            properties: None,
+        },
+        OpdsV2LinkDto {
+            title: Some("Home".to_string()),
+            rel: Some("start".to_string()),
+            href: app_absolute_url(headers, "/opds/v2/catalog"),
+            media_type: Some("application/opds+json".to_string()),
+            templated: None,
+            properties: None,
+        },
+        OpdsV2LinkDto {
+            title: Some("Search".to_string()),
+            rel: Some("search".to_string()),
+            href: app_absolute_url(headers, "/opds/v2/search{?query}"),
+            media_type: Some("application/opds+json".to_string()),
+            templated: Some(true),
+            properties: None,
+        },
+    ];
 
     (
         StatusCode::OK,
@@ -93,33 +123,15 @@ fn render_opds_v2_recommended(headers: &HeaderMap, page: OpdsV2RecommendedPage) 
             header::CONTENT_TYPE,
             HeaderValue::from_static("application/opds+json"),
         )],
-        Json(json!({
-            "metadata": {
-                "title": page.title,
-                "modified": modified,
+        Json(OpdsV2RecommendedFeedDto {
+            metadata: OpdsV2RecommendedMetadataDto {
+                title: page.title,
+                modified,
             },
-            "links": [
-                {
-                    "rel": "self",
-                    "href": app_absolute_url(headers, self_path.as_str()),
-                },
-                {
-                    "title": "Home",
-                    "rel": "start",
-                    "href": app_absolute_url(headers, "/opds/v2/catalog"),
-                    "type": "application/opds+json",
-                },
-                {
-                    "title": "Search",
-                    "rel": "search",
-                    "href": app_absolute_url(headers, "/opds/v2/search{?query}"),
-                    "type": "application/opds+json",
-                    "templated": true,
-                }
-            ],
-            "navigation": navigation,
-            "groups": groups,
-        })),
+            links,
+            navigation,
+            groups,
+        }),
     )
         .into_response()
 }
@@ -162,8 +174,9 @@ fn opds_v2_recommended_group(
     headers: &HeaderMap,
     library_id: Option<&str>,
     group: OpdsV2RecommendedGroup,
-) -> serde_json::Value {
+) -> OpdsV2GroupDto {
     let self_path = opds_v2_recommended_group_path(group.kind, library_id);
+    let title = group.title;
     match group.content {
         OpdsV2RecommendedGroupContent::Libraries(libraries) => {
             let navigation = libraries
@@ -176,13 +189,22 @@ fn opds_v2_recommended_group(
                     )
                 })
                 .collect::<Vec<_>>();
-            json!({
-                "metadata": { "title": group.title },
-                "links": [{
-                    "rel": "self",
-                    "href": app_absolute_url(headers, self_path.as_str()),
-                }],
-                "navigation": navigation,
+            OpdsV2GroupDto::Navigation(OpdsV2NavigationGroupDto {
+                metadata: OpdsV2GroupMetadataDto {
+                    title,
+                    items_per_page: None,
+                    current_page: None,
+                    number_of_items: None,
+                },
+                links: Some(vec![OpdsV2LinkDto {
+                    title: None,
+                    rel: Some("self".to_string()),
+                    href: app_absolute_url(headers, self_path.as_str()),
+                    media_type: None,
+                    templated: None,
+                    properties: None,
+                }]),
+                navigation,
             })
         }
         OpdsV2RecommendedGroupContent::Publications(books) => {
@@ -190,37 +212,45 @@ fn opds_v2_recommended_group(
                 .iter()
                 .map(|book| opds_publication_for_feed_entry(headers, book))
                 .collect::<Vec<_>>();
-            json!({
-                "metadata": recommended_group_metadata(group.title.as_str(), 5, group.total),
-                "links": [{
-                    "title": group.title,
-                    "rel": "self",
-                    "href": app_absolute_url(headers, self_path.as_str()),
-                    "type": "application/opds+json",
+            OpdsV2GroupDto::Publications(OpdsV2PublicationGroupDto {
+                metadata: recommended_group_metadata(title.as_str(), 5, group.total),
+                links: vec![OpdsV2LinkDto {
+                    title: Some(title),
+                    rel: Some("self".to_string()),
+                    href: app_absolute_url(headers, self_path.as_str()),
+                    media_type: Some("application/opds+json".to_string()),
+                    templated: None,
+                    properties: None,
                 }],
-                "publications": publications,
+                publications,
             })
         }
         OpdsV2RecommendedGroupContent::Navigation(series) => {
             let navigation = series
                 .into_iter()
-                .map(|series| {
-                    json!({
-                        "title": series.title,
-                        "href": app_absolute_url(headers, format!("/opds/v2/series/{}", series.id).as_str()),
-                        "type": "application/opds+json",
-                    })
+                .map(|series| OpdsV2LinkDto {
+                    title: Some(series.title),
+                    rel: None,
+                    href: app_absolute_url(
+                        headers,
+                        format!("/opds/v2/series/{}", series.id).as_str(),
+                    ),
+                    media_type: Some("application/opds+json".to_string()),
+                    templated: None,
+                    properties: None,
                 })
                 .collect::<Vec<_>>();
-            json!({
-                "metadata": recommended_group_metadata(group.title.as_str(), 5, group.total),
-                "links": [{
-                    "title": group.title,
-                    "rel": "self",
-                    "href": app_absolute_url(headers, self_path.as_str()),
-                    "type": "application/opds+json",
-                }],
-                "navigation": navigation,
+            OpdsV2GroupDto::Navigation(OpdsV2NavigationGroupDto {
+                metadata: recommended_group_metadata(title.as_str(), 5, group.total),
+                links: Some(vec![OpdsV2LinkDto {
+                    title: Some(title),
+                    rel: Some("self".to_string()),
+                    href: app_absolute_url(headers, self_path.as_str()),
+                    media_type: Some("application/opds+json".to_string()),
+                    templated: None,
+                    properties: None,
+                }]),
+                navigation,
             })
         }
     }
@@ -245,11 +275,9 @@ fn opds_v2_recommended_error_response(error: OpdsV2FeedPageError) -> Response {
             StatusCode::FORBIDDEN.into_response()
         }
         OpdsV2FeedPageError::LibraryScope(OpdsLibraryScopeError::Load(error))
-        | OpdsV2FeedPageError::Load(error) => (
-            StatusCode::INTERNAL_SERVER_ERROR,
-            Json(json!({ "error": format!("load OPDS libraries: {error:#}") })),
-        )
-            .into_response(),
+        | OpdsV2FeedPageError::Load(error) => {
+            internal_error_response(format!("load OPDS libraries: {error:#}"))
+        }
     }
 }
 
@@ -257,13 +285,13 @@ fn recommended_group_metadata(
     title: &str,
     items_per_page: usize,
     number_of_items: usize,
-) -> serde_json::Value {
-    json!({
-        "title": title,
-        "itemsPerPage": items_per_page,
-        "currentPage": 1,
-        "numberOfItems": number_of_items,
-    })
+) -> OpdsV2GroupMetadataDto {
+    OpdsV2GroupMetadataDto {
+        title: title.to_string(),
+        items_per_page: Some(items_per_page),
+        current_page: Some(1),
+        number_of_items: Some(number_of_items),
+    }
 }
 
 pub(crate) async fn opds_v2_libraries_keep_reading(
@@ -372,13 +400,7 @@ pub(crate) async fn opds_v2_library_browse(
 
     let libraries = match load_libraries(app.opds_library_persisted.as_ref()).await {
         Ok(libraries) => libraries,
-        Err(error) => {
-            return (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                Json(json!({ "error": format!("load OPDS libraries: {error:#}") })),
-            )
-                .into_response();
-        }
+        Err(error) => return internal_error_response(format!("load OPDS libraries: {error:#}")),
     };
     let selected_library =
         library_id.and_then(|id| libraries.iter().find(|library| library.id == id));
@@ -477,51 +499,79 @@ pub(crate) async fn opds_v2_library_browse(
         Ok(entries) => entries,
         Err(error) => return opds_v2_browse_load_error("publisher navigation", error),
     };
-    let mut groups = vec![json!({
-        "metadata": { "title": "Series" },
-        "navigation": series_navigation_page.entries,
+    let mut groups = vec![OpdsV2GroupDto::Navigation(OpdsV2NavigationGroupDto {
+        metadata: OpdsV2GroupMetadataDto {
+            title: "Series".to_string(),
+            items_per_page: None,
+            current_page: None,
+            number_of_items: None,
+        },
+        links: None,
+        navigation: series_navigation_page.entries,
     })];
     if !publisher_navigation.is_empty() {
-        groups.push(json!({
-            "metadata": { "title": "Publisher" },
-            "navigation": publisher_navigation,
+        groups.push(OpdsV2GroupDto::Navigation(OpdsV2NavigationGroupDto {
+            metadata: OpdsV2GroupMetadataDto {
+                title: "Publisher".to_string(),
+                items_per_page: None,
+                current_page: None,
+                number_of_items: None,
+            },
+            links: None,
+            navigation: publisher_navigation,
         }));
     }
     let mut links = vec![
-        json!({
-            "rel": "self",
-            "href": self_href,
-        }),
-        json!({
-            "title": "Home",
-            "rel": "start",
-            "href": app_absolute_url(&headers, "/opds/v2/catalog"),
-            "type": "application/opds+json",
-        }),
-        json!({
-            "title": "Search",
-            "rel": "search",
-            "href": app_absolute_url(&headers, "/opds/v2/search{?query}"),
-            "type": "application/opds+json",
-            "templated": true,
-        }),
+        OpdsV2LinkDto {
+            title: None,
+            rel: Some("self".to_string()),
+            href: self_href,
+            media_type: None,
+            templated: None,
+            properties: None,
+        },
+        OpdsV2LinkDto {
+            title: Some("Home".to_string()),
+            rel: Some("start".to_string()),
+            href: app_absolute_url(&headers, "/opds/v2/catalog"),
+            media_type: Some("application/opds+json".to_string()),
+            templated: None,
+            properties: None,
+        },
+        OpdsV2LinkDto {
+            title: Some("Search".to_string()),
+            rel: Some("search".to_string()),
+            href: app_absolute_url(&headers, "/opds/v2/search{?query}"),
+            media_type: Some("application/opds+json".to_string()),
+            templated: Some(true),
+            properties: None,
+        },
     ];
     if page > 0 {
-        links.push(json!({
-            "rel": "previous",
-            "href": app_absolute_url(
+        links.push(OpdsV2LinkDto {
+            title: None,
+            rel: Some("previous".to_string()),
+            href: app_absolute_url(
                 &headers,
                 format!("{browse_base_path}?page={}", page.saturating_sub(1)).as_str(),
             ),
-            "type": "application/opds+json",
-        }));
+            media_type: Some("application/opds+json".to_string()),
+            templated: None,
+            properties: None,
+        });
     }
     if (page + 1) * size < series_navigation_page.total_count {
-        links.push(json!({
-            "rel": "next",
-            "href": app_absolute_url(&headers, format!("{browse_base_path}?page={}", page + 1).as_str()),
-            "type": "application/opds+json",
-        }));
+        links.push(OpdsV2LinkDto {
+            title: None,
+            rel: Some("next".to_string()),
+            href: app_absolute_url(
+                &headers,
+                format!("{browse_base_path}?page={}", page + 1).as_str(),
+            ),
+            media_type: Some("application/opds+json".to_string()),
+            templated: None,
+            properties: None,
+        });
     }
 
     let modified = selected_library
@@ -537,21 +587,21 @@ pub(crate) async fn opds_v2_library_browse(
             header::CONTENT_TYPE,
             HeaderValue::from_static("application/opds+json"),
         )],
-        Json(json!({
-            "metadata": {
-                "title": selected_library
+        Json(OpdsV2GroupedFeedDto {
+            metadata: OpdsV2FeedMetadataDto {
+                title: selected_library
                     .as_ref()
                     .map(|library| library.name.clone())
                     .unwrap_or_else(|| "All libraries".to_string()),
-                "modified": modified,
-                "itemsPerPage": size,
-                "currentPage": page + 1,
-                "numberOfItems": series_navigation_page.total_count,
+                modified,
+                items_per_page: size,
+                current_page: page + 1,
+                number_of_items: series_navigation_page.total_count,
             },
-            "links": links,
-            "navigation": navigation,
-            "groups": groups,
-        })),
+            links,
+            navigation,
+            groups,
+        }),
     )
         .into_response()
 }
@@ -560,10 +610,5 @@ fn opds_v2_browse_load_error(
     context: &str,
     error: impl std::fmt::Display + std::fmt::Debug,
 ) -> Response {
-    tracing::error!(?error, %context, "internal OPDS browse load error");
-    (
-        StatusCode::INTERNAL_SERVER_ERROR,
-        Json(json!({ "error": format!("load OPDS browse {context}: {error:#}") })),
-    )
-        .into_response()
+    internal_error_response(format!("load OPDS browse {context}: {error:#}"))
 }
