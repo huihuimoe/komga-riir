@@ -1,4 +1,6 @@
-use komga_application::discovery::{SeriesReadModel, SeriesReadingDirection};
+use komga_application::discovery::{
+    SeriesAlternateTitleRecord, SeriesMetadataLinkRecord, SeriesReadModel, SeriesReadingDirection,
+};
 use komga_domain::discovery::SeriesStatus;
 use komga_interfaces::contracts::discovery::SeriesDto;
 use serde_json::json;
@@ -12,6 +14,29 @@ fn series() -> SeriesReadModel {
         title: "Series Title".to_string(),
         title_sort: "Series Sort".to_string(),
         labels: vec!["Team".to_string()],
+        status_lock: true,
+        title_lock: true,
+        title_sort_lock: true,
+        summary_lock: true,
+        reading_direction_lock: true,
+        publisher_lock: true,
+        age_rating_lock: true,
+        language_lock: true,
+        genres_lock: true,
+        tags_lock: true,
+        total_book_count: Some(5),
+        total_book_count_lock: true,
+        sharing_labels_lock: true,
+        links: vec![SeriesMetadataLinkRecord {
+            label: "Wiki".to_string(),
+            url: "https://example.com".to_string(),
+        }],
+        links_lock: true,
+        alternate_titles: vec![SeriesAlternateTitleRecord {
+            label: "en".to_string(),
+            title: "Alt Title".to_string(),
+        }],
+        alternate_titles_lock: true,
         created: "2024-01-01 00:00:00".to_string(),
         last_modified: "2024-01-02T00:00:00Z".to_string(),
         file_last_modified: "1704240000".to_string(),
@@ -27,7 +52,6 @@ fn series() -> SeriesReadModel {
         language: "en".to_string(),
         genres: vec!["Drama".to_string()],
         tags: vec!["Favorite".to_string()],
-        alternate_titles: vec!["en::Alt Title".to_string()],
         metadata_created: "2024-01-03 00:00:00".to_string(),
         metadata_last_modified: "2024-01-04T00:00:00Z".to_string(),
         books_metadata_authors: vec!["Author::Writer".to_string()],
@@ -78,6 +102,29 @@ fn series_dto_matches_kotlin_field_shape_and_formats() {
     assert_eq!(payload["created"], json!("2024-01-01T00:00:00Z"));
     assert_eq!(payload["fileLastModified"], json!("2024-01-03T00:00:00Z"));
     assert_eq!(payload["metadata"]["status"], json!("ONGOING"));
+    for (field, expected) in [
+        ("statusLock", json!(true)),
+        ("titleLock", json!(true)),
+        ("titleSortLock", json!(true)),
+        ("summaryLock", json!(true)),
+        ("readingDirectionLock", json!(true)),
+        ("publisherLock", json!(true)),
+        ("ageRatingLock", json!(true)),
+        ("languageLock", json!(true)),
+        ("genresLock", json!(true)),
+        ("tagsLock", json!(true)),
+        ("totalBookCount", json!(5)),
+        ("totalBookCountLock", json!(true)),
+        ("sharingLabelsLock", json!(true)),
+        ("linksLock", json!(true)),
+        ("alternateTitlesLock", json!(true)),
+    ] {
+        assert_eq!(payload["metadata"][field], expected);
+    }
+    assert_eq!(
+        payload["metadata"]["links"],
+        json!([{ "label": "Wiki", "url": "https://example.com" }])
+    );
     assert_eq!(
         payload["metadata"]["readingDirection"],
         json!("LEFT_TO_RIGHT")

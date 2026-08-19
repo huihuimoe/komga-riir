@@ -305,40 +305,44 @@ impl SeriesMetadataDto {
     fn from_read_model(series: &SeriesReadModel) -> Result<Self> {
         Ok(Self {
             status: series.status.persisted_name().to_string(),
-            status_lock: false,
+            status_lock: series.status_lock,
             title: series.title.clone(),
-            title_lock: false,
+            title_lock: series.title_lock,
             title_sort: series.title_sort.clone(),
-            title_sort_lock: false,
+            title_sort_lock: series.title_sort_lock,
             summary: series.summary.clone(),
-            summary_lock: false,
+            summary_lock: series.summary_lock,
             reading_direction: series
                 .reading_direction
                 .map(|value| value.persisted_name().to_string())
                 .unwrap_or_default(),
-            reading_direction_lock: false,
+            reading_direction_lock: series.reading_direction_lock,
             publisher: series.publisher.clone(),
-            publisher_lock: false,
+            publisher_lock: series.publisher_lock,
             age_rating: series.age_rating,
-            age_rating_lock: false,
+            age_rating_lock: series.age_rating_lock,
             language: series.language.clone(),
-            language_lock: false,
+            language_lock: series.language_lock,
             genres: series.genres.clone(),
-            genres_lock: false,
+            genres_lock: series.genres_lock,
             tags: series.tags.clone(),
-            tags_lock: false,
-            total_book_count: None,
-            total_book_count_lock: false,
+            tags_lock: series.tags_lock,
+            total_book_count: series.total_book_count.map(u64::from),
+            total_book_count_lock: series.total_book_count_lock,
             sharing_labels: series.labels.clone(),
-            sharing_labels_lock: false,
-            links: vec![],
-            links_lock: false,
+            sharing_labels_lock: series.sharing_labels_lock,
+            links: series
+                .links
+                .iter()
+                .map(WebLinkDto::from_series_record)
+                .collect(),
+            links_lock: series.links_lock,
             alternate_titles: series
                 .alternate_titles
                 .iter()
-                .map(|value| AlternateTitleDto::from_persisted(value))
+                .map(AlternateTitleDto::from_series_record)
                 .collect(),
-            alternate_titles_lock: false,
+            alternate_titles_lock: series.alternate_titles_lock,
             created: parse_datetime("series.metadata.created", &series.metadata_created)?,
             last_modified: parse_datetime(
                 "series.metadata.lastModified",
@@ -473,17 +477,6 @@ pub struct AlternateTitleDto {
 }
 
 impl AlternateTitleDto {
-    fn from_persisted(value: &str) -> Self {
-        let (label, title) = value
-            .split_once("::")
-            .map_or(("", value), |(label, title)| (label, title));
-
-        Self {
-            label: label.to_string(),
-            title: title.to_string(),
-        }
-    }
-
     fn from_series_record(value: &SeriesAlternateTitleRecord) -> Self {
         Self {
             label: value.label.clone(),
