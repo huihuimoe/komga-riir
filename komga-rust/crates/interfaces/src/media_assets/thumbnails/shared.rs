@@ -4,8 +4,8 @@ use axum::response::{IntoResponse, Response};
 use axum_extra::extract::Multipart;
 use image::ImageFormat;
 use komga_application::media_assets::{EntityThumbnailBinary, ThumbnailType};
-use serde_json::json;
 
+use crate::contracts::common::ErrorMessageDto;
 use crate::media_response_policy::MediaAssetResponse;
 use crate::state::MediaAssetsState;
 
@@ -295,9 +295,11 @@ pub(super) async fn parse_thumbnail_upload(
                     _ => {
                         return Err((
                             StatusCode::BAD_REQUEST,
-                            Json(json!({
-                                "error": format!("{entity_name} thumbnail selected field must be true or false"),
-                            })),
+                            Json(ErrorMessageDto {
+                                error: format!(
+                                    "{entity_name} thumbnail selected field must be true or false"
+                                ),
+                            }),
                         )
                             .into_response());
                     }
@@ -341,9 +343,9 @@ fn resolve_thumbnail_media_type(content_type: Option<&str>, bytes: &[u8]) -> Opt
 fn empty_thumbnail_upload_response(entity_name: &str) -> Response {
     (
         StatusCode::BAD_REQUEST,
-        Json(json!({
-            "error": format!("{entity_name} thumbnail upload body must not be empty"),
-        })),
+        Json(ErrorMessageDto {
+            error: format!("{entity_name} thumbnail upload body must not be empty"),
+        }),
     )
         .into_response()
 }
@@ -351,9 +353,9 @@ fn empty_thumbnail_upload_response(entity_name: &str) -> Response {
 fn invalid_thumbnail_upload_response(entity_name: &str, error: impl std::fmt::Display) -> Response {
     (
         StatusCode::BAD_REQUEST,
-        Json(json!({
-            "error": format!("invalid {entity_name} thumbnail upload: {error:#}"),
-        })),
+        Json(ErrorMessageDto {
+            error: format!("invalid {entity_name} thumbnail upload: {error:#}"),
+        }),
     )
         .into_response()
 }
