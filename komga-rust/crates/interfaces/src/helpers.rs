@@ -33,6 +33,29 @@ pub(crate) fn books_page_payload(
     paged: bool,
     sorted: bool,
 ) -> anyhow::Result<PageDto<BookDto>> {
+    let page_number = page.page;
+    let page_size = page.size;
+    let total_pages = page.total_pages;
+    books_page_payload_with_shape(
+        page,
+        page_number,
+        page_size,
+        total_pages,
+        is_admin,
+        paged,
+        sorted,
+    )
+}
+
+pub(crate) fn books_page_payload_with_shape(
+    page: PageEnvelope<BookReadModel>,
+    page_number: usize,
+    page_size: usize,
+    total_pages: usize,
+    is_admin: bool,
+    paged: bool,
+    sorted: bool,
+) -> anyhow::Result<PageDto<BookDto>> {
     let content = page
         .content
         .iter()
@@ -41,10 +64,10 @@ pub(crate) fn books_page_payload(
 
     Ok(PageDto::from_parts(
         content,
-        page.page,
-        page.size,
+        page_number,
+        page_size,
         page.total_elements,
-        page.total_pages,
+        total_pages,
         paged,
         sorted,
     ))

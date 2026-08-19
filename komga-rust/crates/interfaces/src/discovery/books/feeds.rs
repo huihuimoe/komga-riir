@@ -2,11 +2,13 @@ use axum::Json;
 use axum::extract::State;
 use axum::http::{HeaderMap, StatusCode, Uri};
 use axum::response::{IntoResponse, Response};
-use komga_domain::discovery::{PageEnvelope, QueryRestrictions, content_allowed_by_restrictions};
+use komga_domain::discovery::{QueryRestrictions, content_allowed_by_restrictions};
 
 use crate::contracts::common::PageDto;
 use crate::contracts::discovery::BookDto;
-use crate::helpers::{books_page_payload, query_bool, query_value, to_domain_query_context};
+use crate::helpers::{
+    books_page_payload_with_shape, query_bool, query_value, to_domain_query_context,
+};
 use crate::identity_access::auth::Authenticated;
 use crate::state::DiscoveryState;
 
@@ -14,19 +16,6 @@ use super::super::persisted::common_helpers::{
     filter_rows, internal_error_response, requested_query_values,
 };
 use super::super::persisted::library_mappings::remap_requested_library_ids_for_persisted;
-
-fn normalize_books_latest_unpaged_page_shape<T>(mut page: PageEnvelope<T>) -> PageEnvelope<T> {
-    const KOTLIN_PAGE_SIZE: usize = 20;
-
-    page.page = 0;
-    page.size = KOTLIN_PAGE_SIZE;
-    page.total_pages = if page.total_elements == 0 {
-        0
-    } else {
-        ((page.total_elements - 1) / KOTLIN_PAGE_SIZE) + 1
-    };
-    page
-}
 
 fn ondeck_content_allowed(
     restrictions: Option<&QueryRestrictions>,
@@ -124,13 +113,22 @@ pub(crate) async fn books_latest(
         .await
     {
         Ok(page) => {
-            let page = if resolved.response.kotlin_unpaged_shape {
-                normalize_books_latest_unpaged_page_shape(page)
+            let (page_number, page_size, total_pages) = if resolved.response.kotlin_unpaged_shape {
+                let page_size = page.total_elements.max(20);
+                let total_pages = if page.total_elements == 0 {
+                    0
+                } else {
+                    page.total_elements.div_ceil(page_size)
+                };
+                (0, page_size, total_pages)
             } else {
-                page
+                (page.page, page.size, page.total_pages)
             };
-            match books_page_payload(
+            match books_page_payload_with_shape(
                 page,
+                page_number,
+                page_size,
+                total_pages,
                 context.is_admin,
                 resolved.response.paged,
                 resolved.response.sorted,
