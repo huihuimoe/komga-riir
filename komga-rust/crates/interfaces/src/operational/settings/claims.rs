@@ -3,11 +3,12 @@ use axum::extract::State;
 use axum::http::{HeaderMap, StatusCode};
 use axum::response::{IntoResponse, Response};
 use bcrypt::{DEFAULT_COST, hash as hash_bcrypt_password};
-use serde_json::json;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use komga_application::operational::ClaimInitialAdminUserResult;
 
+use crate::contracts::common::SpringErrorDto;
+use crate::contracts::identity_access::ClaimStatusDto;
 use crate::identity_access::user_payload;
 use crate::state::OperationalApiState;
 use komga_application::identity_access::{AuthUser, AuthUserRole};
@@ -25,7 +26,7 @@ pub(crate) async fn get_claim_status(State(app): State<OperationalApiState>) -> 
         Err(response) => return response,
     };
 
-    Json(json!({ "isClaimed": is_claimed })).into_response()
+    Json(ClaimStatusDto { is_claimed }).into_response()
 }
 
 pub(crate) async fn post_claim(
@@ -109,16 +110,16 @@ fn valid_claim_email(value: &str) -> bool {
 fn claim_already_claimed_response() -> Response {
     (
         StatusCode::BAD_REQUEST,
-        Json(json!({
-            "error": "Bad Request",
-            "message": "This server has already been claimed",
-            "path": "/api/v1/claim",
-            "status": 400,
-            "timestamp": SystemTime::now()
+        Json(SpringErrorDto {
+            error: "Bad Request".to_string(),
+            message: "This server has already been claimed".to_string(),
+            path: "/api/v1/claim".to_string(),
+            status: 400,
+            timestamp: SystemTime::now()
                 .duration_since(UNIX_EPOCH)
                 .unwrap_or_default()
-                .as_millis(),
-        })),
+                .as_millis() as u64,
+        }),
     )
         .into_response()
 }

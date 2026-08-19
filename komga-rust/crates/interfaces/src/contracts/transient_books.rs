@@ -33,16 +33,6 @@ pub struct TransientBookPageDto {
 }
 
 #[derive(Debug, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct TransientBooksBadRequestDto {
-    pub error: &'static str,
-    pub message: String,
-    pub path: &'static str,
-    pub status: u16,
-    pub timestamp: u64,
-}
-
-#[derive(Debug, Serialize)]
 pub struct TransientBookErrorDto {
     pub error: String,
 }

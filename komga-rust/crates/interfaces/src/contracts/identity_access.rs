@@ -50,3 +50,9 @@ impl AgeRestrictionDto {
         }
     }
 }
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ClaimStatusDto {
+    pub is_claimed: bool,
+}

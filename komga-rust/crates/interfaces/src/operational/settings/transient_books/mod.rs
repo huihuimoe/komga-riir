@@ -10,7 +10,8 @@ use komga_application::operational::{
 use serde_json::Value;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use crate::contracts::transient_books::{TransientBookErrorDto, TransientBooksBadRequestDto};
+use crate::contracts::common::SpringErrorDto;
+use crate::contracts::transient_books::TransientBookErrorDto;
 use crate::identity_access::auth::Admin;
 use crate::state::OperationalApiState;
 
@@ -23,10 +24,10 @@ const TRANSIENT_BOOKS_PATH: &str = "/api/v1/transient-books";
 fn transient_books_bad_request(message: &str) -> Response {
     (
         StatusCode::BAD_REQUEST,
-        Json(TransientBooksBadRequestDto {
-            error: "Bad Request",
+        Json(SpringErrorDto {
+            error: "Bad Request".to_string(),
             message: message.to_string(),
-            path: TRANSIENT_BOOKS_PATH,
+            path: TRANSIENT_BOOKS_PATH.to_string(),
             status: 400,
             timestamp: SystemTime::now()
                 .duration_since(UNIX_EPOCH)

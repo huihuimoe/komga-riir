@@ -256,3 +256,13 @@ impl SortDto {
         }
     }
 }
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SpringErrorDto {
+    pub error: String,
+    pub message: String,
+    pub path: String,
+    pub status: u16,
+    pub timestamp: u64,
+}
