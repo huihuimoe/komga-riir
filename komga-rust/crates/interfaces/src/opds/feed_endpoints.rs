@@ -7,6 +7,7 @@ use komga_application::opds::{
 };
 use serde_json::json;
 
+use crate::contracts::opds::OpdsV2LinkDto;
 use crate::request_urls::app_absolute_url;
 use crate::state::OpdsState;
 use komga_application::identity_access::AuthUser;
@@ -150,12 +151,16 @@ fn render_opds_v2_feed_page(headers: &HeaderMap, feed_page: OpdsV2FeedPage) -> R
         OpdsV2FeedContent::Navigation(series) => {
             let navigation = series
                 .into_iter()
-                .map(|series| {
-                    json!({
-                        "title": series.title,
-                        "href": app_absolute_url(headers, format!("/opds/v2/series/{}", series.id).as_str()),
-                        "type": "application/opds+json",
-                    })
+                .map(|series| OpdsV2LinkDto {
+                    title: Some(series.title),
+                    rel: None,
+                    href: app_absolute_url(
+                        headers,
+                        format!("/opds/v2/series/{}", series.id).as_str(),
+                    ),
+                    media_type: Some("application/opds+json".to_string()),
+                    templated: None,
+                    properties: None,
                 })
                 .collect::<Vec<_>>();
             opds_navigation_response_with_paging(

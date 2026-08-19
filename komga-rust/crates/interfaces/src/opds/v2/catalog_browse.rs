@@ -23,6 +23,7 @@ use super::super::persisted::{
     allowed_library_ids_for_user, load_browse_publisher_navigation, load_browse_series_navigation,
     load_libraries, validate_library_scope,
 };
+use crate::contracts::opds::OpdsV2LinkDto;
 use crate::opds_auth::OpdsV2Authenticated;
 use crate::request_urls::app_absolute_url;
 use crate::state::OpdsState;
@@ -126,7 +127,7 @@ fn render_opds_v2_recommended(headers: &HeaderMap, page: OpdsV2RecommendedPage) 
 fn opds_v2_recommended_navigation(
     headers: &HeaderMap,
     page: &OpdsV2RecommendedPage,
-) -> Vec<serde_json::Value> {
+) -> Vec<OpdsV2LinkDto> {
     let library_id = page.library_id.as_deref();
     let mut navigation = vec![
         opds_subsection_navigation_link(

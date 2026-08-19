@@ -27,3 +27,124 @@ pub struct OpdsAuthenticationLinkDto {
     pub rel: String,
     pub href: String,
 }
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct OpdsV2LinkDto {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub title: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub rel: Option<String>,
+    pub href: String,
+    #[serde(rename = "type", skip_serializing_if = "Option::is_none")]
+    pub media_type: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub templated: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub properties: Option<OpdsV2LinkPropertiesDto>,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct OpdsV2LinkPropertiesDto {
+    pub authenticate: OpdsV2AuthenticationLinkDto,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct OpdsV2AuthenticationLinkDto {
+    pub href: String,
+    #[serde(rename = "type")]
+    pub media_type: String,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct OpdsV2FeedMetadataDto {
+    pub title: String,
+    pub modified: String,
+    pub items_per_page: usize,
+    pub current_page: usize,
+    pub number_of_items: usize,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct OpdsV2NavigationFeedDto {
+    pub metadata: OpdsV2FeedMetadataDto,
+    pub links: Vec<OpdsV2LinkDto>,
+    pub navigation: Vec<OpdsV2LinkDto>,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct OpdsV2PublicationFeedDto {
+    pub metadata: OpdsV2FeedMetadataDto,
+    pub links: Vec<OpdsV2LinkDto>,
+    pub publications: Vec<OpdsV2PublicationDto>,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct OpdsV2PublicationDto {
+    #[serde(rename = "@context")]
+    pub context: String,
+    pub metadata: OpdsV2PublicationMetadataDto,
+    pub links: Vec<OpdsV2LinkDto>,
+    pub images: Vec<OpdsV2LinkDto>,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct OpdsV2PublicationMetadataDto {
+    pub title: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub identifier: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub number_of_pages: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub published: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub modified: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub subject: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub author: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub translator: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub editor: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub artist: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub illustrator: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub letterer: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub penciler: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub colorist: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub inker: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub contributor: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub belongs_to: Option<OpdsV2BelongsToDto>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct OpdsV2BelongsToDto {
+    pub series: Vec<OpdsV2PublicationSeriesDto>,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct OpdsV2PublicationSeriesDto {
+    pub name: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub position: Option<f64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub links: Option<Vec<OpdsV2LinkDto>>,
+}
