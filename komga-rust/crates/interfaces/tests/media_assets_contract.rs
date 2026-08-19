@@ -1,11 +1,11 @@
 use komga_application::media_assets::{
-    CollectionThumbnailRecord, EntityThumbnailRecord, ReadlistThumbnailRecord,
+    BookPageRecord, CollectionThumbnailRecord, EntityThumbnailRecord, ReadlistThumbnailRecord,
     SeriesThumbnailRecord,
 };
 use komga_domain::media_assets::ThumbnailType;
 use komga_interfaces::contracts::media_assets::{
-    BookProgressionDeviceDto, BookProgressionDto, BookThumbnailDto, CollectionThumbnailDto,
-    ReadListThumbnailDto, SeriesThumbnailDto, TachiyomiReadListProgressDto,
+    BookPageDto, BookProgressionDeviceDto, BookProgressionDto, BookThumbnailDto,
+    CollectionThumbnailDto, ReadListThumbnailDto, SeriesThumbnailDto, TachiyomiReadListProgressDto,
     TachiyomiSeriesProgressDto,
 };
 use serde_json::json;
@@ -148,6 +148,32 @@ fn progress_dtos_preserve_nested_and_tachiyomi_shapes() {
             "booksUnreadCount": 1,
             "booksInProgressCount": 0,
             "lastReadContinuousIndex": 1,
+        })
+    );
+}
+
+#[test]
+fn book_page_dto_preserves_unknown_size_sentinel_shape() {
+    let payload = serde_json::to_value(BookPageDto::from(BookPageRecord {
+        number: 1,
+        file_name: "page-1.jpg".to_string(),
+        media_type: "image/jpeg".to_string(),
+        width: Some(1200),
+        height: Some(1800),
+        file_size: -1,
+    }))
+    .expect("page should serialize");
+
+    assert_eq!(
+        payload,
+        json!({
+            "number": 1,
+            "fileName": "page-1.jpg",
+            "mediaType": "image/jpeg",
+            "width": 1200,
+            "height": 1800,
+            "sizeBytes": null,
+            "size": "",
         })
     );
 }

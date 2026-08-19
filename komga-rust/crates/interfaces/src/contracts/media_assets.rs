@@ -1,10 +1,12 @@
 use komga_application::media_assets::{
-    BookProgressionRecord, CollectionThumbnailRecord, EntityThumbnailRecord,
+    BookPageRecord, BookProgressionRecord, CollectionThumbnailRecord, EntityThumbnailRecord,
     ReadlistTachiyomiCounters, ReadlistThumbnailRecord, SeriesTachiyomiProgress,
     SeriesThumbnailRecord,
 };
 use serde::Serialize;
 use serde_json::Value;
+
+use crate::media_assets::http_helpers::format_size_bytes;
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -163,6 +165,41 @@ impl CollectionThumbnailDto {
 pub struct ReadiumPositionListDto {
     pub total: usize,
     pub positions: Vec<Value>,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct BookPageDto {
+    pub number: u64,
+    pub file_name: String,
+    pub media_type: String,
+    pub width: Option<i64>,
+    pub height: Option<i64>,
+    pub size_bytes: Option<i64>,
+    pub size: String,
+}
+
+impl From<BookPageRecord> for BookPageDto {
+    fn from(page: BookPageRecord) -> Self {
+        let (size_bytes, size) = if page.file_size < 0 {
+            (None, String::new())
+        } else {
+            (
+                Some(page.file_size),
+                format_size_bytes(page.file_size as u64),
+            )
+        };
+
+        Self {
+            number: page.number,
+            file_name: page.file_name,
+            media_type: page.media_type,
+            width: page.width,
+            height: page.height,
+            size_bytes,
+            size,
+        }
+    }
 }
 
 #[derive(Debug, Serialize)]
