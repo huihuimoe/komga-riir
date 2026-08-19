@@ -2,7 +2,7 @@ use komga_application::discovery::{
     SeriesAlternateTitleRecord, SeriesMetadataLinkRecord, SeriesReadModel, SeriesReadingDirection,
 };
 use komga_domain::discovery::SeriesStatus;
-use komga_interfaces::contracts::discovery::SeriesDto;
+use komga_interfaces::contracts::discovery::{SeriesAlphabeticalGroupDto, SeriesDto};
 use serde_json::json;
 
 fn series() -> SeriesReadModel {
@@ -152,4 +152,15 @@ fn series_dto_rejects_invalid_wire_dates() {
     invalid.metadata_created = "not-a-date".to_string();
 
     assert!(SeriesDto::from_read_model(&invalid, true).is_err());
+}
+
+#[test]
+fn series_alphabetical_group_dto_uses_explicit_wire_fields() {
+    let payload = serde_json::to_value(SeriesAlphabeticalGroupDto {
+        group: "A".to_string(),
+        count: 3,
+    })
+    .expect("alphabetical group should serialize");
+
+    assert_eq!(payload, json!({"group": "A", "count": 3}));
 }

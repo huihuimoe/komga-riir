@@ -2,7 +2,8 @@ use anyhow::{Context, Result};
 use komga_application::discovery::{
     BookMetadataAuthorReadModel, BookMetadataLinkReadModel, BookReadModel,
     BookReadProgressReadModel, CollectionReadModel, ComicRackReadListMatchResult,
-    ReadListReadModel, SeriesAlternateTitleRecord, SeriesMetadataLinkRecord, SeriesReadModel,
+    ReadListReadModel, SeriesAlphabeticalGroup, SeriesAlternateTitleRecord,
+    SeriesMetadataLinkRecord, SeriesReadModel,
 };
 use komga_domain::discovery::MediaProfile;
 use serde::Serialize;
@@ -195,6 +196,22 @@ pub struct ReadListRequestBookMatchBookDto {
 pub enum FacetValueDto {
     String(String),
     Integer(i64),
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SeriesAlphabeticalGroupDto {
+    pub group: String,
+    pub count: i64,
+}
+
+impl From<SeriesAlphabeticalGroup> for SeriesAlphabeticalGroupDto {
+    fn from(group: SeriesAlphabeticalGroup) -> Self {
+        Self {
+            group: group.group,
+            count: group.count,
+        }
+    }
 }
 
 #[derive(Debug, Serialize)]

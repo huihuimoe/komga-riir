@@ -4,6 +4,7 @@ pub(in crate::discovery) use payload::series_read_model_page_payload;
 
 use super::persisted::common_helpers::{internal_error_response, requested_query_values};
 use crate::contracts::common::ErrorMessageDto;
+use crate::contracts::discovery::SeriesAlphabeticalGroupDto;
 use crate::helpers::to_domain_query_context;
 use crate::identity_access::auth::Authenticated;
 use crate::state::DiscoveryState;
@@ -12,9 +13,9 @@ use axum::body::Bytes;
 use axum::extract::State;
 use axum::http::{HeaderMap, StatusCode, Uri};
 use axum::response::{IntoResponse, Response};
-use komga_application::discovery::{SeriesAlphabeticalGroup, SeriesAlphabeticalGroupsRequest};
+use komga_application::discovery::SeriesAlphabeticalGroupsRequest;
 use komga_domain::discovery::{DiscoveryError, SeriesSort};
-use serde_json::{Value, json};
+use serde_json::Value;
 
 async fn series_feed(
     app: &DiscoveryState,
@@ -196,22 +197,15 @@ async fn series_alphabetical_groups_response(
         .list_series_alphabetical_groups(&context, request)
         .await
     {
-        Ok(groups) => Json(Value::Array(
+        Ok(groups) => Json(
             groups
                 .into_iter()
-                .map(series_alphabetical_group_payload)
-                .collect(),
-        ))
+                .map(SeriesAlphabeticalGroupDto::from)
+                .collect::<Vec<_>>(),
+        )
         .into_response(),
         Err(e) => internal_error_response(format!("{e:?}")),
     }
-}
-
-fn series_alphabetical_group_payload(group: SeriesAlphabeticalGroup) -> Value {
-    json!({
-        "group": group.group,
-        "count": group.count,
-    })
 }
 
 pub(crate) async fn series_list(
