@@ -40,9 +40,13 @@ pub struct ActuatorDatabaseHealthDto {
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ActuatorDatabaseComponentsDto {
+    #[serde(rename = "sqliteDataSourceRW")]
     pub sqlite_rw: ActuatorDatasourceHealthDto,
+    #[serde(rename = "sqliteDataSourceRO")]
     pub sqlite_ro: ActuatorDatasourceHealthDto,
+    #[serde(rename = "tasksDataSourceRW")]
     pub tasks_rw: ActuatorDatasourceHealthDto,
+    #[serde(rename = "tasksDataSourceRO")]
     pub tasks_ro: ActuatorDatasourceHealthDto,
 }
 
