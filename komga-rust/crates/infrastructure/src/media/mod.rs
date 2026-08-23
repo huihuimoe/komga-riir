@@ -2,6 +2,7 @@ pub(crate) mod analysis;
 pub(crate) mod content;
 pub(crate) mod formats;
 mod import;
+pub(crate) mod library_scan;
 pub(crate) mod maintenance;
 pub(crate) mod metadata;
 pub(crate) mod progress;

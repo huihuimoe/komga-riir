@@ -6,13 +6,13 @@ mod scan_restore;
 mod scan_sse;
 mod sidecars;
 
-pub(in crate::task_queue) use scan_models::LibraryScanResult;
+pub(crate) use scan_models::LibraryScanResult;
 #[cfg(test)]
-pub(in crate::task_queue) use scan_models::{
+pub(crate) use scan_models::{
     BookMetadataRefreshRequest, ScannedBookRow, ScannedSeriesRow, ScannedSidecarRow,
     ScannedSidecarSource, ScannedSidecarType,
 };
-pub(in crate::task_queue) use sidecars::enqueue_sidecar_refresh_tasks;
+pub(crate) use sidecars::enqueue_sidecar_refresh_tasks;
 
 use sqlx::SqlitePool;
 
@@ -25,13 +25,13 @@ use scan_persist::ScannedLibraryPersistence;
 /// Owns the "scan a library" capability.
 /// Single entry point hides FS walking, DB diffing, persistence, SSE emission,
 /// and post-scan trash checks behind one `execute()` call.
-pub(in crate::task_queue) struct LibraryScanner {
+pub(crate) struct LibraryScanner {
     pool: SqlitePool,
     runtime_events: std::sync::Arc<dyn RuntimeSseEventSink>,
 }
 
 impl LibraryScanner {
-    pub(in crate::task_queue) fn new(
+    pub(crate) fn new(
         pool: SqlitePool,
         runtime_events: std::sync::Arc<dyn RuntimeSseEventSink>,
     ) -> Self {
@@ -42,7 +42,7 @@ impl LibraryScanner {
     }
 
     /// Scan filesystem → diff against DB → persist changes → emit SSE → check trash.
-    pub(in crate::task_queue) async fn execute(
+    pub(crate) async fn execute(
         &self,
         library_id: &str,
         deep_scan: bool,

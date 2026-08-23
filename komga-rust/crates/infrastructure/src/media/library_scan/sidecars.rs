@@ -8,7 +8,7 @@ use super::scan_models::{
     ScannedSeriesRow, ScannedSidecarRow, ScannedSidecarSource, ScannedSidecarType,
 };
 
-pub(in crate::task_queue) fn enqueue_sidecar_refresh_tasks(
+pub(crate) fn enqueue_sidecar_refresh_tasks(
     tasks: &mut Vec<TaskQueueRecord>,
     series_rows: &[ScannedSeriesRow],
     sidecars: &[ScannedSidecarRow],

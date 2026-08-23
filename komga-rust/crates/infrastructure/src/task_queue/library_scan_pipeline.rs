@@ -15,7 +15,7 @@ use tokio::time::Instant;
 
 use super::cleanup_tasks::{cleanup_empty_sets_rows, empty_trash_rows};
 use super::scan_follow_up::ScanFollowUpPlanner;
-use super::scanner_support::LibraryScanner;
+use crate::media::library_scan::LibraryScanner;
 
 async fn load_library_scan_profiles(pool: &SqlitePool) -> anyhow::Result<Vec<LibraryScanProfile>> {
     let rows = sqlx::query(

@@ -21,7 +21,6 @@ pub(crate) mod queue_scheduler;
 mod runtime_task_engine;
 mod scan_follow_up;
 mod scanner_jobs;
-mod scanner_support;
 mod task_job_dispatch;
 #[cfg(test)]
 pub(crate) mod test_support;

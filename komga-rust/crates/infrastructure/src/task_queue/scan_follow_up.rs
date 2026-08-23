@@ -6,7 +6,7 @@ use komga_application::task_processing::{
 };
 use sqlx::SqlitePool;
 
-use super::scanner_support::{LibraryScanResult, enqueue_sidecar_refresh_tasks};
+use crate::media::library_scan::{LibraryScanResult, enqueue_sidecar_refresh_tasks};
 use crate::media::maintenance::persistence::{
     load_books_for_extension_repair, load_books_requiring_analysis,
     load_books_with_missing_file_hash, load_library_hashing_flags, load_library_maintenance_flags,
@@ -214,11 +214,11 @@ mod tests {
     use crate::persistence::sqlite::{connect_test_pool, schema};
     use komga_application::task_processing::RefreshBookMetadataPayload;
 
-    use super::super::scanner_support::{
+    use super::ScanFollowUpPlanner;
+    use crate::media::library_scan::{
         BookMetadataRefreshRequest, LibraryScanResult, ScannedBookRow, ScannedSeriesRow,
         ScannedSidecarRow, ScannedSidecarSource, ScannedSidecarType,
     };
-    use super::ScanFollowUpPlanner;
 
     fn temp_db_path(case_id: &str) -> PathBuf {
         let nanos = std::time::SystemTime::now()
