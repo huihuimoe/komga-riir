@@ -57,7 +57,7 @@ impl TaskExecutionPoolHandle {
             Arc::new(|runtime, task| {
                 Box::pin(async move {
                     let job = runtime.job();
-                    super::task_job_dispatch::TaskJobDispatcher::new(job)
+                    super::dispatch::TaskJobDispatcher::new(job)
                         .execute_record(&task)
                         .await
                 })

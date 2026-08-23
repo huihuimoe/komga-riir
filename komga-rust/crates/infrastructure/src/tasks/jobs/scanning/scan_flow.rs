@@ -2,8 +2,8 @@ use komga_application::task_processing::{
     ScanOneLibrary, TaskExecutionOutcome, TaskProcessingError,
 };
 
-use super::super::library_scan_pipeline::SqliteFilesystemLibraryScanPipeline;
-use super::super::runtime_context::JobRuntime;
+use crate::tasks::JobRuntime;
+use crate::tasks::library_scan_pipeline::SqliteFilesystemLibraryScanPipeline;
 
 pub(in crate::tasks) async fn execute_scan_library(
     runtime: &JobRuntime<'_>,

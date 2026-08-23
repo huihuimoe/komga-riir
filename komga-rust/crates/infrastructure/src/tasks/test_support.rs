@@ -128,7 +128,7 @@ pub(crate) async fn execute_and_enqueue(
     runtime: &TaskRuntimeContext,
     task: &TaskQueueRecord,
 ) -> Option<Result<(), TaskProcessingError>> {
-    let outcome = super::task_job_dispatch::TaskJobDispatcher::new(runtime.job())
+    let outcome = super::dispatch::TaskJobDispatcher::new(runtime.job())
         .execute_record(task)
         .await;
     Some(

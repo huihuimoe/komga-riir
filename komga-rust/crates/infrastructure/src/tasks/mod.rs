@@ -8,17 +8,15 @@ pub use runtime_context::{
 };
 mod cleanup_tasks;
 mod delete_tasks;
+mod dispatch;
 mod enqueue_adapter;
 #[path = "runtime/execution_loop.rs"]
 mod execution_loop;
 #[path = "runtime/execution_pool.rs"]
 mod execution_pool;
-mod import_jobs;
-mod index_jobs;
 pub(crate) mod index_tasks;
+mod jobs;
 pub(crate) mod library_scan_pipeline;
-mod maintenance_jobs;
-mod metadata_tasks;
 pub(crate) mod queue;
 #[path = "queue/store.rs"]
 mod queue_core;
@@ -29,8 +27,6 @@ pub(crate) mod queue_scheduler;
 #[path = "runtime/engine.rs"]
 mod runtime_task_engine;
 mod scan_follow_up;
-mod scanner_jobs;
-mod task_job_dispatch;
 #[cfg(test)]
 pub(crate) mod test_support;
 #[path = "runtime/workers.rs"]

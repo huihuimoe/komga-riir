@@ -13,7 +13,7 @@ pub(in crate::tasks) async fn execute_analyze_book(
     priority: i32,
 ) -> Result<TaskExecutionOutcome, TaskProcessingError> {
     let book_id = book_id.to_string();
-    let outcome = super::index_tasks::analyze_book(runtime, &book_id).await?;
+    let outcome = super::super::index_tasks::analyze_book(runtime, &book_id).await?;
 
     if outcome.media_status == Some(MediaStatus::Ready) && !outcome.series_id.is_empty() {
         let follow_up_priority = priority.saturating_add(1);
@@ -38,7 +38,7 @@ pub(in crate::tasks) async fn execute_rebuild_index(
     runtime: &JobRuntime<'_>,
     entity_types: Option<&[SearchEntityType]>,
 ) -> Result<TaskExecutionOutcome, TaskProcessingError> {
-    super::index_tasks::rebuild_index(runtime, entity_types).await?;
+    super::super::index_tasks::rebuild_index(runtime, entity_types).await?;
 
     Ok(TaskExecutionOutcome::completed())
 }

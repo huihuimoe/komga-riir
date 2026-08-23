@@ -3,8 +3,8 @@ use komga_application::task_processing::{
 };
 
 use super::JobRuntime;
+use super::dispatch::TaskJobDispatcher;
 use super::queue_scheduler::TaskQueueScheduler;
-use super::task_job_dispatch::TaskJobDispatcher;
 
 pub(super) async fn process_available_serial(
     scheduler: &TaskQueueScheduler,
