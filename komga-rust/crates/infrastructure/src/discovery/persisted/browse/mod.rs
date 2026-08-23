@@ -20,7 +20,7 @@ use komga_domain::discovery::{
 };
 
 mod books_queries;
-mod common_helpers;
+mod grouping;
 mod models;
 mod series_queries;
 

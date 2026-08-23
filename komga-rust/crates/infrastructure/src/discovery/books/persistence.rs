@@ -6,7 +6,7 @@ use sqlx::{Error, QueryBuilder, Row, Sqlite, SqlitePool};
 
 use komga_domain::discovery::{MediaStatus, ReadStatus};
 
-use crate::discovery::query_helpers as common;
+use crate::discovery::query_values;
 use crate::discovery::records::{
     AuthorEntry, BookPosterSummary, BookSummary, ReadProgressSummary, WebLinkEntry,
 };
@@ -289,13 +289,15 @@ fn map_book_summary(row: SqliteRow) -> BookSummary {
         read_progress: parse_read_progress_summary(&row),
         deleted: row.get::<Option<String>, _>("DELETED_DATE").is_some(),
         oneshot: row.get::<bool, _>("ONESHOT"),
-        genres: common::parse_group_concat_values(&row.get::<String, _>("GENRES")),
+        genres: query_values::parse_group_concat_values(&row.get::<String, _>("GENRES")),
         language: row.get::<Option<String>, _>("LANGUAGE"),
         publisher: row.get::<Option<String>, _>("PUBLISHER"),
         age_rating: row
             .get::<Option<i64>, _>("AGE_RATING")
-            .map(common::clamp_kotlin_int_u32),
-        metadata_tags: common::parse_group_concat_values(&row.get::<String, _>("METADATA_TAGS")),
+            .map(query_values::clamp_kotlin_int_u32),
+        metadata_tags: query_values::parse_group_concat_values(
+            &row.get::<String, _>("METADATA_TAGS"),
+        ),
         metadata_authors: parse_author_entries(&row.get::<String, _>("METADATA_AUTHORS")),
         metadata_links: parse_web_link_entries(&row.get::<String, _>("METADATA_LINKS")),
     }

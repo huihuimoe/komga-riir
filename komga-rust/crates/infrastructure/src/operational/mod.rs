@@ -10,7 +10,6 @@ mod page_hashes;
 mod remote_feeds;
 mod server_settings;
 mod syncpoints;
-mod transient_books;
 
 pub use actuator::ActuatorSnapshotAccess;
 pub use announcements::AnnouncementAccess;
@@ -25,7 +24,6 @@ pub use server_settings::{
     RememberMeRuntimeSettings, ServerSettingsStore, load_remember_me_runtime_settings,
 };
 pub use syncpoints::SyncpointAccess;
-pub use transient_books::TransientBookAccess;
 
 #[cfg(test)]
 use client_settings::{

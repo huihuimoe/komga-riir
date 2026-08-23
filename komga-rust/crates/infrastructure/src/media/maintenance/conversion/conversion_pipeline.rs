@@ -21,7 +21,6 @@ use super::super::updates::{
 use crate::media::analysis::is_rar_media_type;
 use crate::remove_file_after_release;
 use crate::tasks::JobRuntime;
-use crate::tasks::index_tasks;
 use crate::{resolve_library_item_path, resolve_stored_path};
 
 struct PreparedBookConversion {
@@ -237,7 +236,7 @@ pub(crate) async fn convert_book(
         .await
         .map_err(TaskProcessingError::runtime)?;
 
-    index_tasks::analyze_book(runtime, &book_id).await?;
+    crate::media::analysis::analyze_book(runtime, &book_id).await?;
 
     let analyzed_pages = load_book_hashed_pages(runtime.database().read_pool(), &book_id)
         .await

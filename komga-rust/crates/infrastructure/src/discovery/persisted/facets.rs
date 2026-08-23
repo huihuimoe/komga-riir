@@ -3,7 +3,7 @@ use sqlx::{QueryBuilder, Row, Sqlite, SqlitePool};
 
 use komga_application::discovery::{ReferentialTagsInclude, ReferentialTagsScope};
 
-use crate::discovery::query_helpers as common;
+use crate::discovery::query_values;
 
 fn push_ids(query: &mut QueryBuilder<Sqlite>, ids: &[String]) {
     let mut separated = query.separated(",");
@@ -138,9 +138,9 @@ pub(super) async fn load_persisted_genres(
     library_ids: Option<&[String]>,
     collection_ids: Option<&[String]>,
 ) -> anyhow::Result<Vec<String>> {
-    common::load_persisted_scoped_strings(
+    query_values::load_persisted_scoped_strings(
         pool,
-        &common::ScopedStringQuery {
+        &query_values::ScopedStringQuery {
             library_ids,
             collection_ids,
             label: "genres",
@@ -271,9 +271,9 @@ pub(super) async fn load_persisted_languages(
     library_ids: Option<&[String]>,
     collection_ids: Option<&[String]>,
 ) -> anyhow::Result<Vec<String>> {
-    common::load_persisted_scoped_strings(
+    query_values::load_persisted_scoped_strings(
         pool,
-        &common::ScopedStringQuery {
+        &query_values::ScopedStringQuery {
             library_ids,
             collection_ids,
             label: "languages",
@@ -294,9 +294,9 @@ pub(super) async fn load_persisted_publishers(
     library_ids: Option<&[String]>,
     collection_ids: Option<&[String]>,
 ) -> anyhow::Result<Vec<String>> {
-    common::load_persisted_scoped_strings(
+    query_values::load_persisted_scoped_strings(
         pool,
-        &common::ScopedStringQuery {
+        &query_values::ScopedStringQuery {
             library_ids,
             collection_ids,
             label: "publishers",
@@ -374,9 +374,9 @@ pub(super) async fn load_persisted_sharing_labels(
     library_ids: Option<&[String]>,
     collection_ids: Option<&[String]>,
 ) -> anyhow::Result<Vec<String>> {
-    common::load_persisted_scoped_strings(
+    query_values::load_persisted_scoped_strings(
         pool,
-        &common::ScopedStringQuery {
+        &query_values::ScopedStringQuery {
             library_ids,
             collection_ids,
             label: "sharing-labels",
@@ -397,9 +397,9 @@ pub(super) async fn load_persisted_series_release_dates(
     library_ids: Option<&[String]>,
     collection_ids: Option<&[String]>,
 ) -> anyhow::Result<Vec<String>> {
-    let values = common::load_persisted_scoped_strings(
+    let values = query_values::load_persisted_scoped_strings(
         pool,
-        &common::ScopedStringQuery {
+        &query_values::ScopedStringQuery {
             library_ids,
             collection_ids,
             label: "series-release-dates",
@@ -434,9 +434,9 @@ pub(super) async fn load_persisted_series_tags(
     library_ids: Option<&[String]>,
     collection_ids: Option<&[String]>,
 ) -> anyhow::Result<Vec<String>> {
-    common::load_persisted_scoped_strings(
+    query_values::load_persisted_scoped_strings(
         pool,
-        &common::ScopedStringQuery {
+        &query_values::ScopedStringQuery {
             library_ids,
             collection_ids,
             label: "series tags",

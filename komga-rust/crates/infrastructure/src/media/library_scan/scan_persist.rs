@@ -5,8 +5,8 @@ use komga_application::runtime_sse::RuntimeSseEventSink;
 use komga_domain::discovery::compare_book_names;
 use sqlx::{Row, SqlitePool};
 
+use crate::discovery::deletion::sql::{DELETE_BOOK_DEPENDENCY_SQL, DELETE_SERIES_DEPENDENCY_SQL};
 use crate::persistence::stored_paths::resolve_stored_path;
-use crate::tasks::queue::sql::{DELETE_BOOK_DEPENDENCY_SQL, DELETE_SERIES_DEPENDENCY_SQL};
 
 use super::scan_models::{
     BookMetadataRefreshRequest, InsertedBookCandidate, InsertedSeriesCandidate,

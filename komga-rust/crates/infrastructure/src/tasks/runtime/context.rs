@@ -174,7 +174,7 @@ impl JobRuntime<'_> {
         }
     }
 
-    pub(in crate::tasks) fn search_engine(&self) -> SearchIndexEngine {
+    pub(crate) fn search_engine(&self) -> SearchIndexEngine {
         SearchIndexEngine::new(
             self.runtime.task_read_pool.clone(),
             self.runtime.lucene_data_directory.clone(),
@@ -188,7 +188,7 @@ impl JobRuntime<'_> {
         }
     }
 
-    pub(in crate::tasks) fn cleanup_empty_sets_policy(&self) -> CleanupEmptySetsPolicy {
+    pub(crate) fn cleanup_empty_sets_policy(&self) -> CleanupEmptySetsPolicy {
         self.runtime.cleanup_empty_sets_policy
     }
 
@@ -200,7 +200,7 @@ impl JobRuntime<'_> {
         self.runtime.runtime_events.as_ref()
     }
 
-    pub(in crate::tasks) fn runtime_events_arc(&self) -> Arc<dyn RuntimeSseEventSink> {
+    pub(crate) fn runtime_events_arc(&self) -> Arc<dyn RuntimeSseEventSink> {
         self.runtime.runtime_events.clone()
     }
 

@@ -8,8 +8,8 @@ use sqlx::{Row, SqlitePool};
 
 use komga_domain::media_assets::ThumbnailType;
 
+use crate::discovery::deletion::sql::DELETE_BOOK_DEPENDENCY_SQL;
 use crate::persistence::stored_paths::resolve_rooted_path;
-use crate::tasks::queue::sql::DELETE_BOOK_DEPENDENCY_SQL;
 
 use super::scan_models::{
     BookMetadataRefreshRequest, InsertedBookCandidate, InsertedSeriesCandidate,

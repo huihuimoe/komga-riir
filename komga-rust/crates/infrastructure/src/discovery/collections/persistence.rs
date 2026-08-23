@@ -1,7 +1,7 @@
 use anyhow::Context;
 use sqlx::{Row, SqlitePool};
 
-use crate::discovery::mutation_helpers as common;
+use crate::discovery::set_persistence;
 
 use komga_application::discovery::{
     PersistedCollectionAccessRecord, PersistedSeriesRestrictionRecord,
@@ -10,7 +10,7 @@ use komga_application::discovery::{
 pub(in crate::discovery) async fn persisted_collections_exist(
     pool: &SqlitePool,
 ) -> anyhow::Result<bool> {
-    common::table_has_rows(pool, "COLLECTION", "persisted collections").await
+    set_persistence::table_has_rows(pool, "COLLECTION", "persisted collections").await
 }
 
 pub(in crate::discovery) async fn load_persisted_collections(
@@ -126,7 +126,7 @@ WHERE SERIES_ID = ?"#,
 
     let age_rating = age_row
         .and_then(|row| row.get::<Option<i64>, _>("AGE_RATING"))
-        .map(common::clamp_kotlin_int_u32);
+        .map(set_persistence::clamp_kotlin_int_u32);
     let labels = label_rows
         .into_iter()
         .map(|row| row.get::<String, _>("LABEL"))
@@ -157,7 +157,7 @@ VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"#,
     .await
     .context("insert persisted collection")?;
 
-    common::replace_ordered_children(
+    set_persistence::replace_ordered_children(
         &mut tx,
         "COLLECTION_SERIES",
         "COLLECTION_ID",
@@ -204,7 +204,7 @@ WHERE ID = ?"#,
         return Ok(false);
     }
 
-    common::replace_ordered_children(
+    set_persistence::replace_ordered_children(
         &mut tx,
         "COLLECTION_SERIES",
         "COLLECTION_ID",
@@ -223,7 +223,7 @@ pub(in crate::discovery) async fn delete_persisted_collection(
     pool: &SqlitePool,
     collection_id: &str,
 ) -> anyhow::Result<bool> {
-    common::delete_parent_with_children(
+    set_persistence::delete_parent_with_children(
         pool,
         "THUMBNAIL_COLLECTION",
         "COLLECTION_SERIES",

@@ -1,6 +1,4 @@
 mod discovery;
-mod event_emitter_adapter;
-mod filesystem;
 mod identity;
 mod media;
 mod opds;
@@ -16,7 +14,6 @@ pub use discovery::{
     DiscoveryDetailAccess, DiscoveryQuerySupportAccess, LibraryCatalogAccess,
     SqliteDiscoveryBrowseService,
 };
-pub use event_emitter_adapter::SseBookEventEmitter;
 pub use identity::{
     ClaimAccess, IdentityAccess, InitialBootstrapUserWriteModel, PersistedBootstrapUser,
     invalidate_user_sessions, list_persisted_user_emails, load_persisted_user_by_email,
@@ -25,14 +22,14 @@ pub use identity::{
 };
 pub use media::{
     ContentResolver, FilesystemBookImport, MediaReader, ProgressWriter, SqliteBookMetadataPort,
-    ThumbnailWriter, ZipArchiveBuilder, generate_book_thumbnail, remove_file_after_release,
+    SseBookEventEmitter, ThumbnailWriter, TransientBookAccess, ZipArchiveBuilder,
+    generate_book_thumbnail, remove_file_after_release,
 };
 pub use opds::{OpdsCatalogAccess, OpdsPersistedAccess};
 pub use operational::{
     ActuatorSnapshotAccess, AnnouncementAccess, ClientSettingsAccess, FilesystemBrowseAccess,
     FontAccess, HistoryAccess, OperationalMetricsAccess, PageHashAccess, RememberMeRuntimeSettings,
-    RemoteFeedAccess, ServerSettingsStore, SyncpointAccess, TransientBookAccess,
-    load_remember_me_runtime_settings,
+    RemoteFeedAccess, ServerSettingsStore, SyncpointAccess, load_remember_me_runtime_settings,
 };
 pub use persistence::{
     DEFAULT_MAX_CONNECTIONS, DatabaseHandle, SharedSqlitePoolSnapshot, SqlitePersistenceConnection,

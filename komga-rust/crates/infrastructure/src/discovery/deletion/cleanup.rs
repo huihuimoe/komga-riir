@@ -4,12 +4,12 @@ use komga_domain::discovery::compare_book_names;
 use sqlx::sqlite::SqliteRow;
 use sqlx::{Row, Sqlite, SqlitePool, Transaction};
 
-use super::runtime_context::JobRuntime;
-use crate::tasks::queue::sql::{
+use crate::discovery::deletion::sql::{
     EMPTY_TRASH_BOOK_DEPENDENCY_SQL, EMPTY_TRASH_SERIES_DEPENDENCY_SQL,
 };
+use crate::tasks::JobRuntime;
 
-pub(super) async fn empty_trash(
+pub(crate) async fn empty_trash(
     runtime: &JobRuntime<'_>,
     library_id: &str,
 ) -> Result<(), TaskProcessingError> {
@@ -22,7 +22,7 @@ pub(super) async fn empty_trash(
         .map_err(TaskProcessingError::runtime)
 }
 
-pub(super) async fn cleanup_empty_sets(
+pub(crate) async fn cleanup_empty_sets(
     runtime: &JobRuntime<'_>,
 ) -> Result<(), TaskProcessingError> {
     if !runtime.database().owns_main_database() {
@@ -37,10 +37,7 @@ pub(super) async fn cleanup_empty_sets(
     .map_err(TaskProcessingError::runtime)
 }
 
-pub(in crate::tasks) async fn empty_trash_rows(
-    pool: &SqlitePool,
-    library_id: &str,
-) -> anyhow::Result<()> {
+pub(crate) async fn empty_trash_rows(pool: &SqlitePool, library_id: &str) -> anyhow::Result<()> {
     let mut tx = pool
         .begin()
         .await
@@ -344,7 +341,7 @@ fn empty_trash_book_metadata(
     }))
 }
 
-pub(in crate::tasks) async fn cleanup_empty_sets_rows(
+pub(crate) async fn cleanup_empty_sets_rows(
     pool: &SqlitePool,
     policy: CleanupEmptySetsPolicy,
 ) -> anyhow::Result<()> {

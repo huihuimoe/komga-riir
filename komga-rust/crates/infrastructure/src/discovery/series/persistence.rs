@@ -8,7 +8,7 @@ use komga_domain::discovery::SeriesStatus;
 use sqlx::sqlite::SqliteRow;
 use sqlx::{Error, QueryBuilder, Row, Sqlite, SqlitePool};
 
-use crate::discovery::query_helpers as common;
+use crate::discovery::query_values;
 use crate::discovery::records::SeriesSummary;
 
 pub(in crate::discovery) async fn load_persisted_series_summaries(
@@ -228,7 +228,7 @@ fn map_series_summary(row: SqliteRow) -> SeriesSummary {
         url: row.get::<String, _>("URL"),
         title: row.get::<String, _>("TITLE"),
         title_sort: row.get::<String, _>("TITLE_SORT"),
-        labels: common::parse_group_concat_values(&row.get::<String, _>("LABELS")),
+        labels: query_values::parse_group_concat_values(&row.get::<String, _>("LABELS")),
         created: row.get::<String, _>("CREATED_DATE"),
         last_modified: row.get::<String, _>("LAST_MODIFIED_DATE"),
         file_last_modified: row.get::<String, _>("FILE_LAST_MODIFIED"),
@@ -246,11 +246,11 @@ fn map_series_summary(row: SqliteRow) -> SeriesSummary {
         publisher_lock: row.get::<bool, _>("PUBLISHER_LOCK"),
         age_rating: row
             .get::<Option<i64>, _>("AGE_RATING")
-            .map(common::clamp_kotlin_int_u32),
+            .map(query_values::clamp_kotlin_int_u32),
         age_rating_lock: row.get::<bool, _>("AGE_RATING_LOCK"),
         total_book_count: row
             .get::<Option<i64>, _>("TOTAL_BOOK_COUNT")
-            .map(common::clamp_kotlin_int_u32),
+            .map(query_values::clamp_kotlin_int_u32),
         total_book_count_lock: row.get::<bool, _>("TOTAL_BOOK_COUNT_LOCK"),
         language: row.get::<String, _>("LANGUAGE"),
         language_lock: row.get::<bool, _>("LANGUAGE_LOCK"),
@@ -259,18 +259,18 @@ fn map_series_summary(row: SqliteRow) -> SeriesSummary {
         sharing_labels_lock: row.get::<bool, _>("SHARING_LABELS_LOCK"),
         links: parse_series_links(&row.get::<String, _>("LINKS")),
         links_lock: row.get::<bool, _>("LINKS_LOCK"),
-        genres: common::parse_group_concat_values(&row.get::<String, _>("GENRES")),
-        tags: common::parse_group_concat_values(&row.get::<String, _>("TAGS")),
+        genres: query_values::parse_group_concat_values(&row.get::<String, _>("GENRES")),
+        tags: query_values::parse_group_concat_values(&row.get::<String, _>("TAGS")),
         alternate_titles: parse_alternate_titles(&row.get::<String, _>("ALTERNATE_TITLES")),
         alternate_titles_lock: row.get::<bool, _>("ALTERNATE_TITLES_LOCK"),
         title_lock: row.get::<bool, _>("TITLE_LOCK"),
         title_sort_lock: row.get::<bool, _>("TITLE_SORT_LOCK"),
         metadata_created: row.get::<String, _>("METADATA_CREATED"),
         metadata_last_modified: row.get::<String, _>("METADATA_LAST_MODIFIED"),
-        books_metadata_authors: common::parse_group_concat_values(
+        books_metadata_authors: query_values::parse_group_concat_values(
             &row.get::<String, _>("BOOKS_METADATA_AUTHORS"),
         ),
-        books_metadata_tags: common::parse_group_concat_values(
+        books_metadata_tags: query_values::parse_group_concat_values(
             &row.get::<String, _>("BOOKS_METADATA_TAGS"),
         ),
         books_metadata_release_date: row.get::<Option<String>, _>("BOOKS_METADATA_RELEASE_DATE"),
@@ -284,7 +284,7 @@ fn map_series_summary(row: SqliteRow) -> SeriesSummary {
 }
 
 fn parse_series_links(raw: &str) -> Vec<SeriesMetadataLinkRecord> {
-    common::parse_group_concat_values(raw)
+    query_values::parse_group_concat_values(raw)
         .into_iter()
         .filter_map(|value| {
             value
@@ -298,7 +298,7 @@ fn parse_series_links(raw: &str) -> Vec<SeriesMetadataLinkRecord> {
 }
 
 fn parse_alternate_titles(raw: &str) -> Vec<SeriesAlternateTitleRecord> {
-    common::parse_group_concat_values(raw)
+    query_values::parse_group_concat_values(raw)
         .into_iter()
         .map(|value| match value.split_once("::") {
             Some((label, title)) => (label.to_string(), title.to_string()),

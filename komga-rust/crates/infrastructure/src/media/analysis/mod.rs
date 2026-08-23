@@ -1595,3 +1595,7 @@ mod tests {
         );
     }
 }
+mod persistence;
+mod task;
+
+pub(crate) use task::analyze_book;

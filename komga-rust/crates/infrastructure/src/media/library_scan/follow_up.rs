@@ -12,16 +12,16 @@ use crate::media::maintenance::persistence::{
     load_books_with_missing_file_hash, load_library_hashing_flags, load_library_maintenance_flags,
 };
 
-pub(in crate::tasks) struct ScanFollowUpPlanner {
+pub(super) struct ScanFollowUpPlanner {
     pool: SqlitePool,
 }
 
 impl ScanFollowUpPlanner {
-    pub(in crate::tasks) fn new(pool: SqlitePool) -> Self {
+    pub(super) fn new(pool: SqlitePool) -> Self {
         Self { pool }
     }
 
-    pub(in crate::tasks) async fn plan(
+    pub(super) async fn plan(
         &self,
         library_id: &str,
         scan_result: &LibraryScanResult,

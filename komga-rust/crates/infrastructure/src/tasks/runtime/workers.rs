@@ -16,9 +16,9 @@ use tracing::{Instrument, Span, error, info};
 use super::execution_loop::BackgroundTaskExecutionLoop;
 pub use super::execution_loop::SharedTaskQueue;
 use super::execution_pool::TaskExecutionPoolHandle;
-use super::library_scan_pipeline::SqliteFilesystemLibraryScanPipeline;
 use super::runtime_task_engine::RuntimeTaskEngine;
 use super::{TaskExecutionResult, TaskQueueRecord, TaskQueueScheduler};
+use crate::media::library_scan::SqliteFilesystemLibraryScanPipeline;
 pub type TaskQueueWakeSignal = Arc<Notify>;
 
 pub struct RuntimeBackgroundState {

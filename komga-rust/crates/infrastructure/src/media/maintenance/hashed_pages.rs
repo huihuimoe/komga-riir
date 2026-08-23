@@ -15,7 +15,6 @@ use super::persistence::{
 use super::updates::{persist_duplicate_page_deleted_events, persist_removed_hashed_pages};
 use crate::media::analysis::{is_supported_page_image_file_name, media_type_from_entry_name};
 use crate::tasks::JobRuntime;
-use crate::tasks::index_tasks;
 
 pub(crate) type HashedPageToDelete = HashedPageToDeletePayload;
 
@@ -134,7 +133,7 @@ pub(crate) async fn remove_hashed_pages(
     .await
     .map_err(TaskProcessingError::runtime)?;
 
-    index_tasks::analyze_book(runtime, analyze_book_id.as_str()).await?;
+    crate::media::analysis::analyze_book(runtime, analyze_book_id.as_str()).await?;
 
     persist_duplicate_page_deleted_events(
         runtime.database().write_pool(),

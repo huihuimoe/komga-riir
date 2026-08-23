@@ -2,7 +2,7 @@ use anyhow::Context;
 use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 
-use super::JobRuntime;
+use crate::tasks::JobRuntime;
 use komga_application::runtime_sse::{RuntimeSseEventSink, RuntimeSseEventStore};
 use komga_application::task_processing::{
     CleanupEmptySetsPolicy, LibraryScanInterval, LibraryScanPipeline, LibraryScanProfile,
@@ -13,9 +13,9 @@ use komga_application::task_processing::{
 use sqlx::{Row, SqlitePool};
 use tokio::time::Instant;
 
-use super::cleanup_tasks::{cleanup_empty_sets_rows, empty_trash_rows};
-use super::scan_follow_up::ScanFollowUpPlanner;
-use crate::media::library_scan::LibraryScanner;
+use super::LibraryScanner;
+use super::follow_up::ScanFollowUpPlanner;
+use crate::discovery::deletion::{cleanup_empty_sets_rows, empty_trash_rows};
 
 async fn load_library_scan_profiles(pool: &SqlitePool) -> anyhow::Result<Vec<LibraryScanProfile>> {
     let rows = sqlx::query(

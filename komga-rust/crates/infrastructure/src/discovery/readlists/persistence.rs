@@ -1,7 +1,7 @@
 use anyhow::Context;
 use sqlx::{Row, SqlitePool};
 
-use crate::discovery::mutation_helpers as common;
+use crate::discovery::set_persistence;
 
 use komga_application::discovery::{
     DiscoveryPersistedReadlistBookRecord, DiscoveryPersistedReadlistRecord,
@@ -138,7 +138,7 @@ VALUES (?, ?, ?, ?, ?)"#,
     .await
     .context("insert persisted readlist")?;
 
-    common::replace_ordered_children(
+    set_persistence::replace_ordered_children(
         &mut tx,
         "READLIST_BOOK",
         "READLIST_ID",
@@ -186,7 +186,7 @@ WHERE ID = ?"#,
         return Ok(false);
     }
 
-    common::replace_ordered_children(
+    set_persistence::replace_ordered_children(
         &mut tx,
         "READLIST_BOOK",
         "READLIST_ID",
@@ -205,7 +205,7 @@ pub(in crate::discovery) async fn delete_persisted_readlist(
     pool: &SqlitePool,
     readlist_id: &str,
 ) -> anyhow::Result<bool> {
-    common::delete_parent_with_children(
+    set_persistence::delete_parent_with_children(
         pool,
         "THUMBNAIL_READLIST",
         "READLIST_BOOK",

@@ -7,7 +7,7 @@ use komga_application::discovery::{
 };
 use komga_domain::discovery::MediaStatus;
 
-use crate::discovery::mutation_helpers as common;
+use crate::discovery::set_persistence;
 use crate::persistence::sqlite::codecs::{
     parse_metadata_authors, parse_metadata_links, parse_sqlite_group_concat_values,
 };
@@ -58,7 +58,7 @@ pub(in crate::discovery) async fn load_persisted_book_resource(
         library_id: row.get::<String, _>("LIBRARY_ID"),
         age_rating: row
             .get::<Option<i64>, _>("AGE_RATING")
-            .map(common::clamp_kotlin_int_u32),
+            .map(set_persistence::clamp_kotlin_int_u32),
         sharing_labels: row.get::<String, _>("SHARING_LABELS"),
     }))
 }

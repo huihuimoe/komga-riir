@@ -8,10 +8,10 @@ use komga_domain::media_assets::ThumbnailType;
 use sqlx::{Row, SqlitePool};
 use tokio::fs;
 
-use super::runtime_context::JobRuntime;
+use crate::tasks::JobRuntime;
 use crate::{resolve_library_item_path, resolve_optional_library_item_path};
 
-pub(super) async fn delete_book_task(
+pub(crate) async fn delete_book_task(
     runtime: &JobRuntime<'_>,
     book_id: &str,
 ) -> Result<(), TaskProcessingError> {
@@ -260,7 +260,7 @@ async fn remove_sidecar_thumbnail_files<T: AsRef<Path>>(
     Ok(())
 }
 
-pub(super) async fn delete_series(
+pub(crate) async fn delete_series(
     runtime: &JobRuntime<'_>,
     series_id: &str,
 ) -> Result<(), TaskProcessingError> {
@@ -377,37 +377,37 @@ async fn directory_is_writable(target_directory: &Path) -> bool {
 }
 
 #[derive(Clone, Debug)]
-pub(in crate::tasks) struct PersistedDeleteBookDecision {
-    pub(in crate::tasks) series_id: String,
-    pub(in crate::tasks) oneshot: bool,
+pub(crate) struct PersistedDeleteBookDecision {
+    pub(crate) series_id: String,
+    pub(crate) oneshot: bool,
 }
 
 #[derive(Clone, Debug)]
-pub(in crate::tasks) struct PersistedDeleteBookSseContext {
-    pub(in crate::tasks) series_id: String,
-    pub(in crate::tasks) library_id: String,
+pub(crate) struct PersistedDeleteBookSseContext {
+    pub(crate) series_id: String,
+    pub(crate) library_id: String,
 }
 
 #[derive(Clone, Debug)]
-pub(in crate::tasks) struct PersistedDeleteBookWork {
-    pub(in crate::tasks) series_id: String,
-    pub(in crate::tasks) book_path: PathBuf,
-    pub(in crate::tasks) sidecar_thumbnail_paths: Vec<PathBuf>,
+pub(crate) struct PersistedDeleteBookWork {
+    pub(crate) series_id: String,
+    pub(crate) book_path: PathBuf,
+    pub(crate) sidecar_thumbnail_paths: Vec<PathBuf>,
 }
 
 #[derive(Clone, Debug)]
-pub(in crate::tasks) struct PersistedDeleteSeriesWork {
-    pub(in crate::tasks) book_ids: Vec<String>,
-    pub(in crate::tasks) series_path: Option<PathBuf>,
-    pub(in crate::tasks) sidecar_thumbnail_paths: Vec<PathBuf>,
+pub(crate) struct PersistedDeleteSeriesWork {
+    pub(crate) book_ids: Vec<String>,
+    pub(crate) series_path: Option<PathBuf>,
+    pub(crate) sidecar_thumbnail_paths: Vec<PathBuf>,
 }
 
 #[derive(Clone, Debug)]
-pub(in crate::tasks) struct PersistedDeleteSeriesSseContext {
-    pub(in crate::tasks) library_id: String,
+pub(crate) struct PersistedDeleteSeriesSseContext {
+    pub(crate) library_id: String,
 }
 
-pub(in crate::tasks) async fn load_book_delete_decision(
+pub(crate) async fn load_book_delete_decision(
     pool: &SqlitePool,
     book_id: &str,
 ) -> anyhow::Result<Option<PersistedDeleteBookDecision>> {
@@ -434,7 +434,7 @@ pub(in crate::tasks) async fn load_book_delete_decision(
     }))
 }
 
-pub(in crate::tasks) async fn load_book_delete_sse_context(
+pub(crate) async fn load_book_delete_sse_context(
     pool: &SqlitePool,
     book_id: &str,
 ) -> anyhow::Result<Option<PersistedDeleteBookSseContext>> {
@@ -461,7 +461,7 @@ pub(in crate::tasks) async fn load_book_delete_sse_context(
     }))
 }
 
-pub(in crate::tasks) async fn load_book_delete_work(
+pub(crate) async fn load_book_delete_work(
     pool: &SqlitePool,
     book_id: &str,
 ) -> anyhow::Result<Option<PersistedDeleteBookWork>> {
@@ -527,7 +527,7 @@ pub(in crate::tasks) async fn load_book_delete_work(
     }))
 }
 
-pub(in crate::tasks) async fn soft_delete_book_rows(
+pub(crate) async fn soft_delete_book_rows(
     pool: &SqlitePool,
     book_id: &str,
     series_id: &str,
@@ -583,7 +583,7 @@ pub(in crate::tasks) async fn soft_delete_book_rows(
     Ok(())
 }
 
-pub(in crate::tasks) async fn load_series_delete_sse_context(
+pub(crate) async fn load_series_delete_sse_context(
     pool: &SqlitePool,
     series_id: &str,
 ) -> anyhow::Result<Option<PersistedDeleteSeriesSseContext>> {
@@ -609,7 +609,7 @@ pub(in crate::tasks) async fn load_series_delete_sse_context(
     }))
 }
 
-pub(in crate::tasks) async fn load_series_delete_work(
+pub(crate) async fn load_series_delete_work(
     pool: &SqlitePool,
     series_id: &str,
 ) -> anyhow::Result<PersistedDeleteSeriesWork> {
@@ -698,7 +698,7 @@ pub(in crate::tasks) async fn load_series_delete_work(
     })
 }
 
-pub(in crate::tasks) async fn soft_delete_series_rows(
+pub(crate) async fn soft_delete_series_rows(
     pool: &SqlitePool,
     series_id: &str,
 ) -> anyhow::Result<()> {
@@ -734,7 +734,7 @@ pub(in crate::tasks) async fn soft_delete_series_rows(
     Ok(())
 }
 
-pub(in crate::tasks) async fn soft_delete_series_book_rows(
+pub(crate) async fn soft_delete_series_book_rows(
     pool: &SqlitePool,
     series_id: &str,
 ) -> anyhow::Result<()> {

@@ -6,6 +6,7 @@ mod scan_restore;
 mod scan_sse;
 mod sidecars;
 
+pub use adapter::SqliteFilesystemLibraryScanPipeline;
 pub(crate) use scan_models::LibraryScanResult;
 #[cfg(test)]
 pub(crate) use scan_models::{
@@ -75,3 +76,5 @@ impl LibraryScanner {
         })
     }
 }
+mod adapter;
+mod follow_up;

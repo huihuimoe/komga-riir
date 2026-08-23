@@ -3,7 +3,7 @@ use std::collections::BTreeMap;
 use komga_application::discovery::SeriesAlphabeticalGroup;
 use komga_domain::discovery::SeriesCondition;
 
-use super::super::common_helpers::first_group_key;
+use super::super::grouping::first_group_key;
 use super::super::models::{
     PersistedSeriesBrowseQuery, PersistedSeriesSortMode, SeriesFilterCriteria,
 };

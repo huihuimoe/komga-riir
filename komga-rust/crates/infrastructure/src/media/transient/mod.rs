@@ -1304,3 +1304,5 @@ mod tests {
         let _ = fs::remove_file(path);
     }
 }
+mod adapter;
+pub use adapter::TransientBookAccess;

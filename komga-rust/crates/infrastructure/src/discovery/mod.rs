@@ -1,13 +1,14 @@
 mod books;
 mod collections;
+pub(crate) mod deletion;
 mod detail_adapter;
 mod libraries;
-mod mutation_helpers;
 mod persisted;
-mod query_helpers;
+mod query_values;
 mod readlists;
 mod records;
 mod series;
+mod set_persistence;
 mod visibility;
 
 pub use detail_adapter::DiscoveryDetailAccess;

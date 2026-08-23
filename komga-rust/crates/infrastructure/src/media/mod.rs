@@ -1,5 +1,6 @@
 pub(crate) mod analysis;
 pub(crate) mod content;
+mod events;
 pub(crate) mod formats;
 mod import;
 pub(crate) mod library_scan;
@@ -10,8 +11,10 @@ mod reader;
 pub(crate) mod transient;
 
 pub use content::ContentResolver;
+pub use events::SseBookEventEmitter;
 pub use formats::ZipArchiveBuilder;
 pub use import::{FilesystemBookImport, remove_file_after_release};
 pub use metadata::{SqliteBookMetadataPort, ThumbnailWriter, generate_book_thumbnail};
 pub use progress::ProgressWriter;
 pub use reader::MediaReader;
+pub use transient::TransientBookAccess;
