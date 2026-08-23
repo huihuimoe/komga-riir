@@ -1,5 +1,4 @@
 mod announcements;
-mod claims;
 mod client_settings;
 mod filesystem;
 mod history;
@@ -10,7 +9,6 @@ mod syncpoints;
 mod transient_books;
 
 pub use announcements::AnnouncementAccess;
-pub use claims::ClaimAccess;
 pub use client_settings::ClientSettingsAccess;
 pub use filesystem::{FilesystemBrowseAccess, FontAccess};
 pub use history::HistoryAccess;

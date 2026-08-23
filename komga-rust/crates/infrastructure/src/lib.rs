@@ -6,7 +6,6 @@ use pdfium_render::prelude::*;
 
 mod announcements_access;
 mod archive_builder;
-mod claims_access;
 mod content_resolver;
 mod discovery_detail_access;
 mod discovery_persisted_access;
@@ -43,7 +42,10 @@ pub use discovery_persisted_access::{DiscoveryQuerySupportAccess, SqliteDiscover
 pub use event_emitter_adapter::SseBookEventEmitter;
 pub use filesystem::{FilesystemBookImport, remove_file_after_release};
 pub use identity::{
-    IdentityAccess, invalidate_user_sessions, persisted_update_password_by_user_id,
+    ClaimAccess, IdentityAccess, InitialBootstrapUserWriteModel, PersistedBootstrapUser,
+    invalidate_user_sessions, list_persisted_user_emails, load_persisted_user_by_email,
+    load_persisted_user_count, persist_initial_bootstrap_users,
+    persisted_update_password_by_user_id, update_persisted_user_passwords,
 };
 pub use library_catalog::LibraryCatalogAccess;
 pub use media_reader::MediaReader;
@@ -51,8 +53,8 @@ pub use metadata::{SqliteBookMetadataPort, generate_book_thumbnail};
 pub use opds_catalog_access::OpdsCatalogAccess;
 pub use opds_persisted_access::OpdsPersistedAccess;
 pub use operational_access::{
-    AnnouncementAccess, ClaimAccess, ClientSettingsAccess, FilesystemBrowseAccess, FontAccess,
-    HistoryAccess, PageHashAccess, RememberMeRuntimeSettings, RemoteFeedAccess, SyncpointAccess,
+    AnnouncementAccess, ClientSettingsAccess, FilesystemBrowseAccess, FontAccess, HistoryAccess,
+    PageHashAccess, RememberMeRuntimeSettings, RemoteFeedAccess, SyncpointAccess,
     TransientBookAccess, load_remember_me_runtime_settings,
 };
 pub use operational_actuator_access::ActuatorSnapshotAccess;
@@ -72,11 +74,7 @@ pub use search::{
     prepare_for_rebuild, rebuild_index_from_database, search_analyzer_version,
 };
 pub use search_sync_adapter::SearchSyncAdapter;
-pub use sqlite::{
-    InitialBootstrapUserWriteModel, PersistedBootstrapUser, ServerSettingsStore,
-    list_persisted_user_emails, load_persisted_user_by_email, load_persisted_user_count,
-    persist_initial_bootstrap_users, update_persisted_user_passwords,
-};
+pub use sqlite::ServerSettingsStore;
 pub use task_enqueue_adapter::TaskEnqueueAdapter;
 pub use task_queue::{
     DatabaseRuntime, FilesystemRuntime, JobRuntime, RuntimeBackgroundState, SearchRuntime,
