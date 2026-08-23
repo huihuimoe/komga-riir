@@ -4,7 +4,7 @@ use std::collections::{BTreeSet, HashMap};
 use komga_application::discovery::SeriesReadProgressCounts;
 use sqlx::{QueryBuilder, Row, Sqlite, SqlitePool};
 
-use super::models::{BookBrowseEntry, BookTagsScope};
+use crate::discovery::records::{BookBrowseEntry, BookTagsScope};
 
 pub(super) async fn load_persisted_ondeck_books(
     pool: &SqlitePool,

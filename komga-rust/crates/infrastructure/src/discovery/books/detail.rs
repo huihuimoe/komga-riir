@@ -7,12 +7,12 @@ use komga_application::discovery::{
 };
 use komga_domain::discovery::MediaStatus;
 
-use super::common;
+use crate::discovery::mutation_helpers as common;
 use crate::persistence::sqlite::codecs::{
     parse_metadata_authors, parse_metadata_links, parse_sqlite_group_concat_values,
 };
 
-pub(super) async fn load_book_id_by_sorted_position(
+pub(in crate::discovery) async fn load_book_id_by_sorted_position(
     pool: &SqlitePool,
     index: usize,
 ) -> anyhow::Result<Option<String>> {
@@ -33,7 +33,7 @@ pub(super) async fn load_book_id_by_sorted_position(
     Ok(row.map(|row| row.get::<String, _>("ID")))
 }
 
-pub(super) async fn load_persisted_book_resource(
+pub(in crate::discovery) async fn load_persisted_book_resource(
     pool: &SqlitePool,
     book_id: &str,
 ) -> anyhow::Result<Option<PersistedBookResourceRecord>> {
@@ -63,7 +63,7 @@ pub(super) async fn load_persisted_book_resource(
     }))
 }
 
-pub(super) async fn load_persisted_book_detail(
+pub(in crate::discovery) async fn load_persisted_book_detail(
     pool: &SqlitePool,
     book_id: &str,
     user_id: Option<&str>,
@@ -196,7 +196,7 @@ fn projected_media_status(row: &sqlx::sqlite::SqliteRow) -> MediaStatus {
     MediaStatus::parse(&raw).expect("book media-status projection should use known values")
 }
 
-pub(super) async fn load_persisted_book_sibling_id(
+pub(in crate::discovery) async fn load_persisted_book_sibling_id(
     pool: &SqlitePool,
     book_id: &str,
     direction: PersistedBookSiblingDirectionRecord,

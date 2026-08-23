@@ -10,7 +10,7 @@ use komga_domain::discovery::SeriesStatus;
 
 use crate::persistence::sqlite::codecs::clamp_kotlin_int_u32;
 
-pub(super) async fn load_persisted_series_resource(
+pub(in crate::discovery) async fn load_persisted_series_resource(
     pool: &SqlitePool,
     series_id: &str,
 ) -> anyhow::Result<Option<PersistedSeriesResourceRecord>> {
@@ -39,7 +39,7 @@ pub(super) async fn load_persisted_series_resource(
     }))
 }
 
-pub(super) async fn load_series_id_by_sorted_position(
+pub(in crate::discovery) async fn load_series_id_by_sorted_position(
     pool: &SqlitePool,
     index: usize,
 ) -> anyhow::Result<Option<String>> {
@@ -60,7 +60,7 @@ pub(super) async fn load_series_id_by_sorted_position(
     Ok(row.map(|row| row.get::<String, _>("ID")))
 }
 
-pub(super) async fn load_persisted_series_detail(
+pub(in crate::discovery) async fn load_persisted_series_detail(
     pool: &SqlitePool,
     series_id: &str,
 ) -> anyhow::Result<Option<PersistedSeriesDetailRecord>> {
@@ -138,7 +138,7 @@ pub(super) async fn load_persisted_series_detail(
     }))
 }
 
-pub(super) async fn load_persisted_series_collections(
+pub(in crate::discovery) async fn load_persisted_series_collections(
     pool: &SqlitePool,
     series_id: &str,
 ) -> anyhow::Result<Vec<PersistedSeriesCollectionRecord>> {
@@ -184,7 +184,7 @@ pub(super) async fn load_persisted_series_collections(
     Ok(collections)
 }
 
-pub(super) async fn load_existing_series_metadata(
+pub(in crate::discovery) async fn load_existing_series_metadata(
     pool: &SqlitePool,
     series_id: &str,
 ) -> anyhow::Result<Option<ExistingSeriesMetadataRecord>> {
@@ -313,7 +313,7 @@ pub(super) async fn load_existing_series_metadata(
     }))
 }
 
-pub(super) async fn persist_series_metadata_update(
+pub(in crate::discovery) async fn persist_series_metadata_update(
     pool: &SqlitePool,
     series_id: &str,
     update: SeriesMetadataUpdateRecord,
@@ -495,7 +495,7 @@ async fn replace_series_metadata_links(
     Ok(())
 }
 
-pub(super) async fn refresh_series_after_metadata_update(
+pub(in crate::discovery) async fn refresh_series_after_metadata_update(
     pool: &SqlitePool,
     series_id: &str,
 ) -> anyhow::Result<()> {

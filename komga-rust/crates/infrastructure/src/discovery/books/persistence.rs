@@ -6,13 +6,13 @@ use sqlx::{Error, QueryBuilder, Row, Sqlite, SqlitePool};
 
 use komga_domain::discovery::{MediaStatus, ReadStatus};
 
-use super::common;
-use super::models::{
+use crate::discovery::query_helpers as common;
+use crate::discovery::records::{
     AuthorEntry, BookPosterSummary, BookSummary, ReadProgressSummary, WebLinkEntry,
 };
 use crate::persistence::sqlite::codecs::parse_thumbnail_type;
 
-pub(super) async fn load_book_poster_summaries(
+pub(in crate::discovery) async fn load_book_poster_summaries(
     pool: &SqlitePool,
 ) -> anyhow::Result<HashMap<String, Vec<BookPosterSummary>>> {
     let rows = sqlx::query(
@@ -36,7 +36,7 @@ pub(super) async fn load_book_poster_summaries(
     Ok(posters)
 }
 
-pub(super) async fn load_persisted_book_summaries(
+pub(in crate::discovery) async fn load_persisted_book_summaries(
     pool: &SqlitePool,
     user_id: Option<&str>,
 ) -> anyhow::Result<Vec<BookSummary>> {
@@ -47,7 +47,7 @@ pub(super) async fn load_persisted_book_summaries(
     Ok(map_book_summary_rows(rows))
 }
 
-pub(super) async fn load_persisted_book_summaries_by_ids(
+pub(in crate::discovery) async fn load_persisted_book_summaries_by_ids(
     pool: &SqlitePool,
     user_id: Option<&str>,
     ids: &[String],
@@ -237,7 +237,9 @@ fn book_summary_select_sql(include_read_progress: bool) -> &'static str {
     }
 }
 
-pub(super) async fn load_persisted_book_count(pool: &SqlitePool) -> anyhow::Result<usize> {
+pub(in crate::discovery) async fn load_persisted_book_count(
+    pool: &SqlitePool,
+) -> anyhow::Result<usize> {
     let row = sqlx::query(r#"SELECT COUNT(*) AS COUNT FROM BOOK"#)
         .fetch_one(pool)
         .await

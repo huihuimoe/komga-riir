@@ -10,7 +10,8 @@ use crate::persistence::DatabaseHandle;
 use crate::search::engine::SearchIndexEngine;
 use crate::search::index_lifecycle::SearchEntityType;
 
-use super::{authors, library_mappings, models, runtime_queries};
+use super::{authors, library_mappings, runtime_queries};
+use crate::discovery::records as models;
 
 #[derive(Clone)]
 pub struct DiscoveryQuerySupportAccess {

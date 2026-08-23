@@ -1,9 +1,9 @@
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::path::PathBuf;
 
-use crate::discovery::persisted::{
-    books, facets, library_mappings, models as persisted_models, runtime_queries, series,
-};
+use crate::discovery::persisted::{facets, library_mappings, runtime_queries};
+use crate::discovery::records as persisted_models;
+use crate::discovery::{books::persistence as books, series::persistence as series};
 use crate::persistence::DatabaseHandle;
 use crate::search::engine::SearchIndexEngine;
 use crate::search::index_lifecycle::SearchEntityType;
