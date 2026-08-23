@@ -23,12 +23,12 @@ mod operational_actuator_access;
 mod operational_metrics_access;
 mod persistence;
 mod progress_writer;
-mod random_tokens;
 mod rar_support;
 mod read_models;
 mod runtime_identity_access;
 mod search;
 mod search_sync_adapter;
+mod shared;
 mod sql;
 mod sqlite;
 mod task_enqueue_adapter;
@@ -92,7 +92,7 @@ pub(crate) use persistence::{
     resolve_library_item_path, resolve_optional_library_item_path, resolve_rooted_path,
     resolve_stored_path,
 };
-pub(crate) use random_tokens::random_hex_token;
+pub(crate) use shared::random_hex_token;
 
 static PDFIUM: OnceLock<anyhow::Result<Pdfium>> = OnceLock::new();
 const DEFAULT_PDFIUM_LIBRARY_PATH: &str = env!("KOMGA_PDFIUM_LIB_PATH");
