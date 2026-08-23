@@ -380,7 +380,7 @@ fn encode_image_bytes_as_thumbnail_jpeg(bytes: &[u8], max_edge: u32) -> anyhow::
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::sqlite::setup;
+    use crate::persistence::sqlite::schema;
     use std::fs::{self, File};
     use std::io::Write;
     use std::path::PathBuf;
@@ -392,10 +392,10 @@ mod tests {
         let root = unique_temp_dir(case);
         fs::create_dir_all(&root).expect("temp root should be created");
         let db_path = root.join("page-hashes.sqlite");
-        let pool = crate::sqlite::connect_test_pool(&db_path, 1)
+        let pool = crate::persistence::sqlite::connect_test_pool(&db_path, 1)
             .await
             .expect("test db should open");
-        setup::bootstrap_pool(&pool)
+        schema::bootstrap_pool(&pool)
             .await
             .expect("test db should bootstrap main schema");
 

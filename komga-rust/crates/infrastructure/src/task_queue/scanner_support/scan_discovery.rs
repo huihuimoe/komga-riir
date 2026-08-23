@@ -3,7 +3,7 @@ use std::fs;
 use std::hash::{Hash, Hasher};
 use std::path::{Path, PathBuf};
 
-use crate::persisted_paths::resolve_rooted_path;
+use crate::persistence::stored_paths::resolve_rooted_path;
 
 use super::scan_models::{
     ExistingScannedBookRow, LibraryScanConfig, ScannedBookRow, ScannedSidecarRow,

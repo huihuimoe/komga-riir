@@ -8,7 +8,7 @@ use sqlx::{Row, SqlitePool};
 
 use komga_domain::media_assets::ThumbnailType;
 
-use crate::persisted_paths::resolve_rooted_path;
+use crate::persistence::stored_paths::resolve_rooted_path;
 use crate::sql::task_queue::DELETE_BOOK_DEPENDENCY_SQL;
 
 use super::scan_models::{

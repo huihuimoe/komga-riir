@@ -6,7 +6,7 @@ use komga_application::operational::{
 };
 use sqlx::SqlitePool;
 
-use crate::database_handle::DatabaseHandle;
+use crate::persistence::DatabaseHandle;
 use crate::sqlite::read_models::client_settings::{
     load_client_settings_global as load_client_settings_global_model,
     load_client_settings_user as load_client_settings_user_model,

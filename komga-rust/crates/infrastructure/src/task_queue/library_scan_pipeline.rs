@@ -274,7 +274,7 @@ mod tests {
     use std::time::Duration;
 
     use super::*;
-    use crate::sqlite::{connect_test_pool, setup};
+    use crate::persistence::sqlite::{connect_test_pool, schema};
     use komga_application::task_processing::RefreshBookMetadataPayload;
     use sha2::{Digest, Sha256};
 
@@ -300,7 +300,7 @@ mod tests {
         let pool = connect_test_pool(db_path, 1)
             .await
             .expect("temporary sqlite db should open");
-        setup::bootstrap_pool(&pool)
+        schema::bootstrap_pool(&pool)
             .await
             .expect("temporary sqlite db should bootstrap main schema");
         for (library_id, scan_startup, scan_interval) in rows {
@@ -336,7 +336,7 @@ mod tests {
         let pool = connect_test_pool(db_path.as_path(), 1)
             .await
             .expect("temporary sqlite db should open");
-        setup::bootstrap_pool(&pool)
+        schema::bootstrap_pool(&pool)
             .await
             .expect("temporary sqlite db should bootstrap main schema");
         sqlx::query("INSERT INTO LIBRARY (ID, NAME, ROOT) VALUES (?, ?, ?)")
@@ -460,7 +460,7 @@ mod tests {
         let pool = connect_test_pool(db_path.as_path(), 1)
             .await
             .expect("temporary sqlite db should open");
-        setup::bootstrap_pool(&pool)
+        schema::bootstrap_pool(&pool)
             .await
             .expect("temporary sqlite db should bootstrap main schema");
         pool.close().await;
@@ -498,7 +498,7 @@ mod tests {
         let pool = connect_test_pool(db_path.as_path(), 1)
             .await
             .expect("temporary sqlite db should open");
-        setup::bootstrap_pool(&pool)
+        schema::bootstrap_pool(&pool)
             .await
             .expect("temporary sqlite db should bootstrap main schema");
         sqlx::query(
@@ -606,7 +606,7 @@ VALUES (?, ?, ?, ?)"#,
         let pool = connect_test_pool(db_path.as_path(), 1)
             .await
             .expect("temporary sqlite db should open");
-        setup::bootstrap_pool(&pool)
+        schema::bootstrap_pool(&pool)
             .await
             .expect("temporary sqlite db should bootstrap main schema");
         sqlx::query("INSERT INTO LIBRARY (ID, NAME, ROOT) VALUES (?, ?, ?)")

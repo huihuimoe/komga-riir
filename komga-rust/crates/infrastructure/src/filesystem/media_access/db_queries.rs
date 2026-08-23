@@ -7,7 +7,7 @@ use komga_domain::discovery::MediaStatus;
 use sqlx::sqlite::SqliteRow;
 use sqlx::{Row, SqlitePool};
 
-use crate::parsing::{clamp_kotlin_int_u32, parse_sqlite_group_concat_values};
+use crate::persistence::sqlite::codecs::{clamp_kotlin_int_u32, parse_sqlite_group_concat_values};
 use crate::resolve_library_item_path;
 
 #[derive(Clone, Debug, Eq, PartialEq)]

@@ -211,7 +211,7 @@ impl ScanFollowUpPlanner {
 mod tests {
     use std::path::PathBuf;
 
-    use crate::sqlite::{connect_test_pool, setup};
+    use crate::persistence::sqlite::{connect_test_pool, schema};
     use komga_application::task_processing::RefreshBookMetadataPayload;
 
     use super::super::scanner_support::{
@@ -234,7 +234,7 @@ mod tests {
         let pool = connect_test_pool(db_path.as_path(), 1)
             .await
             .expect("temporary sqlite db should open");
-        setup::bootstrap_pool(&pool)
+        schema::bootstrap_pool(&pool)
             .await
             .expect("temporary sqlite db should bootstrap main schema");
         sqlx::query("INSERT INTO LIBRARY (ID, NAME, ROOT) VALUES (?, ?, ?)")

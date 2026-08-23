@@ -7,10 +7,10 @@ use komga_application::task_processing::{
 };
 use sqlx::SqlitePool;
 
-use crate::database_handle::DatabaseHandle;
-use crate::sqlite::{
+use crate::persistence::DatabaseHandle;
+use crate::persistence::sqlite::{
     connect_main_write_context, connect_task_pool, connect_task_write_pool, connect_write_pool,
-    default_read_max_connections, evict_shared_pools_for_paths, setup,
+    default_read_max_connections, evict_shared_pools_for_paths, schema,
 };
 
 pub(crate) struct RuntimeTestFixture {
@@ -42,7 +42,7 @@ impl RuntimeTestFixture {
         let pool = connect_write_pool(&self.tasks_db_file)
             .await
             .expect("runtime test tasks db should open");
-        setup::bootstrap_tasks_pool(&pool)
+        schema::bootstrap_tasks_pool(&pool)
             .await
             .expect("runtime test tasks db should bootstrap");
         pool

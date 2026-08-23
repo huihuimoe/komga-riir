@@ -689,7 +689,7 @@ mod tests {
     use std::path::PathBuf;
 
     use super::*;
-    use crate::sqlite::connect_test_pool;
+    use crate::persistence::sqlite::connect_test_pool;
     use crate::test_support::BootstrappedBookFixture;
     use sqlx::SqlitePool;
 

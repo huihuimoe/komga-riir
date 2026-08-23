@@ -10,7 +10,7 @@ use super::common;
 use super::models::{
     AuthorEntry, BookPosterSummary, BookSummary, ReadProgressSummary, WebLinkEntry,
 };
-use crate::parsing::parse_thumbnail_type;
+use crate::persistence::sqlite::codecs::parse_thumbnail_type;
 
 pub(super) async fn load_book_poster_summaries(
     pool: &SqlitePool,

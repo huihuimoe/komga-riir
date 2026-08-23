@@ -32,7 +32,7 @@ pub(crate) async fn claim_initial_admin_user(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::sqlite::{connect_test_pool, setup};
+    use crate::persistence::sqlite::{connect_test_pool, schema};
     use std::fs;
     use std::path::PathBuf;
     use std::time::{SystemTime, UNIX_EPOCH};
@@ -44,7 +44,7 @@ mod tests {
         let pool = connect_test_pool(&db_path, 1)
             .await
             .expect("test db should open");
-        setup::bootstrap_pool(&pool)
+        schema::bootstrap_pool(&pool)
             .await
             .expect("test db should bootstrap main schema");
 

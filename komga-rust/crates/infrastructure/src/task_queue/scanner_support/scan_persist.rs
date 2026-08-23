@@ -5,7 +5,7 @@ use komga_application::runtime_sse::RuntimeSseEventSink;
 use komga_domain::discovery::compare_book_names;
 use sqlx::{Row, SqlitePool};
 
-use crate::persisted_paths::resolve_stored_path;
+use crate::persistence::stored_paths::resolve_stored_path;
 use crate::sql::task_queue::{DELETE_BOOK_DEPENDENCY_SQL, DELETE_SERIES_DEPENDENCY_SQL};
 
 use super::scan_models::{
@@ -891,7 +891,7 @@ mod tests {
     use komga_application::runtime_sse::RuntimeSseEventStore;
 
     use super::*;
-    use crate::sqlite::{connect_test_pool, setup};
+    use crate::persistence::sqlite::{connect_test_pool, schema};
 
     fn temp_db_path(case_id: &str) -> PathBuf {
         let nanos = std::time::SystemTime::now()
@@ -907,7 +907,7 @@ mod tests {
         let pool = connect_test_pool(db_path.as_path(), 1)
             .await
             .expect("temporary sqlite db should open");
-        setup::bootstrap_pool(&pool)
+        schema::bootstrap_pool(&pool)
             .await
             .expect("temporary sqlite db should bootstrap main schema");
 
@@ -951,7 +951,7 @@ mod tests {
         let pool = connect_test_pool(db_path.as_path(), 1)
             .await
             .expect("temporary sqlite db should open");
-        setup::bootstrap_pool(&pool)
+        schema::bootstrap_pool(&pool)
             .await
             .expect("temporary sqlite db should bootstrap main schema");
 

@@ -1,10 +1,10 @@
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::path::PathBuf;
 
-use crate::database_handle::DatabaseHandle;
 use crate::discovery_persisted_access::{
     books, facets, library_mappings, models as persisted_models, runtime_queries, series,
 };
+use crate::persistence::DatabaseHandle;
 use crate::search::engine::SearchIndexEngine;
 use crate::search::index_lifecycle::SearchEntityType;
 
@@ -726,7 +726,7 @@ mod tests {
     use sqlx::SqlitePool;
 
     use super::*;
-    use crate::sqlite::{connect_main_write_context, evict_shared_pools_for_paths};
+    use crate::persistence::sqlite::{connect_main_write_context, evict_shared_pools_for_paths};
 
     struct BrowseFixture {
         service: SqliteDiscoveryBrowseService,

@@ -13,7 +13,7 @@ use crate::filesystem::media_access::page_content::{
     load_archive_page_rows, resolve_book_page_bytes,
 };
 use crate::metadata::thumbnails::{emit_thumbnail_book_event, emit_thumbnail_series_event};
-use crate::parsing::parse_thumbnail_type;
+use crate::persistence::sqlite::codecs::parse_thumbnail_type;
 use crate::{resolve_library_item_path, resolve_stored_path};
 
 use super::artwork_support::{

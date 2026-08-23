@@ -1,7 +1,7 @@
 use sqlx::{QueryBuilder, Row, Sqlite, SqlitePool};
 
-pub(super) use crate::parsing::clamp_kotlin_int_u32;
-use crate::parsing::parse_sqlite_group_concat_values;
+pub(super) use crate::persistence::sqlite::codecs::clamp_kotlin_int_u32;
+use crate::persistence::sqlite::codecs::parse_sqlite_group_concat_values;
 
 pub(super) fn parse_group_concat_values(raw: &str) -> Vec<String> {
     parse_sqlite_group_concat_values(raw)

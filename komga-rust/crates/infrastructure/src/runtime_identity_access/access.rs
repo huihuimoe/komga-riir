@@ -14,7 +14,7 @@ use komga_application::media_assets::EpubNavigationContentPort;
 use crate::auth::runtime_identity_access as auth_identity;
 use crate::auth::session_store::RememberMeRuntimeSettings;
 use crate::auth::{device_auth, kobo_sync};
-use crate::database_handle::DatabaseHandle;
+use crate::persistence::DatabaseHandle;
 use crate::runtime_identity_access::user_mutation;
 
 #[derive(Clone)]

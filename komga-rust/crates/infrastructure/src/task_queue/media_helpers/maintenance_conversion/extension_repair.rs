@@ -130,7 +130,7 @@ pub(in crate::task_queue) async fn repair_extension(
 
 #[cfg(test)]
 mod tests {
-    use crate::sqlite::connect_test_pool;
+    use crate::persistence::sqlite::connect_test_pool;
     use crate::task_queue::test_support::RuntimeTestFixture;
     use sqlx::Row;
 

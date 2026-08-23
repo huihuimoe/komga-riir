@@ -6,9 +6,9 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use sqlx::SqlitePool;
 use sqlx::sqlite::{SqliteConnectOptions, SqliteJournalMode, SqlitePoolOptions};
 
-use crate::context::SqlitePersistenceContext;
 use crate::filesystem::remove_file_after_release;
-use crate::sqlite::setup;
+use crate::persistence::SqlitePersistenceContext;
+use crate::persistence::sqlite::schema;
 
 pub const DEFAULT_MAX_CONNECTIONS: u32 = 4;
 pub const WRITE_MAX_CONNECTIONS: u32 = 1;
@@ -135,7 +135,7 @@ async fn bootstrap_pool_for_target(
 ) -> Result<(), sqlx::Error> {
     match bootstrap_target {
         BootstrapTarget::None => Ok(()),
-        BootstrapTarget::Main => setup::bootstrap_pool(pool).await,
+        BootstrapTarget::Main => schema::bootstrap_pool(pool).await,
     }
 }
 
@@ -352,7 +352,7 @@ fn deterministic_temp_db_path(case_id: &str) -> PathBuf {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::sqlite::setup;
+    use crate::persistence::sqlite::schema;
 
     #[tokio::test]
     async fn sqlite_temp_pool_cleanup_removes_wal_sidecars() {
@@ -363,7 +363,7 @@ mod tests {
         let wal_path = PathBuf::from(format!("{}-wal", db_path.display()));
         let shm_path = PathBuf::from(format!("{}-shm", db_path.display()));
 
-        setup::bootstrap_pool(temp_pool.pool())
+        schema::bootstrap_pool(temp_pool.pool())
             .await
             .expect("temp pool should bootstrap main schema");
         sqlx::query("INSERT INTO USER (ID, EMAIL, PASSWORD) VALUES (?, ?, ?)")

@@ -6,7 +6,7 @@ use komga_application::discovery::{
     ScoredSearchHit,
 };
 
-use crate::database_handle::DatabaseHandle;
+use crate::persistence::DatabaseHandle;
 use crate::search::engine::SearchIndexEngine;
 use crate::search::index_lifecycle::SearchEntityType;
 

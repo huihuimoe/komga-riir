@@ -8,7 +8,7 @@ use komga_application::discovery::{
 use komga_domain::discovery::MediaStatus;
 
 use super::common;
-use crate::parsing::{
+use crate::persistence::sqlite::codecs::{
     parse_metadata_authors, parse_metadata_links, parse_sqlite_group_concat_values,
 };
 

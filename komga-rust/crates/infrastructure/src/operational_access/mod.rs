@@ -34,7 +34,7 @@ use syncpoints::{delete_syncpoints_by_user, delete_syncpoints_by_user_and_key_id
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::sqlite::connect_test_pool;
+    use crate::persistence::sqlite::connect_test_pool;
     use komga_application::operational::{
         ClientGlobalSetting, ClientUserSetting, HistorySort, HistorySortDirection,
         HistorySortProperty, HistorySortSelection,
@@ -52,7 +52,7 @@ mod tests {
         let pool = connect_test_pool(&db_path, 1)
             .await
             .expect("test db should open");
-        crate::sqlite::setup::bootstrap_pool(&pool)
+        crate::persistence::sqlite::schema::bootstrap_pool(&pool)
             .await
             .expect("test db should bootstrap main schema");
 
@@ -74,7 +74,7 @@ mod tests {
         let pool = connect_test_pool(&db_path, 1)
             .await
             .expect("test db should open");
-        crate::sqlite::setup::bootstrap_pool(&pool)
+        crate::persistence::sqlite::schema::bootstrap_pool(&pool)
             .await
             .expect("history test db should bootstrap main schema");
 
@@ -88,7 +88,7 @@ mod tests {
         let pool = connect_test_pool(&db_path, 1)
             .await
             .expect("test db should open");
-        crate::sqlite::setup::bootstrap_pool(&pool)
+        crate::persistence::sqlite::schema::bootstrap_pool(&pool)
             .await
             .expect("sync point test db should bootstrap main schema");
         for user_id in ["user-1", "user-2"] {

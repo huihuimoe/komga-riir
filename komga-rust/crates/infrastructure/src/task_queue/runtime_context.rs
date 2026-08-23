@@ -6,7 +6,7 @@ use komga_application::runtime_sse::{RuntimeSseEventSink, RuntimeSseEventStore};
 use komga_application::task_processing::{CleanupEmptySetsPolicy, ThumbnailRegenerationPolicy};
 use sqlx::SqlitePool;
 
-use crate::database_handle::DatabaseHandle;
+use crate::persistence::DatabaseHandle;
 use crate::search::engine::SearchIndexEngine;
 
 #[derive(Clone)]

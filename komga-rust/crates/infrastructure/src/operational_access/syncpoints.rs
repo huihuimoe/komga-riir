@@ -1,7 +1,7 @@
 use komga_application::operational::SyncpointPort;
 use sqlx::{Row, SqlitePool};
 
-use crate::database_handle::DatabaseHandle;
+use crate::persistence::DatabaseHandle;
 
 #[derive(Clone)]
 pub struct SyncpointAccess {

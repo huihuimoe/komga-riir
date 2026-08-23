@@ -1077,8 +1077,10 @@ mod tests {
     use std::time::Duration;
     use tokio::sync::{Barrier, Mutex as AsyncMutex, watch};
 
-    use crate::database_handle::DatabaseHandle;
-    use crate::sqlite::{connect_task_pool, connect_task_write_pool, default_read_max_connections};
+    use crate::persistence::DatabaseHandle;
+    use crate::persistence::sqlite::{
+        connect_task_pool, connect_task_write_pool, default_read_max_connections,
+    };
 
     async fn runtime_context() -> TaskRuntimeContext {
         let root = std::env::temp_dir().join(format!(

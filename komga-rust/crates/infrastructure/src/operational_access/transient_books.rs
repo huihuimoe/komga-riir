@@ -8,8 +8,8 @@ use komga_application::operational::{
     TransientBookScanEntry, TransientBookSeriesInference,
 };
 
-use crate::database_handle::DatabaseHandle;
 use crate::filesystem::transient_books::{self, TransientBookPage};
+use crate::persistence::DatabaseHandle;
 
 #[derive(Clone)]
 pub struct TransientBookAccess {

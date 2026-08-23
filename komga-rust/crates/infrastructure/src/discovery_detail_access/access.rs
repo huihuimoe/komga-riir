@@ -22,8 +22,8 @@ use komga_application::discovery::{
 use komga_application::runtime_sse::RuntimeSseEventSink;
 use komga_domain::discovery::{DiscoveryQueryContext, PageEnvelope};
 
-use crate::database_handle::DatabaseHandle;
 use crate::discovery_persisted_access::{load_persisted_series_read_models, runtime_queries};
+use crate::persistence::DatabaseHandle;
 use crate::search::engine::SearchIndexEngine;
 use crate::search::index_lifecycle::SearchEntityType;
 

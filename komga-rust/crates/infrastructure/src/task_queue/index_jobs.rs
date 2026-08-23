@@ -71,8 +71,8 @@ pub(in crate::task_queue) async fn execute_find_book_thumbnails_to_regenerate(
 
 #[cfg(test)]
 mod tests {
-    use crate::database_handle::DatabaseHandle;
-    use crate::sqlite::{
+    use crate::persistence::DatabaseHandle;
+    use crate::persistence::sqlite::{
         connect_main_write_context, connect_task_pool, connect_task_write_pool, connect_test_pool,
         default_read_max_connections,
     };

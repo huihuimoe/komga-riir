@@ -4,7 +4,7 @@ use komga_application::runtime_sse::RuntimeSseEventSink;
 use sqlx::{Row, SqlitePool};
 
 use super::{emit_thumbnail_collection_event, generated_thumbnail_id};
-use crate::parsing::parse_thumbnail_type;
+use crate::persistence::sqlite::codecs::parse_thumbnail_type;
 
 pub(crate) async fn persisted_collection_exists(
     pool: &SqlitePool,

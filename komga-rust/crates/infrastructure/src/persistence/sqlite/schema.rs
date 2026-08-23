@@ -11,14 +11,12 @@ mod embedded_migrations {
     ));
 }
 
-mod schema_definitions;
-
-use embedded_migrations::{EmbeddedMigration, MAIN_EMBEDDED_MIGRATIONS, TASKS_EMBEDDED_MIGRATIONS};
-use schema_definitions::{
+use super::schema_definitions::{
     LEGACY_MAIN_SCHEMA_V20200706141854, LEGACY_MAIN_SCHEMA_V20200706141854_VERSION,
     PrefixSchemaInventory, REQUIRED_MAIN_SCHEMA, REQUIRED_TASKS_SCHEMA, SchemaInventoryObject,
     main_prefix_schema_inventories_json, tasks_prefix_schema_inventories_json,
 };
+use embedded_migrations::{EmbeddedMigration, MAIN_EMBEDDED_MIGRATIONS, TASKS_EMBEDDED_MIGRATIONS};
 
 #[derive(Clone, Copy, Eq, PartialEq)]
 enum SchemaTarget {

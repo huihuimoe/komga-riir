@@ -3,7 +3,7 @@ use komga_application::operational::{
 };
 
 use crate::claims_access::{self, ClaimInitialAdminUserResult};
-use crate::database_handle::DatabaseHandle;
+use crate::persistence::DatabaseHandle;
 
 #[derive(Clone)]
 pub struct ClaimAccess {

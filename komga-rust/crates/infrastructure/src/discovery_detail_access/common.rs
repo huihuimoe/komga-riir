@@ -1,6 +1,6 @@
 use sqlx::SqlitePool;
 
-pub(super) use crate::parsing::clamp_kotlin_int_u32;
+pub(super) use crate::persistence::sqlite::codecs::clamp_kotlin_int_u32;
 
 pub(super) async fn table_has_rows(
     pool: &SqlitePool,

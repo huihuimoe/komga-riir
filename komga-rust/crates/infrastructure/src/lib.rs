@@ -9,8 +9,6 @@ mod archive_builder;
 mod auth;
 mod claims_access;
 mod content_resolver;
-mod context;
-mod database_handle;
 mod discovery_detail_access;
 mod discovery_persisted_access;
 mod event_emitter_adapter;
@@ -23,8 +21,7 @@ mod opds_persisted_access;
 mod operational_access;
 mod operational_actuator_access;
 mod operational_metrics_access;
-mod parsing;
-mod persisted_paths;
+mod persistence;
 mod progress_writer;
 mod random_tokens;
 mod rar_support;
@@ -42,8 +39,6 @@ mod thumbnail_writer;
 
 pub use archive_builder::ZipArchiveBuilder;
 pub use content_resolver::ContentResolver;
-pub use context::{SqlitePersistenceConnection, SqlitePersistenceContext, SqliteUnitOfWork};
-pub use database_handle::DatabaseHandle;
 pub use discovery_detail_access::DiscoveryDetailAccess;
 pub use discovery_persisted_access::{DiscoveryQuerySupportAccess, SqliteDiscoveryBrowseService};
 pub use event_emitter_adapter::SseBookEventEmitter;
@@ -60,6 +55,15 @@ pub use operational_access::{
 };
 pub use operational_actuator_access::ActuatorSnapshotAccess;
 pub use operational_metrics_access::OperationalMetricsAccess;
+pub use persistence::{
+    DEFAULT_MAX_CONNECTIONS, DatabaseHandle, SharedSqlitePoolSnapshot, SqlitePersistenceConnection,
+    SqlitePersistenceContext, SqliteTempPool, SqliteUnitOfWork, WRITE_MAX_CONNECTIONS,
+    bootstrap_pool, bootstrap_tasks_pool, close_all_shared_pools, connect_main_write_context,
+    connect_read_pool, connect_shared_pool, connect_task_pool, connect_task_write_pool,
+    connect_write_pool, default_read_max_connections, evict_shared_pools_for_paths,
+    file_backed_connect_options, reject_or_quarantine_pool_topology,
+    shared_pool_snapshots_for_paths,
+};
 pub use progress_writer::ProgressWriter;
 pub use runtime_identity_access::{
     IdentityAccess, invalidate_user_sessions, persisted_update_password_by_user_id,
@@ -70,14 +74,9 @@ pub use search::{
 };
 pub use search_sync_adapter::SearchSyncAdapter;
 pub use sqlite::{
-    DEFAULT_MAX_CONNECTIONS, InitialBootstrapUserWriteModel, PersistedBootstrapUser,
-    ServerSettingsStore, SharedSqlitePoolSnapshot, SqliteTempPool, WRITE_MAX_CONNECTIONS,
-    bootstrap_pool, bootstrap_tasks_pool, close_all_shared_pools, connect_main_write_context,
-    connect_read_pool, connect_shared_pool, connect_task_pool, connect_task_write_pool,
-    connect_write_pool, default_read_max_connections, evict_shared_pools_for_paths,
-    file_backed_connect_options, list_persisted_user_emails, load_persisted_user_by_email,
-    load_persisted_user_count, persist_initial_bootstrap_users, reject_or_quarantine_pool_topology,
-    shared_pool_snapshots_for_paths, update_persisted_user_passwords,
+    InitialBootstrapUserWriteModel, PersistedBootstrapUser, ServerSettingsStore,
+    list_persisted_user_emails, load_persisted_user_by_email, load_persisted_user_count,
+    persist_initial_bootstrap_users, update_persisted_user_passwords,
 };
 pub use task_enqueue_adapter::TaskEnqueueAdapter;
 pub use task_queue::{
@@ -89,7 +88,7 @@ pub use task_queue::{
 };
 pub use thumbnail_writer::ThumbnailWriter;
 
-pub(crate) use persisted_paths::{
+pub(crate) use persistence::{
     resolve_library_item_path, resolve_optional_library_item_path, resolve_rooted_path,
     resolve_stored_path,
 };

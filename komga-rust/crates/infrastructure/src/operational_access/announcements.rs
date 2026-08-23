@@ -1,7 +1,7 @@
 use komga_application::operational::AnnouncementPort;
 
 use crate::announcements_access;
-use crate::database_handle::DatabaseHandle;
+use crate::persistence::DatabaseHandle;
 
 #[derive(Clone)]
 pub struct AnnouncementAccess {

@@ -8,7 +8,7 @@ use sqlx::{Row, Sqlite, SqlitePool, Transaction};
 use tokio::fs;
 
 use crate::load_pdfium;
-use crate::parsing::parse_thumbnail_type;
+use crate::persistence::sqlite::codecs::parse_thumbnail_type;
 use crate::resolve_rooted_path;
 
 pub(super) struct RenderedThumbnail {
