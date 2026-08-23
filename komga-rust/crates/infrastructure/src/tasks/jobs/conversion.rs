@@ -2,8 +2,8 @@ use komga_application::task_processing::{
     BookPayload, TaskExecutionOutcome, TaskKind, TaskProcessingError, TaskRequest,
 };
 
-use super::super::runtime_context::JobRuntime;
 use crate::media::maintenance::{convert_book, find_books_to_convert, repair_extension};
+use crate::tasks::JobRuntime;
 
 pub(in crate::tasks) async fn execute_repair_extension(
     runtime: &JobRuntime<'_>,
@@ -56,7 +56,7 @@ pub(in crate::tasks) async fn execute_convert_book(
 #[cfg(test)]
 mod tests {
     use crate::persistence::sqlite::connect_test_pool;
-    use crate::tasks::queue_scheduler::TaskQueueScheduler;
+    use crate::tasks::queue::TaskQueueScheduler;
     use crate::tasks::test_support::{RuntimeTestFixture, execute_and_enqueue};
     use komga_application::task_processing::{BookPayload, TaskKind, TaskRequest};
     use sqlx::{Row, SqlitePool};

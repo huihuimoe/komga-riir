@@ -2,11 +2,11 @@ use komga_application::task_processing::{
     TaskExecutionResult, TaskProcessingError, finalize_task_execution,
 };
 
-use super::JobRuntime;
-use super::dispatch::TaskJobDispatcher;
-use super::queue_scheduler::TaskQueueScheduler;
+use super::scheduler::TaskQueueScheduler;
+use crate::tasks::JobRuntime;
+use crate::tasks::dispatch::TaskJobDispatcher;
 
-pub(super) async fn process_available_serial(
+pub(in crate::tasks) async fn process_available_serial(
     scheduler: &TaskQueueScheduler,
     runtime: &JobRuntime<'_>,
 ) -> Result<usize, TaskProcessingError> {
@@ -55,7 +55,7 @@ pub(super) async fn recover_and_process(
     process_available_serial(scheduler, runtime).await
 }
 
-pub(super) async fn finalize_task_result(
+pub(in crate::tasks) async fn finalize_task_result(
     scheduler: &TaskQueueScheduler,
     task_result: TaskExecutionResult,
     processed: &mut usize,

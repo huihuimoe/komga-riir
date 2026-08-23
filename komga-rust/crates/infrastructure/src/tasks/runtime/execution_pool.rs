@@ -46,18 +46,18 @@ struct TaskExecutionPoolInner {
 }
 
 #[derive(Clone)]
-pub(super) struct TaskExecutionPoolHandle {
+pub(in crate::tasks) struct TaskExecutionPoolHandle {
     inner: Arc<TaskExecutionPoolInner>,
 }
 
 impl TaskExecutionPoolHandle {
-    pub(super) fn new(task_pool_size: usize) -> Self {
+    pub(in crate::tasks) fn new(task_pool_size: usize) -> Self {
         Self::new_with_executor(
             task_pool_size,
             Arc::new(|runtime, task| {
                 Box::pin(async move {
                     let job = runtime.job();
-                    super::dispatch::TaskJobDispatcher::new(job)
+                    crate::tasks::dispatch::TaskJobDispatcher::new(job)
                         .execute_record(&task)
                         .await
                 })
@@ -96,11 +96,11 @@ impl TaskExecutionPoolHandle {
         Self { inner }
     }
 
-    pub(super) fn desired_size(&self) -> usize {
+    pub(in crate::tasks) fn desired_size(&self) -> usize {
         self.inner.desired_size.load(Ordering::SeqCst)
     }
 
-    pub(super) fn resize(&self, task_pool_size: usize) {
+    pub(in crate::tasks) fn resize(&self, task_pool_size: usize) {
         let next_size = task_pool_size.max(1);
         let previous_size = self.inner.desired_size.swap(next_size, Ordering::SeqCst);
         if next_size > previous_size {

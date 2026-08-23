@@ -1,6 +1,6 @@
 use komga_application::task_processing::{TaskExecutionOutcome, TaskProcessingError};
 
-use super::super::runtime_context::JobRuntime;
+use crate::tasks::JobRuntime;
 
 pub(in crate::tasks) async fn execute_empty_trash(
     runtime: &JobRuntime<'_>,

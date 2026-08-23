@@ -80,7 +80,7 @@ mod tests {
         connect_main_write_context, connect_task_pool, connect_task_write_pool, connect_test_pool,
         default_read_max_connections,
     };
-    use crate::tasks::queue_scheduler::TaskQueueScheduler;
+    use crate::tasks::queue::TaskQueueScheduler;
     use crate::tasks::test_support::{RuntimeTestFixture, execute_and_enqueue};
     use crate::tasks::{TaskRuntimeContext, TaskRuntimeOwnershipOverrides};
     use image::{ImageBuffer, Rgba};

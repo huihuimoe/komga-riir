@@ -124,7 +124,7 @@ fn unique_temp_path(prefix: &str) -> PathBuf {
 }
 
 pub(crate) async fn execute_and_enqueue(
-    scheduler: &super::queue_scheduler::TaskQueueScheduler,
+    scheduler: &super::queue::TaskQueueScheduler,
     runtime: &TaskRuntimeContext,
     task: &TaskQueueRecord,
 ) -> Option<Result<(), TaskProcessingError>> {

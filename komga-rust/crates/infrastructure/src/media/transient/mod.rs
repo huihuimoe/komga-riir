@@ -1,3 +1,4 @@
+mod adapter;
 mod detection;
 mod epub;
 mod metadata;
@@ -19,6 +20,7 @@ use crate::media::analysis::{
 use crate::media::formats::rar::read_rar_entry_bytes;
 use crate::resolve_stored_path;
 
+pub use adapter::TransientBookAccess;
 use detection::is_recognized_transient_book_file;
 pub(crate) use detection::{transient_book_content_type, transient_book_media_type};
 
@@ -1304,5 +1306,3 @@ mod tests {
         let _ = fs::remove_file(path);
     }
 }
-mod adapter;
-pub use adapter::TransientBookAccess;

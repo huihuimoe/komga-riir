@@ -9,11 +9,11 @@ use komga_application::task_processing::{
 use tokio::sync::{Mutex, Notify};
 use tracing::{error, info};
 
-use super::queue_core::{PersistedTaskStoreRecord, SqliteTaskQueueStore};
-use super::runtime_context::{JobRuntime, TaskRuntimeConfig};
+use super::store::{PersistedTaskStoreRecord, SqliteTaskQueueStore};
+use crate::tasks::{JobRuntime, TaskRuntimeConfig};
 
 #[derive(Debug)]
-pub(super) struct SchedulerInner {
+pub(in crate::tasks) struct SchedulerInner {
     pub(crate) admin: TaskQueueOrchestrator,
     admin_loaded: bool,
     persisted_store: Option<SqliteTaskQueueStore>,
@@ -236,14 +236,14 @@ impl TaskQueueScheduler {
         &self,
         runtime: &JobRuntime<'_>,
     ) -> Result<usize, TaskProcessingError> {
-        super::queue_orchestration::process_available_serial(self, runtime).await
+        super::orchestration::process_available_serial(self, runtime).await
     }
 
     pub async fn recover_and_process(
         &self,
         runtime: &JobRuntime<'_>,
     ) -> Result<usize, TaskProcessingError> {
-        super::queue_orchestration::recover_and_process(self, runtime).await
+        super::orchestration::recover_and_process(self, runtime).await
     }
 
     pub async fn finalize_task_result(
@@ -251,10 +251,10 @@ impl TaskQueueScheduler {
         task_result: TaskExecutionResult,
         processed: &mut usize,
     ) -> Result<(), TaskProcessingError> {
-        super::queue_orchestration::finalize_task_result(self, task_result, processed).await
+        super::orchestration::finalize_task_result(self, task_result, processed).await
     }
 
-    pub(super) async fn fail_claimed_task(
+    pub(in crate::tasks) async fn fail_claimed_task(
         &self,
         task: &TaskQueueRecord,
         error_message: &str,
@@ -307,7 +307,9 @@ impl TaskQueueScheduler {
     }
 
     #[cfg(test)]
-    pub(super) async fn admin_for_test(&self) -> tokio::sync::MutexGuard<'_, SchedulerInner> {
+    pub(in crate::tasks) async fn admin_for_test(
+        &self,
+    ) -> tokio::sync::MutexGuard<'_, SchedulerInner> {
         self.inner.lock().await
     }
 
@@ -334,11 +336,11 @@ impl TaskQueueScheduler {
             .collect()
     }
 
-    pub(super) fn log_task_start(&self, task: &TaskQueueRecord) {
+    pub(in crate::tasks) fn log_task_start(&self, task: &TaskQueueRecord) {
         self.log_task_event("task_start", task, "started", None);
     }
 
-    pub(super) fn log_process_available(
+    pub(in crate::tasks) fn log_process_available(
         &self,
         outcome: &str,
         processed: usize,

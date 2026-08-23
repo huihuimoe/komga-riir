@@ -8,6 +8,11 @@ use lopdf::{Document as PdfDocument, Object};
 
 use crate::media::formats::rar::{detect_rar_media_type, read_rar_entries_bytes};
 
+mod persistence;
+mod task;
+
+pub(crate) use task::analyze_book;
+
 const IMAGE_DIMENSIONS_INITIAL_READ_BYTES: usize = 512;
 const IMAGE_DIMENSIONS_READ_CHUNK_BYTES: usize = 16 * 1024;
 const IMAGE_DIMENSIONS_MAX_READ_BYTES: usize = 1024 * 1024;
@@ -1595,7 +1600,3 @@ mod tests {
         );
     }
 }
-mod persistence;
-mod task;
-
-pub(crate) use task::analyze_book;

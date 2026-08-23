@@ -4,7 +4,7 @@ use komga_application::task_processing::{
     SeriesPayload, TaskExecutionOutcome, TaskKind, TaskProcessingError, TaskRequest,
 };
 
-use super::super::runtime_context::JobRuntime;
+use crate::tasks::JobRuntime;
 
 pub(in crate::tasks) async fn execute_refresh_book_metadata(
     runtime: &JobRuntime<'_>,

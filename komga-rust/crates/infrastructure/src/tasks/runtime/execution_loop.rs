@@ -5,8 +5,9 @@ use komga_application::task_processing::{
 };
 use tokio::sync::{Mutex as AsyncMutex, mpsc};
 
+use super::TaskRuntimeContext;
 use super::execution_pool::TaskExecutionPoolHandle;
-use super::{TaskQueueScheduler, TaskRuntimeContext};
+use crate::tasks::queue::TaskQueueScheduler;
 
 pub type SharedTaskQueue = Arc<AsyncMutex<TaskQueueScheduler>>;
 
@@ -118,7 +119,7 @@ impl<'a> BackgroundTaskExecutionLoop<'a> {
 
         let finalize_result = {
             let task_queue = self.task_queue.lock().await;
-            super::queue_orchestration::finalize_task_result(
+            crate::tasks::queue::finalize_task_result(
                 &task_queue,
                 task_result,
                 &mut state.processed,

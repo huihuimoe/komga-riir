@@ -6,17 +6,17 @@ use komga_application::task_processing::{
 };
 use tokio::sync::{Mutex, Notify};
 
-use super::execution_pool::TaskExecutionPoolHandle;
-use super::queue_scheduler::TaskQueueScheduler;
+use super::scheduler::TaskQueueScheduler;
+use crate::tasks::runtime::TaskExecutionPoolHandle;
 
-pub(super) struct RuntimeTaskEngine {
+pub(in crate::tasks) struct RuntimeTaskEngine {
     scheduler: Arc<Mutex<TaskQueueScheduler>>,
     execution_pool: TaskExecutionPoolHandle,
     wakeup: Arc<Notify>,
 }
 
 impl RuntimeTaskEngine {
-    pub(super) fn new(
+    pub(in crate::tasks) fn new(
         scheduler: Arc<Mutex<TaskQueueScheduler>>,
         execution_pool: TaskExecutionPoolHandle,
         wakeup: Arc<Notify>,
@@ -91,8 +91,8 @@ mod tests {
         connect_task_pool, connect_task_write_pool, default_read_max_connections,
     };
     use crate::tasks::TaskRuntimeContext;
-    use crate::tasks::execution_pool::TaskExecutionPoolHandle;
-    use crate::tasks::queue_scheduler::TaskQueueScheduler;
+    use crate::tasks::queue::TaskQueueScheduler;
+    use crate::tasks::runtime::TaskExecutionPoolHandle;
     use komga_application::task_processing::{SubmitUrgency, TaskQueueAdmin};
     use std::path::PathBuf;
     use std::sync::Arc;

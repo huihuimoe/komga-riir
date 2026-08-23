@@ -6,7 +6,8 @@ use std::time::Duration;
 use super::{TaskRuntimeConfig, TaskRuntimeContext};
 use komga_application::task_processing::{
     LibraryScanPipeline, LibraryScanScheduleState, ScanSchedulingTrigger,
-    ScheduledLibraryScanBatch, TaskKind, TaskQueueAdmin, TaskRequest,
+    ScheduledLibraryScanBatch, TaskExecutionResult, TaskKind, TaskQueueAdmin, TaskQueueRecord,
+    TaskRequest,
 };
 use tokio::runtime::Handle;
 use tokio::sync::{Notify, mpsc, watch};
@@ -16,9 +17,8 @@ use tracing::{Instrument, Span, error, info};
 use super::execution_loop::BackgroundTaskExecutionLoop;
 pub use super::execution_loop::SharedTaskQueue;
 use super::execution_pool::TaskExecutionPoolHandle;
-use super::runtime_task_engine::RuntimeTaskEngine;
-use super::{TaskExecutionResult, TaskQueueRecord, TaskQueueScheduler};
 use crate::media::library_scan::SqliteFilesystemLibraryScanPipeline;
+use crate::tasks::queue::{RuntimeTaskEngine, TaskQueueScheduler, process_available_serial};
 pub type TaskQueueWakeSignal = Arc<Notify>;
 
 pub struct RuntimeBackgroundState {
@@ -298,7 +298,7 @@ async fn process_startup_library_scans_inner(
         .enqueue_batch(startup_scan_batch.into_task_batch())
         .await
         .map_err(anyhow::Error::from)?;
-    super::queue_orchestration::process_available_serial(&task_queue, &runtime.job())
+    process_available_serial(&task_queue, &runtime.job())
         .await
         .map_err(anyhow::Error::from)?;
     Ok(startup_scan_task_count)
@@ -1071,7 +1071,7 @@ impl Drop for WorkerLifecycleGuard {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::tasks::execution_pool::TaskExecutionPoolHandle;
+    use crate::tasks::runtime::TaskExecutionPoolHandle;
     use std::collections::BTreeSet;
     use std::sync::Arc;
     use std::time::Duration;

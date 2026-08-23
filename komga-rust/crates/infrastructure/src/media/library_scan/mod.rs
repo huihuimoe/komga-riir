@@ -1,3 +1,5 @@
+mod adapter;
+mod follow_up;
 mod scan_diff;
 mod scan_discovery;
 mod scan_models;
@@ -76,5 +78,3 @@ impl LibraryScanner {
         })
     }
 }
-mod adapter;
-mod follow_up;

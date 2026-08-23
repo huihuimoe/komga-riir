@@ -14,6 +14,7 @@ pub use content::ContentResolver;
 pub use events::SseBookEventEmitter;
 pub use formats::ZipArchiveBuilder;
 pub use import::{FilesystemBookImport, remove_file_after_release};
+pub use library_scan::SqliteFilesystemLibraryScanPipeline;
 pub use metadata::{SqliteBookMetadataPort, ThumbnailWriter, generate_book_thumbnail};
 pub use progress::ProgressWriter;
 pub use reader::MediaReader;
