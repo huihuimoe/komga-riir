@@ -15,7 +15,7 @@ use komga_application::media_assets::{
 use zip::ZipArchive;
 use zip::result::ZipError;
 
-use super::page_content;
+use crate::media::content::page_rendering as page_content;
 
 pub(crate) async fn read_epub_publication_bytes(
     media: &BookMediaRecord,

@@ -6,7 +6,7 @@ use komga_domain::discovery::MediaStatus;
 use komga_epub::{MOBI_MEDIA_TYPE, analyze_epub_file, normalize_mobi};
 use lopdf::{Document as PdfDocument, Object};
 
-use crate::rar_support::{detect_rar_media_type, read_rar_entries_bytes};
+use crate::media::formats::rar::{detect_rar_media_type, read_rar_entries_bytes};
 
 const IMAGE_DIMENSIONS_INITIAL_READ_BYTES: usize = 512;
 const IMAGE_DIMENSIONS_READ_CHUNK_BYTES: usize = 16 * 1024;

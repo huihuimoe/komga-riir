@@ -4,7 +4,7 @@ use komga_application::media_assets::{
 };
 use sqlx::{Row, SqlitePool};
 
-use crate::filesystem::media_access::db_queries::public_page_number_to_persisted;
+use crate::media::content::persistence::public_page_number_to_persisted;
 use crate::resolve_library_item_path;
 
 fn persisted_page_number_to_public(number: i64) -> u64 {

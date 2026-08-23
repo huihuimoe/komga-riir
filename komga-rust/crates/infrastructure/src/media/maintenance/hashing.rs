@@ -2,10 +2,10 @@ use anyhow::Context;
 use sha2::{Digest, Sha256};
 use sqlx::SqlitePool;
 
-use super::db_queries::{
+use crate::media::content::page_rendering::resolve_book_page_bytes;
+use crate::media::content::persistence::{
     load_persisted_book_media, load_persisted_book_pages, public_page_number_to_persisted,
 };
-use super::page_content::resolve_book_page_bytes;
 
 pub(crate) async fn persist_book_page_hashes_from_media_content(
     pool: &SqlitePool,

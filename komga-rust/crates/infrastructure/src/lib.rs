@@ -1,22 +1,13 @@
-use std::env;
-use std::path::PathBuf;
-use std::sync::OnceLock;
-
-use pdfium_render::prelude::*;
-
-mod archive_builder;
-mod content_resolver;
 mod discovery;
 mod event_emitter_adapter;
 mod filesystem;
 mod identity;
-mod media_reader;
+mod media;
 mod metadata;
 mod opds;
 mod operational;
 mod persistence;
 mod progress_writer;
-mod rar_support;
 mod search;
 mod search_sync_adapter;
 mod shared;
@@ -27,8 +18,6 @@ mod task_queue;
 pub(crate) mod test_support;
 mod thumbnail_writer;
 
-pub use archive_builder::ZipArchiveBuilder;
-pub use content_resolver::ContentResolver;
 pub use discovery::{
     DiscoveryDetailAccess, DiscoveryQuerySupportAccess, LibraryCatalogAccess,
     SqliteDiscoveryBrowseService,
@@ -41,7 +30,7 @@ pub use identity::{
     load_persisted_user_count, persist_initial_bootstrap_users,
     persisted_update_password_by_user_id, update_persisted_user_passwords,
 };
-pub use media_reader::MediaReader;
+pub use media::{ContentResolver, MediaReader, ZipArchiveBuilder};
 pub use metadata::{SqliteBookMetadataPort, generate_book_thumbnail};
 pub use opds::{OpdsCatalogAccess, OpdsPersistedAccess};
 pub use operational::{
@@ -80,99 +69,3 @@ pub(crate) use persistence::{
     resolve_stored_path,
 };
 pub(crate) use shared::random_hex_token;
-
-static PDFIUM: OnceLock<anyhow::Result<Pdfium>> = OnceLock::new();
-const DEFAULT_PDFIUM_LIBRARY_PATH: &str = env!("KOMGA_PDFIUM_LIB_PATH");
-
-pub(crate) fn load_pdfium() -> anyhow::Result<&'static Pdfium> {
-    match PDFIUM.get_or_init(init_pdfium) {
-        Ok(pdfium) => Ok(pdfium),
-        Err(error) => Err(anyhow::anyhow!(error.to_string())),
-    }
-}
-
-fn init_pdfium() -> anyhow::Result<Pdfium> {
-    let mut attempted_paths = Vec::new();
-
-    for library_path in pdfium_library_candidates(
-        env::var_os("KOMGA_PDFIUM_LIB_PATH").map(PathBuf::from),
-        env::current_exe().ok(),
-    ) {
-        attempted_paths.push(library_path.display().to_string());
-        match Pdfium::bind_to_library(&library_path) {
-            Ok(bindings) => return Ok(Pdfium::new(bindings)),
-            Err(_) => continue,
-        }
-    }
-
-    Pdfium::bind_to_system_library()
-        .map(Pdfium::new)
-        .map_err(|error| {
-            let message = if attempted_paths.is_empty() {
-                format!("failed to bind Pdfium from system libraries: {error}")
-            } else {
-                format!(
-                    "failed to bind Pdfium from bundled candidates [{}] and system libraries: {error}",
-                    attempted_paths.join(", ")
-                )
-            };
-            anyhow::anyhow!(message)
-        })
-}
-
-fn pdfium_library_candidates(
-    runtime_override: Option<PathBuf>,
-    executable: Option<PathBuf>,
-) -> Vec<PathBuf> {
-    let mut candidates = Vec::new();
-
-    // Prefer colocated libraries so packaged releases and container images stay portable
-    // after leaving the build machine. Fall back to the build-time vendor path for local
-    // development, then finally to the system loader.
-    if let Some(runtime_override) = runtime_override {
-        candidates.push(runtime_override);
-    }
-
-    if let Some(bundled_path) = executable.and_then(bundled_pdfium_library_path) {
-        candidates.push(bundled_path);
-    }
-
-    candidates.push(PathBuf::from(DEFAULT_PDFIUM_LIBRARY_PATH));
-    candidates
-}
-
-fn bundled_pdfium_library_path(executable: PathBuf) -> Option<PathBuf> {
-    Some(executable.parent()?.join(pdfium_library_file_name()))
-}
-
-fn pdfium_library_file_name() -> &'static str {
-    match env::consts::OS {
-        "linux" => "libpdfium.so",
-        "macos" => "libpdfium.dylib",
-        "windows" => "pdfium.dll",
-        other => panic!("unsupported target os for Pdfium library file name: {other}"),
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::{DEFAULT_PDFIUM_LIBRARY_PATH, pdfium_library_candidates, pdfium_library_file_name};
-    use std::path::{Path, PathBuf};
-
-    #[test]
-    fn pdfium_candidates_prefer_override_then_bundled_then_build_vendor() {
-        let candidates = pdfium_library_candidates(
-            Some(PathBuf::from("/runtime/pdfium/custom.so")),
-            Some(PathBuf::from("/opt/komga/komga-riir")),
-        );
-
-        assert_eq!(
-            candidates,
-            vec![
-                PathBuf::from("/runtime/pdfium/custom.so"),
-                Path::new("/opt/komga").join(pdfium_library_file_name()),
-                PathBuf::from(DEFAULT_PDFIUM_LIBRARY_PATH),
-            ]
-        );
-    }
-}

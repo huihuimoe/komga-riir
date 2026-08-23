@@ -14,8 +14,8 @@ use lopdf::Document as PdfDocument;
 use pdfium_render::prelude::*;
 use zip::ZipArchive;
 
-use crate::load_pdfium;
-use crate::rar_support::{list_rar_entries, read_rar_entry_bytes};
+use crate::media::formats::pdfium::load_pdfium;
+use crate::media::formats::rar::{list_rar_entries, read_rar_entry_bytes};
 
 // 300 PPI for an A4-sized page.
 const PDF_MAX_RENDER_EDGE: u32 = 3_508;
@@ -59,7 +59,8 @@ pub(crate) async fn resolve_book_page_bytes(
         }
     }
     if book_media_is_epub(media) {
-        return super::epub::read_epub_resource_bytes(&media.file_path, &page.file_name).await;
+        return super::epub_resources::read_epub_resource_bytes(&media.file_path, &page.file_name)
+            .await;
     }
     if let Some(bytes) = read_zip_archive_page_bytes(media, page, page_number).await? {
         return Ok(Some(bytes));

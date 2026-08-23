@@ -1,7 +1,7 @@
 use anyhow::Context;
 use pdfium_render::prelude::*;
 
-use crate::load_pdfium;
+use crate::media::formats::pdfium::load_pdfium;
 
 pub(super) fn render_pdf_page_image_bytes(path: &str, page_number: u32) -> anyhow::Result<Vec<u8>> {
     if page_number == 0 {

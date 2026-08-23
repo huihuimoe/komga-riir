@@ -546,22 +546,23 @@ mod tests {
         let source_path = fixture.library_root.join("books/book-1.cbr");
         std::fs::copy(archive_fixture_path("rar4.rar"), &source_path)
             .expect("convert-book success source fixture should be copied");
-        let preserved_page =
-            crate::rar_support::list_rar_entries(archive_fixture_path("rar4.rar").as_path())
-                .expect("convert-book success rar fixture should be listable")
-                .into_iter()
-                .find(|entry| {
-                    matches!(
-                        page_media_type_for_test(&entry.file_name),
-                        "image/jpeg"
-                            | "image/png"
-                            | "image/gif"
-                            | "image/webp"
-                            | "image/avif"
-                            | "image/bmp"
-                    )
-                })
-                .expect("convert-book success rar fixture should contain an image page");
+        let preserved_page = crate::media::formats::rar::list_rar_entries(
+            archive_fixture_path("rar4.rar").as_path(),
+        )
+        .expect("convert-book success rar fixture should be listable")
+        .into_iter()
+        .find(|entry| {
+            matches!(
+                page_media_type_for_test(&entry.file_name),
+                "image/jpeg"
+                    | "image/png"
+                    | "image/gif"
+                    | "image/webp"
+                    | "image/avif"
+                    | "image/bmp"
+            )
+        })
+        .expect("convert-book success rar fixture should contain an image page");
         let preserved_page_hash = "existing-page-hash-1";
 
         let actual_last_modified = file_updated_unix_seconds_for_test(&source_path);

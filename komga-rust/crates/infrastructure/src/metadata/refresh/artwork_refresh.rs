@@ -8,10 +8,8 @@ use komga_application::task_processing::ThumbnailRegenerationPolicy;
 use komga_domain::media_assets::ThumbnailType;
 use sqlx::{Row, SqlitePool};
 
-use crate::filesystem::media_access::epub::load_epub_cover_bytes;
-use crate::filesystem::media_access::page_content::{
-    load_archive_page_rows, resolve_book_page_bytes,
-};
+use crate::media::content::epub_resources::load_epub_cover_bytes;
+use crate::media::content::page_rendering::{load_archive_page_rows, resolve_book_page_bytes};
 use crate::metadata::thumbnails::{emit_thumbnail_book_event, emit_thumbnail_series_event};
 use crate::persistence::sqlite::codecs::parse_thumbnail_type;
 use crate::{resolve_library_item_path, resolve_stored_path};

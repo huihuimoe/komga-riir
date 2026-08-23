@@ -15,7 +15,7 @@ use super::media_queries::{
     load_non_deleted_book_ids as load_persisted_non_deleted_book_ids,
 };
 use super::media_updates::persist_book_hash;
-use crate::filesystem::media_access::hashes::persist_book_page_hashes_from_media_content;
+use crate::media::maintenance::hashing::persist_book_page_hashes_from_media_content;
 
 pub(in crate::task_queue) async fn hash_book_pages(
     runtime: &JobRuntime<'_>,

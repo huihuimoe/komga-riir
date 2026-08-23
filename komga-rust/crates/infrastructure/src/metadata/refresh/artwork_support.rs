@@ -7,7 +7,7 @@ use pdfium_render::prelude::*;
 use sqlx::{Row, Sqlite, SqlitePool, Transaction};
 use tokio::fs;
 
-use crate::load_pdfium;
+use crate::media::formats::pdfium::load_pdfium;
 use crate::persistence::sqlite::codecs::parse_thumbnail_type;
 use crate::resolve_rooted_path;
 

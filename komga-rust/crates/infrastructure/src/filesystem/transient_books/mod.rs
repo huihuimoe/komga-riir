@@ -16,7 +16,7 @@ use zip::ZipArchive;
 use crate::filesystem::media_analysis::{
     AnalyzedMediaPage, MediaAnalysisProfile, MediaFileAnalysis, MediaFileAnalyzer,
 };
-use crate::rar_support::read_rar_entry_bytes;
+use crate::media::formats::rar::read_rar_entry_bytes;
 use crate::resolve_stored_path;
 
 use detection::is_recognized_transient_book_file;
