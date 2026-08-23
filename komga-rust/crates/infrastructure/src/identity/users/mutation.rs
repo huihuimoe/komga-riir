@@ -1,6 +1,6 @@
 use std::collections::BTreeSet;
 
-use crate::auth::runtime_identity_access::persisted_users;
+use super::authentication::persisted_users;
 use komga_application::identity_access::{
     AuthUser, AuthUserRole, CreateAuthUserInput, SharedLibrariesInput, UpdateAuthUserInput,
     UpdateAuthUserResult, user_roles_from_persisted_names,
@@ -13,7 +13,7 @@ struct UserSharingLabels {
     exclude: Vec<String>,
 }
 
-pub(super) async fn create_auth_user(
+pub(in crate::identity) async fn create_auth_user(
     pool: &SqlitePool,
     input: CreateAuthUserInput,
 ) -> Result<Option<AuthUser>, sqlx::Error> {
@@ -105,7 +105,7 @@ pub(super) async fn create_auth_user(
         .map(Some)
 }
 
-pub(super) async fn delete_auth_user(
+pub(in crate::identity) async fn delete_auth_user(
     pool: &SqlitePool,
     target_user_id: &str,
 ) -> Result<bool, sqlx::Error> {
@@ -171,7 +171,7 @@ pub(super) async fn delete_auth_user(
     Ok(true)
 }
 
-pub(super) async fn update_auth_user(
+pub(in crate::identity) async fn update_auth_user(
     pool: &SqlitePool,
     target_user_id: &str,
     patch: UpdateAuthUserInput,

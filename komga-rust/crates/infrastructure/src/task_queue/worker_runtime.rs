@@ -675,7 +675,7 @@ pub async fn cleanup_authentication_activity_once(
         return Err(anyhow::anyhow!(error_message));
     }
 
-    crate::auth::runtime_identity_access::persisted_cleanup_authentication_activity(
+    crate::identity::users::authentication::persisted_cleanup_authentication_activity(
         runtime.job().database().main_db().write_pool(),
     )
     .await

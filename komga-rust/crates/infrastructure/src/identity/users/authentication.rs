@@ -15,8 +15,8 @@ use komga_application::identity_access::{
 use sha2::{Digest, Sha512};
 use sqlx::{Row, SqlitePool};
 
-use super::session_store::RememberMeRuntimeSettings;
-use super::session_store::session_token_store;
+use super::super::session_store::RememberMeRuntimeSettings;
+use super::super::session_store::session_token_store;
 use crate::random_hex_token;
 
 pub(crate) fn auth_token_user_from_tokens(

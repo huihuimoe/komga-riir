@@ -7,11 +7,11 @@ use sqlx::{Row, SqlitePool};
 mod book_state;
 mod proxy;
 mod seeding;
-mod sync_point_diff;
+mod sync_diff;
 
 use book_state::load_sync_book_states;
 use seeding::{seed_sync_point_books, seed_sync_point_ondeck};
-use sync_point_diff::{load_incremental_sync_page, load_initial_sync_page};
+use sync_diff::{load_incremental_sync_page, load_initial_sync_page};
 
 pub(crate) const DEFAULT_KOBO_PROXY_BASE_URL: &str = "https://storeapi.kobo.com";
 

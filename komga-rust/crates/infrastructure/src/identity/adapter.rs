@@ -11,11 +11,11 @@ use komga_application::identity_access::{
 };
 use komga_application::media_assets::EpubNavigationContentPort;
 
-use crate::auth::runtime_identity_access as auth_identity;
-use crate::auth::session_store::RememberMeRuntimeSettings;
-use crate::auth::{device_auth, kobo_sync};
 use crate::persistence::DatabaseHandle;
-use crate::runtime_identity_access::user_mutation;
+
+use super::session_store::RememberMeRuntimeSettings;
+use super::users::{authentication as auth_identity, mutation as user_mutation};
+use super::{device_auth, kobo};
 
 #[derive(Clone)]
 pub struct IdentityAccess {
@@ -26,7 +26,7 @@ pub struct IdentityAccess {
 
 impl IdentityAccess {
     pub fn default_kobo_proxy_base_url() -> &'static str {
-        kobo_sync::DEFAULT_KOBO_PROXY_BASE_URL
+        kobo::DEFAULT_KOBO_PROXY_BASE_URL
     }
 
     pub fn new(
@@ -385,7 +385,7 @@ impl IdentityAccess {
 #[async_trait::async_trait]
 impl KoboSyncStatePort for IdentityAccess {
     async fn load_sync_page(&self, request: KoboSyncPageRequest) -> anyhow::Result<KoboSyncPage> {
-        kobo_sync::SqliteKoboSyncState::new(self.db.write_pool())
+        kobo::SqliteKoboSyncState::new(self.db.write_pool())
             .load_sync_page(request)
             .await
     }
@@ -395,13 +395,13 @@ impl KoboSyncStatePort for IdentityAccess {
         books: &[KoboSyncPointBook],
         user_id: &str,
     ) -> anyhow::Result<Vec<KoboSyncBookState>> {
-        kobo_sync::SqliteKoboSyncState::new(self.db.read_pool())
+        kobo::SqliteKoboSyncState::new(self.db.read_pool())
             .load_sync_book_states(books, user_id)
             .await
     }
 
     async fn remove_sync_point(&self, sync_point_id: &str) -> anyhow::Result<()> {
-        kobo_sync::SqliteKoboSyncState::new(self.db.write_pool())
+        kobo::SqliteKoboSyncState::new(self.db.write_pool())
             .remove_sync_point(sync_point_id)
             .await
     }
@@ -413,6 +413,6 @@ impl KoboProxyPort for IdentityAccess {
         &self,
         request: KoboProxyRequest,
     ) -> anyhow::Result<KoboProxyResponse> {
-        kobo_sync::proxy_kobo_request(self.kobo_proxy_base_url.as_str(), request).await
+        kobo::proxy_kobo_request(self.kobo_proxy_base_url.as_str(), request).await
     }
 }

@@ -6,13 +6,13 @@ use pdfium_render::prelude::*;
 
 mod announcements_access;
 mod archive_builder;
-mod auth;
 mod claims_access;
 mod content_resolver;
 mod discovery_detail_access;
 mod discovery_persisted_access;
 mod event_emitter_adapter;
 mod filesystem;
+mod identity;
 mod library_catalog;
 mod media_reader;
 mod metadata;
@@ -25,7 +25,6 @@ mod persistence;
 mod progress_writer;
 mod rar_support;
 mod read_models;
-mod runtime_identity_access;
 mod search;
 mod search_sync_adapter;
 mod shared;
@@ -43,6 +42,9 @@ pub use discovery_detail_access::DiscoveryDetailAccess;
 pub use discovery_persisted_access::{DiscoveryQuerySupportAccess, SqliteDiscoveryBrowseService};
 pub use event_emitter_adapter::SseBookEventEmitter;
 pub use filesystem::{FilesystemBookImport, remove_file_after_release};
+pub use identity::{
+    IdentityAccess, invalidate_user_sessions, persisted_update_password_by_user_id,
+};
 pub use library_catalog::LibraryCatalogAccess;
 pub use media_reader::MediaReader;
 pub use metadata::{SqliteBookMetadataPort, generate_book_thumbnail};
@@ -65,9 +67,6 @@ pub use persistence::{
     shared_pool_snapshots_for_paths,
 };
 pub use progress_writer::ProgressWriter;
-pub use runtime_identity_access::{
-    IdentityAccess, invalidate_user_sessions, persisted_update_password_by_user_id,
-};
 pub use search::{
     SearchEntityType, SearchIndexLifecycle, SearchStartupLifecycle, decide_startup_lifecycle,
     prepare_for_rebuild, rebuild_index_from_database, search_analyzer_version,
