@@ -5,10 +5,12 @@ use komga_application::runtime_sse::RuntimeSseEventSink;
 use komga_application::task_processing::{CleanupEmptySetsPolicy, ThumbnailRegenerationPolicy};
 use komga_config::env_config::RuntimeConfig;
 use komga_config::writer_ownership::{WriterDecision, WriterKind};
-use komga_infrastructure::{DatabaseHandle, ServerSettingsStore};
-use komga_infrastructure::{TaskRuntimeContext, TaskRuntimeOwnershipOverrides};
 use komga_infrastructure::{
-    connect_task_pool, connect_task_write_pool, default_read_max_connections,
+    operational::ServerSettingsStore,
+    persistence::{
+        DatabaseHandle, connect_task_pool, connect_task_write_pool, default_read_max_connections,
+    },
+    tasks::{TaskRuntimeContext, TaskRuntimeOwnershipOverrides},
 };
 
 pub(crate) async fn task_runtime_context(

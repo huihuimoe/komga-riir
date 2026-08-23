@@ -6,7 +6,7 @@ It adapts auth persistence, session storage, Kobo, and KOReader persistence to t
 
 ## Files in this subtree
 
-- `mod.rs`: private module surface and crate-root compatibility exports.
+- `mod.rs`: public identity facade and private subtree wiring.
 - `adapter.rs`: `IdentityAccess`, the concrete application-port adapter.
 - `session_store.rs`: in-memory session state and persisted remember-me tokens.
 - `users/`: authentication and SQLite-backed user mutation.

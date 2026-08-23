@@ -1,57 +1,15 @@
-mod discovery;
-mod identity;
-mod media;
-mod opds;
-mod operational;
-mod persistence;
-mod search;
+pub mod discovery;
+pub mod file_io;
+pub mod identity;
+pub mod media;
+pub mod opds;
+pub mod operational;
+pub mod persistence;
+pub mod search;
 mod shared;
-mod tasks;
+pub mod tasks;
 #[cfg(test)]
 pub(crate) mod test_support;
-
-pub use discovery::{
-    DiscoveryDetailAccess, DiscoveryQuerySupportAccess, LibraryCatalogAccess,
-    SqliteDiscoveryBrowseService,
-};
-pub use identity::{
-    ClaimAccess, IdentityAccess, InitialBootstrapUserWriteModel, PersistedBootstrapUser,
-    invalidate_user_sessions, list_persisted_user_emails, load_persisted_user_by_email,
-    load_persisted_user_count, persist_initial_bootstrap_users,
-    persisted_update_password_by_user_id, update_persisted_user_passwords,
-};
-pub use media::{
-    ContentResolver, FilesystemBookImport, MediaReader, ProgressWriter, SqliteBookMetadataPort,
-    SqliteFilesystemLibraryScanPipeline, SseBookEventEmitter, ThumbnailWriter, TransientBookAccess,
-    ZipArchiveBuilder, generate_book_thumbnail, remove_file_after_release,
-};
-pub use opds::{OpdsCatalogAccess, OpdsPersistedAccess};
-pub use operational::{
-    ActuatorSnapshotAccess, AnnouncementAccess, ClientSettingsAccess, FilesystemBrowseAccess,
-    FontAccess, HistoryAccess, OperationalMetricsAccess, PageHashAccess, RememberMeRuntimeSettings,
-    RemoteFeedAccess, ServerSettingsStore, SyncpointAccess, load_remember_me_runtime_settings,
-};
-pub use persistence::{
-    DEFAULT_MAX_CONNECTIONS, DatabaseHandle, SharedSqlitePoolSnapshot, SqlitePersistenceConnection,
-    SqlitePersistenceContext, SqliteTempPool, SqliteUnitOfWork, WRITE_MAX_CONNECTIONS,
-    bootstrap_pool, bootstrap_tasks_pool, close_all_shared_pools, connect_main_write_context,
-    connect_read_pool, connect_shared_pool, connect_task_pool, connect_task_write_pool,
-    connect_write_pool, default_read_max_connections, evict_shared_pools_for_paths,
-    file_backed_connect_options, reject_or_quarantine_pool_topology,
-    shared_pool_snapshots_for_paths,
-};
-pub use search::{
-    SearchEntityType, SearchIndexLifecycle, SearchStartupLifecycle, SearchSyncAdapter,
-    decide_startup_lifecycle, prepare_for_rebuild, rebuild_index_from_database,
-    search_analyzer_version,
-};
-pub use tasks::{
-    DatabaseRuntime, FilesystemRuntime, JobRuntime, RuntimeBackgroundState, SearchRuntime,
-    SharedTaskQueue, TaskEnqueueAdapter, TaskQueueScheduler, TaskQueueWakeSignal,
-    TaskRuntimeConfig, TaskRuntimeContext, TaskRuntimeOwnershipOverrides, WorkerRuntime,
-    cleanup_authentication_activity_once, prepare_task_queue, process_startup_library_scans,
-    run_background_task_iteration, run_periodic_library_scan_iteration,
-};
 
 pub(crate) use persistence::{
     resolve_library_item_path, resolve_optional_library_item_path, resolve_rooted_path,

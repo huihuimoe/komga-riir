@@ -1,13 +1,14 @@
 # komga-infrastructure
 
-`komga-infrastructure` owns the concrete adapters behind the Rust runtime. Public exports in
-`src/lib.rs` preserve the runtime-facing facade; implementation belongs to the capability that
-owns the behavior and its persisted data.
+`komga-infrastructure` owns the concrete adapters behind the Rust runtime. Its public API is
+grouped by the capability modules exposed from `src/lib.rs`; implementation belongs to the same
+capability that owns the behavior and its persisted data.
 
 ## Module ownership
 
 - `persistence`: SQLite pool topology, schema bootstrap, transactions, codecs, and stored-path
   primitives. It must not own entity-specific queries.
+- `file_io`: file lifecycle primitives shared across capabilities.
 - `identity`: users, authentication, sessions, claims, device authentication, and Kobo sync.
 - `discovery`: books, series, collections, readlists, libraries, visibility, and deletion.
 - `media`: content delivery, format primitives, analysis, metadata, progress, import,
@@ -32,5 +33,7 @@ owns the behavior and its persisted data.
 - Pure domain rules and application use-case contracts remain in `komga-domain` and
   `komga-application`.
 
-When adding behavior, extend the deepest existing owner before creating another adapter or
-top-level module. Keep `src/lib.rs` limited to module declarations and stable re-exports.
+Consumers should import through the owning module, for example `persistence::DatabaseHandle`,
+`media::ContentResolver`, or `tasks::TaskRuntimeContext`. When adding behavior, extend the deepest
+existing owner before creating another adapter or top-level module. Keep `src/lib.rs` limited to
+module declarations and crate-private shared primitives.

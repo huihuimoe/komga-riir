@@ -15,10 +15,6 @@ use crate::{
     random_hex_token, resolve_library_item_path, resolve_rooted_path, resolve_stored_path,
 };
 
-mod release;
-
-pub use release::remove_file_after_release;
-
 #[derive(Clone, Debug)]
 pub struct FilesystemBookImport {
     read_pool: SqlitePool,
