@@ -15,7 +15,7 @@ use tokio::time::interval;
 use tracing::{Instrument, Span, error, info};
 
 use super::execution_loop::BackgroundTaskExecutionLoop;
-pub use super::execution_loop::SharedTaskQueue;
+use super::execution_loop::SharedTaskQueue;
 use super::execution_pool::TaskExecutionPoolHandle;
 use crate::media::library_scan::SqliteFilesystemLibraryScanPipeline;
 use crate::tasks::queue::{RuntimeTaskEngine, TaskQueueScheduler, process_available_serial};

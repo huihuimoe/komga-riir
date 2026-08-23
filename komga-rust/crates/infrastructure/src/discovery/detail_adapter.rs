@@ -22,7 +22,7 @@ use komga_application::discovery::{
 use komga_application::runtime_sse::RuntimeSseEventSink;
 use komga_domain::discovery::{DiscoveryQueryContext, PageEnvelope};
 
-use crate::discovery::persisted::{load_persisted_series_read_models, runtime_queries};
+use crate::discovery::persisted::runtime_queries;
 use crate::persistence::DatabaseHandle;
 use crate::search::SearchEntityType;
 use crate::search::engine::SearchIndexEngine;
@@ -31,6 +31,7 @@ use super::books;
 use super::collections;
 use super::readlists;
 use super::series;
+use super::series::persistence::load_persisted_series_read_models;
 
 #[derive(Clone)]
 pub struct DiscoveryDetailAccess {
