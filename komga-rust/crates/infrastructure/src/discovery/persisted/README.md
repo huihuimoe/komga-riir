@@ -1,4 +1,4 @@
-# discovery_persisted_access
+# Persisted discovery
 
 This subtree owns the persisted discovery queries served directly from the SQLite-backed runtime database.
 It exists so discovery-specific read access, support models, and shared query helpers stay together behind one infrastructure module.
@@ -18,4 +18,4 @@ It exists so discovery-specific read access, support models, and shared query he
 
 - HTTP route parsing and payload shaping.
 - Discovery semantics and validation rules, which belong in `komga-domain` and `komga-application`.
-- Detailed series or book transport read-model mapping, which belongs in interface or detail-access layers.
+- Detailed series or book transport read-model mapping, which belongs in interface or detail modules.

@@ -29,7 +29,7 @@ fn first_collection_sort_id(condition: Option<&SeriesCondition>) -> Option<&str>
     condition.and_then(visit)
 }
 
-pub(in crate::discovery_persisted_access::browse) async fn load_persisted_series_page(
+pub(in crate::discovery::persisted::browse) async fn load_persisted_series_page(
     backend: &dyn PersistedDiscoveryBrowseDataSource,
     context: &DiscoveryQueryContext,
     query: PersistedSeriesBrowseQuery,

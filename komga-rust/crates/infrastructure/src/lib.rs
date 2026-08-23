@@ -6,8 +6,7 @@ use pdfium_render::prelude::*;
 
 mod archive_builder;
 mod content_resolver;
-mod discovery_detail_access;
-mod discovery_persisted_access;
+mod discovery;
 mod event_emitter_adapter;
 mod filesystem;
 mod identity;
@@ -34,8 +33,9 @@ mod thumbnail_writer;
 
 pub use archive_builder::ZipArchiveBuilder;
 pub use content_resolver::ContentResolver;
-pub use discovery_detail_access::DiscoveryDetailAccess;
-pub use discovery_persisted_access::{DiscoveryQuerySupportAccess, SqliteDiscoveryBrowseService};
+pub use discovery::{
+    DiscoveryDetailAccess, DiscoveryQuerySupportAccess, SqliteDiscoveryBrowseService,
+};
 pub use event_emitter_adapter::SseBookEventEmitter;
 pub use filesystem::{FilesystemBookImport, remove_file_after_release};
 pub use identity::{

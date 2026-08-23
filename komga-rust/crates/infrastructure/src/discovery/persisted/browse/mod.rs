@@ -1,7 +1,7 @@
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::path::PathBuf;
 
-use crate::discovery_persisted_access::{
+use crate::discovery::persisted::{
     books, facets, library_mappings, models as persisted_models, runtime_queries, series,
 };
 use crate::persistence::DatabaseHandle;
