@@ -10,7 +10,6 @@ mod discovery;
 mod event_emitter_adapter;
 mod filesystem;
 mod identity;
-mod library_catalog;
 mod media_reader;
 mod metadata;
 mod opds_catalog_access;
@@ -19,12 +18,10 @@ mod operational;
 mod persistence;
 mod progress_writer;
 mod rar_support;
-mod read_models;
 mod search;
 mod search_sync_adapter;
 mod shared;
 mod sql;
-mod sqlite;
 mod task_enqueue_adapter;
 mod task_queue;
 #[cfg(test)]
@@ -34,7 +31,8 @@ mod thumbnail_writer;
 pub use archive_builder::ZipArchiveBuilder;
 pub use content_resolver::ContentResolver;
 pub use discovery::{
-    DiscoveryDetailAccess, DiscoveryQuerySupportAccess, SqliteDiscoveryBrowseService,
+    DiscoveryDetailAccess, DiscoveryQuerySupportAccess, LibraryCatalogAccess,
+    SqliteDiscoveryBrowseService,
 };
 pub use event_emitter_adapter::SseBookEventEmitter;
 pub use filesystem::{FilesystemBookImport, remove_file_after_release};
@@ -44,7 +42,6 @@ pub use identity::{
     load_persisted_user_count, persist_initial_bootstrap_users,
     persisted_update_password_by_user_id, update_persisted_user_passwords,
 };
-pub use library_catalog::LibraryCatalogAccess;
 pub use media_reader::MediaReader;
 pub use metadata::{SqliteBookMetadataPort, generate_book_thumbnail};
 pub use opds_catalog_access::OpdsCatalogAccess;

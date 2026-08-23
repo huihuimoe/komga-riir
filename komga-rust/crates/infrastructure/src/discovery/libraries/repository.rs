@@ -8,16 +8,14 @@ use komga_domain::discovery::{DiscoveryError, DiscoveryQueryContext};
 use sqlx::SqlitePool;
 use std::sync::Arc;
 
-use crate::read_models::{
-    PersistedLibraryReadModel, get_persisted_library, list_persisted_libraries,
-};
-use crate::sqlite::write_models::libraries::{
+use super::persistence::{
     PersistedLibraryBookSeriesRecord, PersistedLibrarySeriesAndBookIds, PersistedLibraryWriteModel,
     delete_persisted_library, library_book_ids, library_book_ids_with_empty_hash,
     library_books_with_mismatched_extensions, library_series_and_book_ids,
     load_persisted_library_write_model, persist_library_create, persist_library_update,
     validate_library_before_persist,
 };
+use super::read::{PersistedLibraryReadModel, get_persisted_library, list_persisted_libraries};
 
 #[derive(Clone)]
 pub(super) struct SqliteLibraryCatalogAdapter {
