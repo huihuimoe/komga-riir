@@ -16,7 +16,7 @@ use super::{
     EPUB_DIVINA_LETTER_COUNT_THRESHOLD, TransientBookAnalysis, TransientBookPage,
     TransientEpubManifestItem,
 };
-use crate::filesystem::media_analysis::{ImageDimensions, image_dimensions_from_bytes_u32};
+use crate::media::analysis::{ImageDimensions, image_dimensions_from_bytes_u32};
 
 pub(super) fn analyze_transient_epub(path: &str) -> Result<TransientBookAnalysis, &'static str> {
     let file = std::fs::File::open(path).map_err(|_| "ERR_1032")?;

@@ -5,7 +5,7 @@ use std::io::ErrorKind;
 use sqlx::{Row, Sqlite, SqlitePool, Transaction};
 
 use crate::discovery::visibility::DELETE_LIBRARY_DEPENDENCY_SQL;
-use crate::filesystem::media_analysis::expected_extension_for_media_type;
+use crate::media::analysis::expected_extension_for_media_type;
 use crate::persistence::stored_paths::resolve_stored_path;
 use crate::resolve_library_item_path;
 

@@ -13,7 +13,7 @@ use komga_epub::{MOBI_MEDIA_TYPE, MobiError, normalize_mobi};
 use sqlx::{Row, SqlitePool};
 use zip::ZipArchive;
 
-use crate::filesystem::media_analysis::{
+use crate::media::analysis::{
     AnalyzedMediaPage, MediaAnalysisProfile, MediaFileAnalysis, MediaFileAnalyzer,
 };
 use crate::media::formats::rar::read_rar_entry_bytes;

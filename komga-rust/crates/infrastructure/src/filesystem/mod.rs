@@ -8,8 +8,6 @@ const FILE_RELEASE_RETRY_INTERVAL: Duration = Duration::from_millis(10);
 pub(crate) mod browser;
 pub(crate) mod fonts;
 mod import;
-pub(crate) mod media_analysis;
-pub(crate) mod transient_books;
 
 pub use import::FilesystemBookImport;
 

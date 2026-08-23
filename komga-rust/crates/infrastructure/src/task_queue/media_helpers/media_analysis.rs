@@ -1,7 +1,7 @@
 use std::path::Path;
 
-use crate::filesystem::media_analysis::{self, MediaAnalysisProfile, MediaFileAnalyzer};
-pub(in crate::task_queue) use crate::filesystem::media_analysis::{
+use crate::media::analysis::{self as media_analysis, MediaAnalysisProfile, MediaFileAnalyzer};
+pub(in crate::task_queue) use crate::media::analysis::{
     expected_extension_for_media_type, is_rar_media_type, is_supported_page_image_file_name,
     media_type_from_entry_name,
 };
