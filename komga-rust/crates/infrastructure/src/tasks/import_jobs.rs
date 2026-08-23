@@ -6,7 +6,7 @@ use komga_application::task_processing::{
 };
 use std::sync::Arc;
 
-pub(in crate::task_queue) async fn execute_import_book(
+pub(in crate::tasks) async fn execute_import_book(
     runtime: &JobRuntime<'_>,
     payload: ImportBookPayload,
     priority: i32,

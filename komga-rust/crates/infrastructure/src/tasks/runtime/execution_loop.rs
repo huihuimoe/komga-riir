@@ -165,7 +165,7 @@ struct BackgroundTaskExecutionState {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::task_queue::test_support::RuntimeTestFixture;
+    use crate::tasks::test_support::RuntimeTestFixture;
     use komga_application::task_processing::TaskExecutionOutcome;
 
     #[tokio::test]

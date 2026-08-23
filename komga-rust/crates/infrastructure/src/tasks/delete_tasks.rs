@@ -377,37 +377,37 @@ async fn directory_is_writable(target_directory: &Path) -> bool {
 }
 
 #[derive(Clone, Debug)]
-pub(in crate::task_queue) struct PersistedDeleteBookDecision {
-    pub(in crate::task_queue) series_id: String,
-    pub(in crate::task_queue) oneshot: bool,
+pub(in crate::tasks) struct PersistedDeleteBookDecision {
+    pub(in crate::tasks) series_id: String,
+    pub(in crate::tasks) oneshot: bool,
 }
 
 #[derive(Clone, Debug)]
-pub(in crate::task_queue) struct PersistedDeleteBookSseContext {
-    pub(in crate::task_queue) series_id: String,
-    pub(in crate::task_queue) library_id: String,
+pub(in crate::tasks) struct PersistedDeleteBookSseContext {
+    pub(in crate::tasks) series_id: String,
+    pub(in crate::tasks) library_id: String,
 }
 
 #[derive(Clone, Debug)]
-pub(in crate::task_queue) struct PersistedDeleteBookWork {
-    pub(in crate::task_queue) series_id: String,
-    pub(in crate::task_queue) book_path: PathBuf,
-    pub(in crate::task_queue) sidecar_thumbnail_paths: Vec<PathBuf>,
+pub(in crate::tasks) struct PersistedDeleteBookWork {
+    pub(in crate::tasks) series_id: String,
+    pub(in crate::tasks) book_path: PathBuf,
+    pub(in crate::tasks) sidecar_thumbnail_paths: Vec<PathBuf>,
 }
 
 #[derive(Clone, Debug)]
-pub(in crate::task_queue) struct PersistedDeleteSeriesWork {
-    pub(in crate::task_queue) book_ids: Vec<String>,
-    pub(in crate::task_queue) series_path: Option<PathBuf>,
-    pub(in crate::task_queue) sidecar_thumbnail_paths: Vec<PathBuf>,
+pub(in crate::tasks) struct PersistedDeleteSeriesWork {
+    pub(in crate::tasks) book_ids: Vec<String>,
+    pub(in crate::tasks) series_path: Option<PathBuf>,
+    pub(in crate::tasks) sidecar_thumbnail_paths: Vec<PathBuf>,
 }
 
 #[derive(Clone, Debug)]
-pub(in crate::task_queue) struct PersistedDeleteSeriesSseContext {
-    pub(in crate::task_queue) library_id: String,
+pub(in crate::tasks) struct PersistedDeleteSeriesSseContext {
+    pub(in crate::tasks) library_id: String,
 }
 
-pub(in crate::task_queue) async fn load_book_delete_decision(
+pub(in crate::tasks) async fn load_book_delete_decision(
     pool: &SqlitePool,
     book_id: &str,
 ) -> anyhow::Result<Option<PersistedDeleteBookDecision>> {
@@ -434,7 +434,7 @@ pub(in crate::task_queue) async fn load_book_delete_decision(
     }))
 }
 
-pub(in crate::task_queue) async fn load_book_delete_sse_context(
+pub(in crate::tasks) async fn load_book_delete_sse_context(
     pool: &SqlitePool,
     book_id: &str,
 ) -> anyhow::Result<Option<PersistedDeleteBookSseContext>> {
@@ -461,7 +461,7 @@ pub(in crate::task_queue) async fn load_book_delete_sse_context(
     }))
 }
 
-pub(in crate::task_queue) async fn load_book_delete_work(
+pub(in crate::tasks) async fn load_book_delete_work(
     pool: &SqlitePool,
     book_id: &str,
 ) -> anyhow::Result<Option<PersistedDeleteBookWork>> {
@@ -527,7 +527,7 @@ pub(in crate::task_queue) async fn load_book_delete_work(
     }))
 }
 
-pub(in crate::task_queue) async fn soft_delete_book_rows(
+pub(in crate::tasks) async fn soft_delete_book_rows(
     pool: &SqlitePool,
     book_id: &str,
     series_id: &str,
@@ -583,7 +583,7 @@ pub(in crate::task_queue) async fn soft_delete_book_rows(
     Ok(())
 }
 
-pub(in crate::task_queue) async fn load_series_delete_sse_context(
+pub(in crate::tasks) async fn load_series_delete_sse_context(
     pool: &SqlitePool,
     series_id: &str,
 ) -> anyhow::Result<Option<PersistedDeleteSeriesSseContext>> {
@@ -609,7 +609,7 @@ pub(in crate::task_queue) async fn load_series_delete_sse_context(
     }))
 }
 
-pub(in crate::task_queue) async fn load_series_delete_work(
+pub(in crate::tasks) async fn load_series_delete_work(
     pool: &SqlitePool,
     series_id: &str,
 ) -> anyhow::Result<PersistedDeleteSeriesWork> {
@@ -698,7 +698,7 @@ pub(in crate::task_queue) async fn load_series_delete_work(
     })
 }
 
-pub(in crate::task_queue) async fn soft_delete_series_rows(
+pub(in crate::tasks) async fn soft_delete_series_rows(
     pool: &SqlitePool,
     series_id: &str,
 ) -> anyhow::Result<()> {
@@ -734,7 +734,7 @@ pub(in crate::task_queue) async fn soft_delete_series_rows(
     Ok(())
 }
 
-pub(in crate::task_queue) async fn soft_delete_series_book_rows(
+pub(in crate::tasks) async fn soft_delete_series_book_rows(
     pool: &SqlitePool,
     series_id: &str,
 ) -> anyhow::Result<()> {

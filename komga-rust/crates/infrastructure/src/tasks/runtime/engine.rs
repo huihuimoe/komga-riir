@@ -90,9 +90,9 @@ mod tests {
     use crate::persistence::sqlite::{
         connect_task_pool, connect_task_write_pool, default_read_max_connections,
     };
-    use crate::task_queue::TaskRuntimeContext;
-    use crate::task_queue::execution_pool::TaskExecutionPoolHandle;
-    use crate::task_queue::queue_scheduler::TaskQueueScheduler;
+    use crate::tasks::TaskRuntimeContext;
+    use crate::tasks::execution_pool::TaskExecutionPoolHandle;
+    use crate::tasks::queue_scheduler::TaskQueueScheduler;
     use komga_application::task_processing::{SubmitUrgency, TaskQueueAdmin};
     use std::path::PathBuf;
     use std::sync::Arc;

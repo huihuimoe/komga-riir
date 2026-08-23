@@ -1071,7 +1071,7 @@ impl Drop for WorkerLifecycleGuard {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::task_queue::execution_pool::TaskExecutionPoolHandle;
+    use crate::tasks::execution_pool::TaskExecutionPoolHandle;
     use std::collections::BTreeSet;
     use std::sync::Arc;
     use std::time::Duration;

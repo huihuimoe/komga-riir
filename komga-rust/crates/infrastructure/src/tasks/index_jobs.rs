@@ -2,12 +2,12 @@ use crate::media::maintenance::{
     find_books_for_thumbnail_regeneration, find_books_with_undersized_generated_thumbnails,
 };
 use crate::search::SearchEntityType;
-use crate::task_queue::JobRuntime;
+use crate::tasks::JobRuntime;
 use komga_application::task_processing::{RefreshBookMetadataPayload, TaskKind, TaskRequest};
 use komga_application::task_processing::{TaskExecutionOutcome, TaskProcessingError};
 use komga_domain::discovery::MediaStatus;
 
-pub(in crate::task_queue) async fn execute_analyze_book(
+pub(in crate::tasks) async fn execute_analyze_book(
     runtime: &JobRuntime<'_>,
     book_id: &str,
     priority: i32,
@@ -34,7 +34,7 @@ pub(in crate::task_queue) async fn execute_analyze_book(
     Ok(TaskExecutionOutcome::completed())
 }
 
-pub(in crate::task_queue) async fn execute_rebuild_index(
+pub(in crate::tasks) async fn execute_rebuild_index(
     runtime: &JobRuntime<'_>,
     entity_types: Option<&[SearchEntityType]>,
 ) -> Result<TaskExecutionOutcome, TaskProcessingError> {
@@ -43,7 +43,7 @@ pub(in crate::task_queue) async fn execute_rebuild_index(
     Ok(TaskExecutionOutcome::completed())
 }
 
-pub(in crate::task_queue) async fn execute_find_book_thumbnails_to_regenerate(
+pub(in crate::tasks) async fn execute_find_book_thumbnails_to_regenerate(
     runtime: &JobRuntime<'_>,
     for_bigger_result_only: bool,
     priority: i32,
@@ -76,9 +76,9 @@ mod tests {
         connect_main_write_context, connect_task_pool, connect_task_write_pool, connect_test_pool,
         default_read_max_connections,
     };
-    use crate::task_queue::queue_scheduler::TaskQueueScheduler;
-    use crate::task_queue::test_support::{RuntimeTestFixture, execute_and_enqueue};
-    use crate::task_queue::{TaskRuntimeContext, TaskRuntimeOwnershipOverrides};
+    use crate::tasks::queue_scheduler::TaskQueueScheduler;
+    use crate::tasks::test_support::{RuntimeTestFixture, execute_and_enqueue};
+    use crate::tasks::{TaskRuntimeContext, TaskRuntimeOwnershipOverrides};
     use image::{ImageBuffer, Rgba};
     use komga_application::task_processing::{
         BookPayload, FindBookThumbnailsToRegeneratePayload, TaskKind, TaskRequest,

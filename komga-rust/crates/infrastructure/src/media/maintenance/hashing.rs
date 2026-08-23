@@ -15,7 +15,7 @@ use super::persistence::{
 };
 use super::updates::persist_book_hash;
 use crate::media::maintenance::page_hashing::persist_book_page_hashes_from_media_content;
-use crate::task_queue::JobRuntime;
+use crate::tasks::JobRuntime;
 
 pub(crate) async fn hash_book_pages(
     runtime: &JobRuntime<'_>,

@@ -3,7 +3,7 @@ use komga_application::task_processing::TaskProcessingError;
 use super::super::runtime_context::JobRuntime;
 use crate::search::SearchEntityType;
 
-pub(in crate::task_queue) async fn rebuild_index(
+pub(in crate::tasks) async fn rebuild_index(
     runtime: &JobRuntime<'_>,
     entity_types: Option<&[SearchEntityType]>,
 ) -> Result<(), TaskProcessingError> {

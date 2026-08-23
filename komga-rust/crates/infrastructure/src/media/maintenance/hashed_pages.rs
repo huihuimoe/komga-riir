@@ -14,8 +14,8 @@ use super::persistence::{
 };
 use super::updates::{persist_duplicate_page_deleted_events, persist_removed_hashed_pages};
 use crate::media::analysis::{is_supported_page_image_file_name, media_type_from_entry_name};
-use crate::task_queue::JobRuntime;
-use crate::task_queue::index_tasks;
+use crate::tasks::JobRuntime;
+use crate::tasks::index_tasks;
 
 pub(crate) type HashedPageToDelete = HashedPageToDeletePayload;
 

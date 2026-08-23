@@ -8,9 +8,7 @@ mod operational;
 mod persistence;
 mod search;
 mod shared;
-mod sql;
-mod task_enqueue_adapter;
-mod task_queue;
+mod tasks;
 #[cfg(test)]
 pub(crate) mod test_support;
 
@@ -50,13 +48,13 @@ pub use search::{
     decide_startup_lifecycle, prepare_for_rebuild, rebuild_index_from_database,
     search_analyzer_version,
 };
-pub use task_enqueue_adapter::TaskEnqueueAdapter;
-pub use task_queue::{
+pub use tasks::{
     DatabaseRuntime, FilesystemRuntime, JobRuntime, RuntimeBackgroundState, SearchRuntime,
-    SharedTaskQueue, SqliteFilesystemLibraryScanPipeline, TaskQueueScheduler, TaskQueueWakeSignal,
-    TaskRuntimeConfig, TaskRuntimeContext, TaskRuntimeOwnershipOverrides, WorkerRuntime,
-    cleanup_authentication_activity_once, prepare_task_queue, process_startup_library_scans,
-    run_background_task_iteration, run_periodic_library_scan_iteration,
+    SharedTaskQueue, SqliteFilesystemLibraryScanPipeline, TaskEnqueueAdapter, TaskQueueScheduler,
+    TaskQueueWakeSignal, TaskRuntimeConfig, TaskRuntimeContext, TaskRuntimeOwnershipOverrides,
+    WorkerRuntime, cleanup_authentication_activity_once, prepare_task_queue,
+    process_startup_library_scans, run_background_task_iteration,
+    run_periodic_library_scan_iteration,
 };
 
 pub(crate) use persistence::{

@@ -4,7 +4,7 @@ use super::persistence::{
     load_library_hashing_flags as load_persisted_library_hashing_flags,
     load_library_maintenance_flags as load_persisted_library_maintenance_flags,
 };
-use crate::task_queue::JobRuntime;
+use crate::tasks::JobRuntime;
 
 pub(crate) struct LibraryHashingFlags {
     pub(crate) hash_files: bool,

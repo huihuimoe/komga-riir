@@ -5,7 +5,9 @@ use sqlx::sqlite::SqliteRow;
 use sqlx::{Row, Sqlite, SqlitePool, Transaction};
 
 use super::runtime_context::JobRuntime;
-use crate::sql::task_queue::{EMPTY_TRASH_BOOK_DEPENDENCY_SQL, EMPTY_TRASH_SERIES_DEPENDENCY_SQL};
+use crate::tasks::queue::sql::{
+    EMPTY_TRASH_BOOK_DEPENDENCY_SQL, EMPTY_TRASH_SERIES_DEPENDENCY_SQL,
+};
 
 pub(super) async fn empty_trash(
     runtime: &JobRuntime<'_>,
@@ -35,7 +37,7 @@ pub(super) async fn cleanup_empty_sets(
     .map_err(TaskProcessingError::runtime)
 }
 
-pub(in crate::task_queue) async fn empty_trash_rows(
+pub(in crate::tasks) async fn empty_trash_rows(
     pool: &SqlitePool,
     library_id: &str,
 ) -> anyhow::Result<()> {
@@ -342,7 +344,7 @@ fn empty_trash_book_metadata(
     }))
 }
 
-pub(in crate::task_queue) async fn cleanup_empty_sets_rows(
+pub(in crate::tasks) async fn cleanup_empty_sets_rows(
     pool: &SqlitePool,
     policy: CleanupEmptySetsPolicy,
 ) -> anyhow::Result<()> {

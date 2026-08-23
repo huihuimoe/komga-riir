@@ -11,8 +11,8 @@ use komga_domain::discovery::MediaStatus;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct AnalyzeBookOutcome {
-    pub(in crate::task_queue) series_id: String,
-    pub(in crate::task_queue) media_status: Option<MediaStatus>,
+    pub(in crate::tasks) series_id: String,
+    pub(in crate::tasks) media_status: Option<MediaStatus>,
 }
 
 pub(crate) async fn analyze_book(

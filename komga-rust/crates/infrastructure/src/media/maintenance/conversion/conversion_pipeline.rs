@@ -20,8 +20,8 @@ use super::super::updates::{
 };
 use crate::media::analysis::is_rar_media_type;
 use crate::remove_file_after_release;
-use crate::task_queue::JobRuntime;
-use crate::task_queue::index_tasks;
+use crate::tasks::JobRuntime;
+use crate::tasks::index_tasks;
 use crate::{resolve_library_item_path, resolve_stored_path};
 
 struct PreparedBookConversion {

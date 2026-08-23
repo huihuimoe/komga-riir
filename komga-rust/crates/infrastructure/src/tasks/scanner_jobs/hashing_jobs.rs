@@ -9,7 +9,7 @@ use crate::media::maintenance::{
     hash_book, hash_book_pages, load_library_hashing_flags, remove_hashed_pages,
 };
 
-pub(in crate::task_queue) async fn execute_hash_book_pages(
+pub(in crate::tasks) async fn execute_hash_book_pages(
     runtime: &JobRuntime<'_>,
     book_id: &str,
 ) -> Result<TaskExecutionOutcome, TaskProcessingError> {
@@ -22,7 +22,7 @@ pub(in crate::task_queue) async fn execute_hash_book_pages(
         .map(|()| TaskExecutionOutcome::completed())
 }
 
-pub(in crate::task_queue) async fn execute_hash_book(
+pub(in crate::tasks) async fn execute_hash_book(
     runtime: &JobRuntime<'_>,
     book_id: &str,
     koreader: bool,
@@ -32,7 +32,7 @@ pub(in crate::task_queue) async fn execute_hash_book(
     Ok(TaskExecutionOutcome::completed())
 }
 
-pub(in crate::task_queue) async fn execute_find_books_with_missing_page_hash(
+pub(in crate::tasks) async fn execute_find_books_with_missing_page_hash(
     runtime: &JobRuntime<'_>,
     library_id: &str,
     priority: i32,
@@ -59,7 +59,7 @@ pub(in crate::task_queue) async fn execute_find_books_with_missing_page_hash(
     Ok(TaskExecutionOutcome::with_follow_up_tasks(follow_up_tasks))
 }
 
-pub(in crate::task_queue) async fn execute_find_duplicate_pages_to_delete(
+pub(in crate::tasks) async fn execute_find_duplicate_pages_to_delete(
     runtime: &JobRuntime<'_>,
     library_id: &str,
     priority: i32,
@@ -84,7 +84,7 @@ pub(in crate::task_queue) async fn execute_find_duplicate_pages_to_delete(
     Ok(TaskExecutionOutcome::with_follow_up_tasks(follow_up_tasks))
 }
 
-pub(in crate::task_queue) async fn execute_remove_hashed_pages(
+pub(in crate::tasks) async fn execute_remove_hashed_pages(
     runtime: &JobRuntime<'_>,
     book_id: &str,
     pages: &[HashedPageToDelete],
@@ -111,9 +111,9 @@ pub(in crate::task_queue) async fn execute_remove_hashed_pages(
 #[cfg(test)]
 mod tests {
     use crate::persistence::sqlite::connect_test_pool;
-    use crate::task_queue::TaskRuntimeContext;
-    use crate::task_queue::queue_scheduler::TaskQueueScheduler;
-    use crate::task_queue::test_support::{RuntimeTestFixture, execute_and_enqueue};
+    use crate::tasks::TaskRuntimeContext;
+    use crate::tasks::queue_scheduler::TaskQueueScheduler;
+    use crate::tasks::test_support::{RuntimeTestFixture, execute_and_enqueue};
     use image::{ImageBuffer, Rgba};
     use komga_application::task_processing::{
         RemoveHashedPagesPayload, TaskKind, TaskQueueRecord, TaskRequest,

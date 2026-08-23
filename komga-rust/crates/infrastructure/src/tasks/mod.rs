@@ -1,5 +1,6 @@
 use komga_application::task_processing::{TaskExecutionResult, TaskQueueRecord};
 
+#[path = "runtime/context.rs"]
 mod runtime_context;
 pub use runtime_context::{
     DatabaseRuntime, FilesystemRuntime, JobRuntime, SearchRuntime, TaskRuntimeConfig,
@@ -7,7 +8,10 @@ pub use runtime_context::{
 };
 mod cleanup_tasks;
 mod delete_tasks;
+mod enqueue_adapter;
+#[path = "runtime/execution_loop.rs"]
 mod execution_loop;
+#[path = "runtime/execution_pool.rs"]
 mod execution_pool;
 mod import_jobs;
 mod index_jobs;
@@ -15,17 +19,24 @@ pub(crate) mod index_tasks;
 pub(crate) mod library_scan_pipeline;
 mod maintenance_jobs;
 mod metadata_tasks;
+pub(crate) mod queue;
+#[path = "queue/store.rs"]
 mod queue_core;
+#[path = "queue/orchestration.rs"]
 mod queue_orchestration;
+#[path = "queue/scheduler.rs"]
 pub(crate) mod queue_scheduler;
+#[path = "runtime/engine.rs"]
 mod runtime_task_engine;
 mod scan_follow_up;
 mod scanner_jobs;
 mod task_job_dispatch;
 #[cfg(test)]
 pub(crate) mod test_support;
+#[path = "runtime/workers.rs"]
 mod worker_runtime;
 
+pub use enqueue_adapter::TaskEnqueueAdapter;
 pub use library_scan_pipeline::SqliteFilesystemLibraryScanPipeline;
 pub use queue_scheduler::TaskQueueScheduler;
 pub use worker_runtime::{
