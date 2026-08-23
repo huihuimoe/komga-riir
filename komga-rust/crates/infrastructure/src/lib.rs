@@ -4,7 +4,6 @@ use std::sync::OnceLock;
 
 use pdfium_render::prelude::*;
 
-mod announcements_access;
 mod archive_builder;
 mod content_resolver;
 mod discovery_detail_access;
@@ -17,9 +16,7 @@ mod media_reader;
 mod metadata;
 mod opds_catalog_access;
 mod opds_persisted_access;
-mod operational_access;
-mod operational_actuator_access;
-mod operational_metrics_access;
+mod operational;
 mod persistence;
 mod progress_writer;
 mod rar_support;
@@ -52,13 +49,11 @@ pub use media_reader::MediaReader;
 pub use metadata::{SqliteBookMetadataPort, generate_book_thumbnail};
 pub use opds_catalog_access::OpdsCatalogAccess;
 pub use opds_persisted_access::OpdsPersistedAccess;
-pub use operational_access::{
-    AnnouncementAccess, ClientSettingsAccess, FilesystemBrowseAccess, FontAccess, HistoryAccess,
-    PageHashAccess, RememberMeRuntimeSettings, RemoteFeedAccess, SyncpointAccess,
-    TransientBookAccess, load_remember_me_runtime_settings,
+pub use operational::{
+    ActuatorSnapshotAccess, AnnouncementAccess, ClientSettingsAccess, FilesystemBrowseAccess,
+    FontAccess, HistoryAccess, OperationalMetricsAccess, PageHashAccess, RememberMeRuntimeSettings,
+    RemoteFeedAccess, SyncpointAccess, TransientBookAccess, load_remember_me_runtime_settings,
 };
-pub use operational_actuator_access::ActuatorSnapshotAccess;
-pub use operational_metrics_access::OperationalMetricsAccess;
 pub use persistence::{
     DEFAULT_MAX_CONNECTIONS, DatabaseHandle, SharedSqlitePoolSnapshot, SqlitePersistenceConnection,
     SqlitePersistenceContext, SqliteTempPool, SqliteUnitOfWork, WRITE_MAX_CONNECTIONS,

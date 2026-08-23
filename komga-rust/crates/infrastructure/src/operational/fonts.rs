@@ -1,23 +1,8 @@
 use std::path::Path;
 
-use komga_application::operational::{
-    FilesystemBrowseError, FilesystemBrowsePort, FilesystemBrowseRequest,
-    FilesystemDirectoryListing, FontPort,
-};
+use komga_application::operational::FontPort;
 
-use crate::filesystem::{browser, fonts};
-
-#[derive(Clone, Default)]
-pub struct FilesystemBrowseAccess;
-
-impl FilesystemBrowsePort for FilesystemBrowseAccess {
-    fn browse(
-        &self,
-        request: FilesystemBrowseRequest,
-    ) -> Result<FilesystemDirectoryListing, FilesystemBrowseError> {
-        browser::browse_directory(request)
-    }
-}
+use crate::filesystem::fonts;
 
 #[derive(Clone, Default)]
 pub struct FontAccess;

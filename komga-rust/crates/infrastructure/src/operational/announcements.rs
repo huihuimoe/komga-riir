@@ -1,7 +1,8 @@
 use komga_application::operational::AnnouncementPort;
 
-use crate::announcements_access;
 use crate::persistence::DatabaseHandle;
+
+use super::announcements_persistence;
 
 #[derive(Clone)]
 pub struct AnnouncementAccess {
@@ -17,13 +18,13 @@ impl AnnouncementAccess {
 #[async_trait::async_trait]
 impl AnnouncementPort for AnnouncementAccess {
     async fn load_announcement_read_ids(&self, user_id: &str) -> anyhow::Result<Vec<String>> {
-        announcements_access::load_announcement_read_ids(self.db.read_pool(), user_id)
+        announcements_persistence::load_announcement_read_ids(self.db.read_pool(), user_id)
             .await
             .map_err(anyhow::Error::from)
     }
 
     async fn save_announcements_read(&self, user_id: &str, ids: &[String]) -> anyhow::Result<()> {
-        announcements_access::save_announcements_read(self.db.write_pool(), user_id, ids)
+        announcements_persistence::save_announcements_read(self.db.write_pool(), user_id, ids)
             .await
             .map_err(anyhow::Error::from)
     }

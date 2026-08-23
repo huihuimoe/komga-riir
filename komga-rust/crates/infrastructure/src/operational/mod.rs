@@ -1,17 +1,24 @@
+mod actuator;
 mod announcements;
+mod announcements_persistence;
 mod client_settings;
-mod filesystem;
+mod filesystem_browse;
+mod fonts;
 mod history;
+mod metrics;
 mod page_hashes;
 mod remote_feeds;
 mod server_settings;
 mod syncpoints;
 mod transient_books;
 
+pub use actuator::ActuatorSnapshotAccess;
 pub use announcements::AnnouncementAccess;
 pub use client_settings::ClientSettingsAccess;
-pub use filesystem::{FilesystemBrowseAccess, FontAccess};
+pub use filesystem_browse::FilesystemBrowseAccess;
+pub use fonts::FontAccess;
 pub use history::HistoryAccess;
+pub use metrics::OperationalMetricsAccess;
 pub use page_hashes::PageHashAccess;
 pub use remote_feeds::RemoteFeedAccess;
 pub(crate) use server_settings::load_server_settings;
