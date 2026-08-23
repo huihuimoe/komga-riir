@@ -1,4 +1,4 @@
-use crate::search::index_lifecycle::SearchEntityType;
+use crate::search::SearchEntityType;
 use komga_application::task_processing::{
     RebuildIndexEntity, RuntimeTaskRequest, TaskExecutionOutcome, TaskProcessingError,
     TaskQueueRecord,

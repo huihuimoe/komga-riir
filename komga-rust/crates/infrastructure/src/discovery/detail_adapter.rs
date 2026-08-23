@@ -24,8 +24,8 @@ use komga_domain::discovery::{DiscoveryQueryContext, PageEnvelope};
 
 use crate::discovery::persisted::{load_persisted_series_read_models, runtime_queries};
 use crate::persistence::DatabaseHandle;
+use crate::search::SearchEntityType;
 use crate::search::engine::SearchIndexEngine;
-use crate::search::index_lifecycle::SearchEntityType;
 
 use super::books;
 use super::collections;

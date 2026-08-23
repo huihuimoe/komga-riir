@@ -16,8 +16,8 @@ use sqlx::sqlite::SqliteRow;
 use sqlx::{Row, SqlitePool};
 
 use crate::persistence::DatabaseHandle;
+use crate::search::SearchEntityType;
 use crate::search::engine::SearchIndexEngine;
-use crate::search::index_lifecycle::SearchEntityType;
 
 use super::collections::unicode_collation_sort_key;
 use super::collections::{

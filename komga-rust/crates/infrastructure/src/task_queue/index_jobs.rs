@@ -1,7 +1,7 @@
 use crate::media::maintenance::{
     find_books_for_thumbnail_regeneration, find_books_with_undersized_generated_thumbnails,
 };
-use crate::search::index_lifecycle::SearchEntityType;
+use crate::search::SearchEntityType;
 use crate::task_queue::JobRuntime;
 use komga_application::task_processing::{RefreshBookMetadataPayload, TaskKind, TaskRequest};
 use komga_application::task_processing::{TaskExecutionOutcome, TaskProcessingError};

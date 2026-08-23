@@ -35,7 +35,7 @@ pub(in crate::search) fn search_text_field_options(class: SearchFieldClass) -> T
     )
 }
 
-pub(in crate::search) fn register_search_analyzer_profiles(index: &Index) {
+pub(in crate::search) fn register_search_analyzers(index: &Index) {
     for class in [
         SearchFieldClass::MultilingualFullText,
         SearchFieldClass::ExactTerm,

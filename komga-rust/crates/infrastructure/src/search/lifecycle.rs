@@ -5,9 +5,9 @@ use std::io::ErrorKind;
 use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 
-use super::analyzer_profiles::{
+use super::analyzers::{
     SearchFieldClass, build_query_time_analyzer, index_tokenizer_profile_name,
-    normalize_multilingual_width, register_search_analyzer_profiles, search_analyzer_version,
+    normalize_multilingual_width, register_search_analyzers, search_analyzer_version,
     search_text_field_options,
 };
 use tantivy::collector::TopDocs;
@@ -586,7 +586,7 @@ fn bootstrap_query_state(index_dir: &Path) -> Result<SearchQueryState, SearchErr
 
     let schema = build_schema();
     let index = open_or_create_index(index_dir, schema.clone())?;
-    register_search_analyzer_profiles(&index);
+    register_search_analyzers(&index);
     let fields = SearchFields::from_schema(&index.schema())?;
 
     let reader = index
@@ -602,7 +602,7 @@ fn bootstrap_query_state(index_dir: &Path) -> Result<SearchQueryState, SearchErr
 
 fn bootstrap_existing_query_state(index_dir: &Path) -> Result<SearchQueryState, SearchError> {
     let index = open_existing_runtime_index(index_dir)?;
-    register_search_analyzer_profiles(&index);
+    register_search_analyzers(&index);
     let fields = SearchFields::from_schema(&index.schema())?;
 
     let reader = index
@@ -885,4 +885,5 @@ fn write_current_analyzer_version_marker(index_dir: &Path) -> Result<(), SearchE
 }
 
 #[cfg(test)]
+#[path = "lifecycle_tests.rs"]
 mod tests;

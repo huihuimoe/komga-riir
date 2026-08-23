@@ -7,7 +7,6 @@ mod opds;
 mod operational;
 mod persistence;
 mod search;
-mod search_sync_adapter;
 mod shared;
 mod sql;
 mod task_enqueue_adapter;
@@ -47,10 +46,10 @@ pub use persistence::{
     shared_pool_snapshots_for_paths,
 };
 pub use search::{
-    SearchEntityType, SearchIndexLifecycle, SearchStartupLifecycle, decide_startup_lifecycle,
-    prepare_for_rebuild, rebuild_index_from_database, search_analyzer_version,
+    SearchEntityType, SearchIndexLifecycle, SearchStartupLifecycle, SearchSyncAdapter,
+    decide_startup_lifecycle, prepare_for_rebuild, rebuild_index_from_database,
+    search_analyzer_version,
 };
-pub use search_sync_adapter::SearchSyncAdapter;
 pub use task_enqueue_adapter::TaskEnqueueAdapter;
 pub use task_queue::{
     DatabaseRuntime, FilesystemRuntime, JobRuntime, RuntimeBackgroundState, SearchRuntime,

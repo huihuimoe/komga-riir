@@ -5,8 +5,8 @@ use crate::discovery::persisted::{facets, library_mappings, runtime_queries};
 use crate::discovery::records as persisted_models;
 use crate::discovery::{books::persistence as books, series::persistence as series};
 use crate::persistence::DatabaseHandle;
+use crate::search::SearchEntityType;
 use crate::search::engine::SearchIndexEngine;
-use crate::search::index_lifecycle::SearchEntityType;
 
 use komga_application::discovery::{
     BookReadModel, BookTagScope, BooksBrowseRequest, DiscoveryBrowseService, DiscoveryFacetService,

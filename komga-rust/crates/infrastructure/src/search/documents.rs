@@ -2,9 +2,7 @@ use anyhow::Context;
 use sqlx::Row;
 
 use crate::persistence::sqlite::codecs::parse_sqlite_group_concat_values;
-use crate::search::index_lifecycle::{
-    SearchDocument, SearchEntityType, SearchField, SearchFieldEntry,
-};
+use crate::search::lifecycle::{SearchDocument, SearchEntityType, SearchField, SearchFieldEntry};
 
 const AUTHOR_ROLE_DELIMITER: &str = "::";
 

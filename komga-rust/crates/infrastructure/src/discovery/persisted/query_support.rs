@@ -7,8 +7,8 @@ use komga_application::discovery::{
 };
 
 use crate::persistence::DatabaseHandle;
+use crate::search::SearchEntityType;
 use crate::search::engine::SearchIndexEngine;
-use crate::search::index_lifecycle::SearchEntityType;
 
 use super::{authors, library_mappings, runtime_queries};
 use crate::discovery::records as models;

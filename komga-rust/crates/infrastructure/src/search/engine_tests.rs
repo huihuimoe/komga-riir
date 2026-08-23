@@ -5,7 +5,7 @@ use sqlx::SqlitePool;
 
 use super::SearchIndexEngine;
 use crate::persistence::sqlite::connect_main_write_context;
-use crate::search::index_lifecycle::{
+use crate::search::lifecycle::{
     SearchDocument, SearchEntityType, SearchField, SearchFieldEntry, SearchIndexLifecycle,
 };
 
