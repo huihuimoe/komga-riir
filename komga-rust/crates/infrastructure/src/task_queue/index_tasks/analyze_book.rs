@@ -1,21 +1,21 @@
-use super::super::media_helpers::analyze_book_media_file;
-use super::super::media_helpers::media_updates::adjust_analyzed_book_read_progress;
 use super::super::runtime_context::JobRuntime;
 use super::book_analysis_persistence::{
     AnalyzedBookMedia, AnalyzedBookMediaFile, AnalyzedBookPage, analyze_book_input,
     persist_book_analysis,
 };
+use crate::media::analysis::analyze_book_media_file;
+use crate::media::maintenance::updates::adjust_analyzed_book_read_progress;
 use crate::resolve_library_item_path;
 use komga_application::task_processing::TaskProcessingError;
 use komga_domain::discovery::MediaStatus;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub(in crate::task_queue) struct AnalyzeBookOutcome {
+pub(crate) struct AnalyzeBookOutcome {
     pub(in crate::task_queue) series_id: String,
     pub(in crate::task_queue) media_status: Option<MediaStatus>,
 }
 
-pub(in crate::task_queue) async fn analyze_book(
+pub(crate) async fn analyze_book(
     runtime: &JobRuntime<'_>,
     book_id: &str,
 ) -> Result<AnalyzeBookOutcome, TaskProcessingError> {

@@ -3,11 +3,11 @@ use komga_application::task_processing::{
     TaskRequest,
 };
 
-use super::super::media_helpers::{
+use super::super::runtime_context::JobRuntime;
+use crate::media::maintenance::{
     HashedPageToDelete, find_books_with_missing_page_hash, find_duplicate_pages_to_delete,
     hash_book, hash_book_pages, load_library_hashing_flags, remove_hashed_pages,
 };
-use super::super::runtime_context::JobRuntime;
 
 pub(in crate::task_queue) async fn execute_hash_book_pages(
     runtime: &JobRuntime<'_>,
@@ -121,7 +121,7 @@ mod tests {
     use sqlx::{Row, SqlitePool};
     use std::io::Write;
 
-    use super::super::super::media_helpers::HashedPageToDelete;
+    use crate::media::maintenance::HashedPageToDelete;
 
     struct ZipFixturePageEntry {
         file_name: String,

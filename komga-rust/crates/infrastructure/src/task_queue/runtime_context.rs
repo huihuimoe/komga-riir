@@ -198,7 +198,7 @@ impl JobRuntime<'_> {
         self.runtime.thumbnail_regeneration_policy
     }
 
-    pub(in crate::task_queue) fn runtime_events(&self) -> &dyn RuntimeSseEventSink {
+    pub(crate) fn runtime_events(&self) -> &dyn RuntimeSseEventSink {
         self.runtime.runtime_events.as_ref()
     }
 
@@ -206,7 +206,7 @@ impl JobRuntime<'_> {
         self.runtime.runtime_events.clone()
     }
 
-    pub(in crate::task_queue) fn book_conversion_failed_before(&self, book_id: &str) -> bool {
+    pub(crate) fn book_conversion_failed_before(&self, book_id: &str) -> bool {
         self.runtime
             .runtime_state
             .failed_book_conversions
@@ -215,7 +215,7 @@ impl JobRuntime<'_> {
             .contains(book_id)
     }
 
-    pub(in crate::task_queue) fn mark_book_conversion_failed(&self, book_id: &str) {
+    pub(crate) fn mark_book_conversion_failed(&self, book_id: &str) {
         self.runtime
             .runtime_state
             .failed_book_conversions
@@ -224,7 +224,7 @@ impl JobRuntime<'_> {
             .insert(book_id.to_string());
     }
 
-    pub(in crate::task_queue) fn extension_repair_was_skipped(&self, book_id: &str) -> bool {
+    pub(crate) fn extension_repair_was_skipped(&self, book_id: &str) -> bool {
         self.runtime
             .runtime_state
             .skipped_extension_repairs
@@ -233,7 +233,7 @@ impl JobRuntime<'_> {
             .contains(book_id)
     }
 
-    pub(in crate::task_queue) fn mark_extension_repair_skipped(&self, book_id: &str) {
+    pub(crate) fn mark_extension_repair_skipped(&self, book_id: &str) {
         self.runtime
             .runtime_state
             .skipped_extension_repairs

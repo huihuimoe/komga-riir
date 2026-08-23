@@ -20,7 +20,6 @@ pub use discovery::{
     SqliteDiscoveryBrowseService,
 };
 pub use event_emitter_adapter::SseBookEventEmitter;
-pub use filesystem::{FilesystemBookImport, remove_file_after_release};
 pub use identity::{
     ClaimAccess, IdentityAccess, InitialBootstrapUserWriteModel, PersistedBootstrapUser,
     invalidate_user_sessions, list_persisted_user_emails, load_persisted_user_by_email,
@@ -28,8 +27,8 @@ pub use identity::{
     persisted_update_password_by_user_id, update_persisted_user_passwords,
 };
 pub use media::{
-    ContentResolver, MediaReader, ProgressWriter, SqliteBookMetadataPort, ThumbnailWriter,
-    ZipArchiveBuilder, generate_book_thumbnail,
+    ContentResolver, FilesystemBookImport, MediaReader, ProgressWriter, SqliteBookMetadataPort,
+    ThumbnailWriter, ZipArchiveBuilder, generate_book_thumbnail, remove_file_after_release,
 };
 pub use opds::{OpdsCatalogAccess, OpdsPersistedAccess};
 pub use operational::{

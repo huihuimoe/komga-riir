@@ -2,15 +2,15 @@ use komga_application::task_processing::TaskProcessingError;
 use std::io::ErrorKind;
 use tokio::fs;
 
-use super::super::super::runtime_context::JobRuntime;
-use super::super::archive_utils::{metadata_updated_unix_seconds, normalize_library_relative_url};
+use super::super::archive::{metadata_updated_unix_seconds, normalize_library_relative_url};
 use super::super::library_flags::load_library_maintenance_flags;
-use super::super::media_analysis::expected_extension_for_media_type;
-use super::super::media_queries::load_book_for_extension_repair;
-use super::super::media_updates::persist_book_extension_repair;
+use super::super::persistence::load_book_for_extension_repair;
+use super::super::updates::persist_book_extension_repair;
+use crate::media::analysis::expected_extension_for_media_type;
+use crate::task_queue::JobRuntime;
 use crate::{resolve_library_item_path, resolve_stored_path};
 
-pub(in crate::task_queue) async fn repair_extension(
+pub(crate) async fn repair_extension(
     runtime: &JobRuntime<'_>,
     book_id: &str,
 ) -> Result<(), TaskProcessingError> {

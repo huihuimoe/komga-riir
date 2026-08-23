@@ -266,6 +266,18 @@ impl MediaFileAnalyzer {
     }
 }
 
+pub(crate) fn analyze_book_media_file(
+    file_path: &Path,
+    analyze_dimensions: bool,
+) -> anyhow::Result<MediaFileAnalysis> {
+    MediaFileAnalyzer.analyze(
+        file_path,
+        MediaAnalysisProfile::PersistedBook {
+            include_dimensions: analyze_dimensions,
+        },
+    )
+}
+
 fn filesystem_error_code(error: &anyhow::Error) -> &'static str {
     error
         .chain()

@@ -1,5 +1,5 @@
 use super::JobRuntime;
-use crate::filesystem::FilesystemBookImport;
+use crate::FilesystemBookImport;
 use komga_application::media_assets::BookImportService;
 use komga_application::task_processing::{
     ImportBookPayload, TaskExecutionOutcome, TaskProcessingError,

@@ -6,22 +6,22 @@ use komga_application::task_processing::TaskProcessingError;
 use komga_domain::discovery::MediaStatus;
 use zip::ZipArchive;
 
-use super::super::super::index_tasks;
-use super::super::super::runtime_context::JobRuntime;
-use super::super::archive_utils::{
+use super::super::archive::{
     build_stored_zip_archive, load_rar_entries_for_conversion, metadata_updated_unix_seconds,
     normalize_library_relative_url,
 };
-use super::super::media_analysis::is_rar_media_type;
-use super::super::media_queries::{
+use super::super::persistence::{
     PersistedBookToConvert, PersistedHashedPageToDelete, load_book_conversion_target,
     load_book_hashed_pages, load_books_to_convert, load_library_maintenance_flags,
 };
-use super::super::media_updates::{
+use super::super::updates::{
     BookPageHashWrite, persist_book_conversion, persist_book_conversion_events,
     persist_book_page_hashes,
 };
-use crate::filesystem::remove_file_after_release;
+use crate::media::analysis::is_rar_media_type;
+use crate::remove_file_after_release;
+use crate::task_queue::JobRuntime;
+use crate::task_queue::index_tasks;
 use crate::{resolve_library_item_path, resolve_stored_path};
 
 struct PreparedBookConversion {
@@ -55,7 +55,7 @@ fn restored_page_hashes(
         .collect()
 }
 
-pub(in crate::task_queue) async fn find_books_to_convert(
+pub(crate) async fn find_books_to_convert(
     runtime: &JobRuntime<'_>,
     library_id: &str,
 ) -> Result<Vec<PersistedBookToConvert>, TaskProcessingError> {
@@ -72,7 +72,7 @@ pub(in crate::task_queue) async fn find_books_to_convert(
         .map_err(TaskProcessingError::runtime)
 }
 
-pub(in crate::task_queue) async fn convert_book(
+pub(crate) async fn convert_book(
     runtime: &JobRuntime<'_>,
     book_id: &str,
 ) -> Result<(), TaskProcessingError> {

@@ -6,75 +6,75 @@ use komga_domain::discovery::MediaStatus;
 use komga_domain::media_assets::ThumbnailType;
 use sqlx::{Row, SqlitePool};
 
-use super::media_analysis::expected_extension_for_media_type;
+use crate::media::analysis::expected_extension_for_media_type;
 use crate::resolve_library_item_path;
 
 #[derive(Clone, Debug)]
-pub(in crate::task_queue) struct PersistedLibraryHashingFlags {
-    pub(in crate::task_queue) hash_files: bool,
-    pub(in crate::task_queue) hash_pages: bool,
-    pub(in crate::task_queue) hash_koreader: bool,
+pub(crate) struct PersistedLibraryHashingFlags {
+    pub(crate) hash_files: bool,
+    pub(crate) hash_pages: bool,
+    pub(crate) hash_koreader: bool,
 }
 
 #[derive(Clone, Debug)]
-pub(in crate::task_queue) struct PersistedLibraryMaintenanceFlags {
-    pub(in crate::task_queue) repair_extensions: bool,
-    pub(in crate::task_queue) convert_to_cbz: bool,
+pub(crate) struct PersistedLibraryMaintenanceFlags {
+    pub(crate) repair_extensions: bool,
+    pub(crate) convert_to_cbz: bool,
 }
 
-pub(in crate::task_queue) struct PersistedBookHashRuntimeState {
-    pub(in crate::task_queue) library_id: String,
-    pub(in crate::task_queue) file_hash: Option<String>,
-    pub(in crate::task_queue) file_hash_koreader: Option<String>,
-}
-
-#[derive(Clone, Debug)]
-pub(in crate::task_queue) struct PersistedBookArchiveSource {
-    pub(in crate::task_queue) file_path: PathBuf,
-    pub(in crate::task_queue) series_id: String,
-    pub(in crate::task_queue) file_last_modified: i64,
-    pub(in crate::task_queue) media_type: String,
-    pub(in crate::task_queue) media_status: Option<MediaStatus>,
+pub(crate) struct PersistedBookHashRuntimeState {
+    pub(crate) library_id: String,
+    pub(crate) file_hash: Option<String>,
+    pub(crate) file_hash_koreader: Option<String>,
 }
 
 #[derive(Clone, Debug)]
-pub(in crate::task_queue) struct PersistedExtensionRepairTarget {
-    pub(in crate::task_queue) book_id: String,
-    pub(in crate::task_queue) series_id: String,
-    pub(in crate::task_queue) library_id: String,
-    pub(in crate::task_queue) book_url: String,
-    pub(in crate::task_queue) library_root: String,
-    pub(in crate::task_queue) media_type: String,
+pub(crate) struct PersistedBookArchiveSource {
+    pub(crate) file_path: PathBuf,
+    pub(crate) series_id: String,
+    pub(crate) file_last_modified: i64,
+    pub(crate) media_type: String,
+    pub(crate) media_status: Option<MediaStatus>,
 }
 
 #[derive(Clone, Debug)]
-pub(in crate::task_queue) struct PersistedConversionTarget {
-    pub(in crate::task_queue) book_url: String,
-    pub(in crate::task_queue) series_id: String,
-    pub(in crate::task_queue) library_id: String,
-    pub(in crate::task_queue) library_root: String,
-    pub(in crate::task_queue) file_last_modified: i64,
-    pub(in crate::task_queue) convert_to_cbz: bool,
-    pub(in crate::task_queue) media_type: String,
-    pub(in crate::task_queue) media_status: Option<MediaStatus>,
+pub(crate) struct PersistedExtensionRepairTarget {
+    pub(crate) book_id: String,
+    pub(crate) series_id: String,
+    pub(crate) library_id: String,
+    pub(crate) book_url: String,
+    pub(crate) library_root: String,
+    pub(crate) media_type: String,
+}
+
+#[derive(Clone, Debug)]
+pub(crate) struct PersistedConversionTarget {
+    pub(crate) book_url: String,
+    pub(crate) series_id: String,
+    pub(crate) library_id: String,
+    pub(crate) library_root: String,
+    pub(crate) file_last_modified: i64,
+    pub(crate) convert_to_cbz: bool,
+    pub(crate) media_type: String,
+    pub(crate) media_status: Option<MediaStatus>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub(in crate::task_queue) struct PersistedBookToConvert {
-    pub(in crate::task_queue) book_id: String,
-    pub(in crate::task_queue) series_id: String,
+pub(crate) struct PersistedBookToConvert {
+    pub(crate) book_id: String,
+    pub(crate) series_id: String,
 }
 
 #[derive(Clone, Debug)]
-pub(in crate::task_queue) struct PersistedHashedPageToDelete {
-    pub(in crate::task_queue) file_hash: String,
-    pub(in crate::task_queue) file_size: i64,
-    pub(in crate::task_queue) file_name: String,
-    pub(in crate::task_queue) media_type: String,
-    pub(in crate::task_queue) page_number: i64,
+pub(crate) struct PersistedHashedPageToDelete {
+    pub(crate) file_hash: String,
+    pub(crate) file_size: i64,
+    pub(crate) file_name: String,
+    pub(crate) media_type: String,
+    pub(crate) page_number: i64,
 }
 
-pub(in crate::task_queue) async fn load_book_hashed_pages(
+pub(crate) async fn load_book_hashed_pages(
     pool: &SqlitePool,
     book_id: &str,
 ) -> anyhow::Result<Vec<PersistedHashedPageToDelete>> {
@@ -110,7 +110,7 @@ pub(in crate::task_queue) async fn load_book_hashed_pages(
         .collect())
 }
 
-pub(in crate::task_queue) async fn load_library_hashing_flags(
+pub(crate) async fn load_library_hashing_flags(
     pool: &SqlitePool,
     library_id: &str,
 ) -> anyhow::Result<PersistedLibraryHashingFlags> {
@@ -147,7 +147,7 @@ pub(in crate::task_queue) async fn load_library_hashing_flags(
     })
 }
 
-pub(in crate::task_queue) async fn load_library_maintenance_flags(
+pub(crate) async fn load_library_maintenance_flags(
     pool: &SqlitePool,
     library_id: &str,
 ) -> anyhow::Result<PersistedLibraryMaintenanceFlags> {
@@ -182,7 +182,7 @@ pub(in crate::task_queue) async fn load_library_maintenance_flags(
     })
 }
 
-pub(in crate::task_queue) async fn load_book_library_id(
+pub(crate) async fn load_book_library_id(
     pool: &SqlitePool,
     book_id: &str,
 ) -> anyhow::Result<Option<String>> {
@@ -204,7 +204,7 @@ pub(in crate::task_queue) async fn load_book_library_id(
     Ok(row.map(|row| row.get::<String, _>("LIBRARY_ID")))
 }
 
-pub(in crate::task_queue) async fn load_book_hash_runtime_state(
+pub(crate) async fn load_book_hash_runtime_state(
     pool: &SqlitePool,
     book_id: &str,
 ) -> anyhow::Result<Option<PersistedBookHashRuntimeState>> {
@@ -234,7 +234,7 @@ pub(in crate::task_queue) async fn load_book_hash_runtime_state(
     }))
 }
 
-pub(in crate::task_queue) async fn load_book_file_path(
+pub(crate) async fn load_book_file_path(
     pool: &SqlitePool,
     book_id: &str,
 ) -> anyhow::Result<Option<PathBuf>> {
@@ -266,9 +266,7 @@ pub(in crate::task_queue) async fn load_book_file_path(
     }))
 }
 
-pub(in crate::task_queue) async fn load_non_deleted_book_ids(
-    pool: &SqlitePool,
-) -> anyhow::Result<Vec<String>> {
+pub(crate) async fn load_non_deleted_book_ids(pool: &SqlitePool) -> anyhow::Result<Vec<String>> {
     let rows = sqlx::query(
         r#"
         SELECT b.ID
@@ -290,7 +288,7 @@ pub(in crate::task_queue) async fn load_non_deleted_book_ids(
         .collect())
 }
 
-pub(in crate::task_queue) async fn load_books_with_undersized_generated_thumbnails(
+pub(crate) async fn load_books_with_undersized_generated_thumbnails(
     pool: &SqlitePool,
     max_edge: i64,
 ) -> anyhow::Result<Vec<String>> {
@@ -319,7 +317,7 @@ pub(in crate::task_queue) async fn load_books_with_undersized_generated_thumbnai
         .collect())
 }
 
-pub(in crate::task_queue) async fn load_books_with_missing_page_hash(
+pub(crate) async fn load_books_with_missing_page_hash(
     pool: &SqlitePool,
     library_id: Option<&str>,
 ) -> anyhow::Result<Vec<String>> {
@@ -357,7 +355,7 @@ pub(in crate::task_queue) async fn load_books_with_missing_page_hash(
         .collect())
 }
 
-pub(in crate::task_queue) async fn load_duplicate_pages_to_delete(
+pub(crate) async fn load_duplicate_pages_to_delete(
     pool: &SqlitePool,
     library_id: &str,
 ) -> anyhow::Result<HashMap<String, Vec<PersistedHashedPageToDelete>>> {
@@ -419,7 +417,7 @@ pub(in crate::task_queue) async fn load_duplicate_pages_to_delete(
     Ok(by_book)
 }
 
-pub(in crate::task_queue) async fn load_books_requiring_analysis(
+pub(crate) async fn load_books_requiring_analysis(
     pool: &SqlitePool,
     book_ids: &[String],
 ) -> anyhow::Result<Vec<String>> {
@@ -462,7 +460,7 @@ pub(in crate::task_queue) async fn load_books_requiring_analysis(
     Ok(result)
 }
 
-pub(in crate::task_queue) async fn load_books_with_missing_file_hash(
+pub(crate) async fn load_books_with_missing_file_hash(
     pool: &SqlitePool,
     library_id: &str,
     koreader: bool,
@@ -505,7 +503,7 @@ pub(in crate::task_queue) async fn load_books_with_missing_file_hash(
         .collect())
 }
 
-pub(in crate::task_queue) async fn load_books_to_convert(
+pub(crate) async fn load_books_to_convert(
     pool: &SqlitePool,
     library_id: &str,
 ) -> anyhow::Result<Vec<PersistedBookToConvert>> {
@@ -540,7 +538,7 @@ pub(in crate::task_queue) async fn load_books_to_convert(
         .collect())
 }
 
-pub(in crate::task_queue) async fn load_book_conversion_target(
+pub(crate) async fn load_book_conversion_target(
     pool: &SqlitePool,
     book_id: &str,
 ) -> anyhow::Result<Option<PersistedConversionTarget>> {
@@ -583,7 +581,7 @@ pub(in crate::task_queue) async fn load_book_conversion_target(
     }))
 }
 
-pub(in crate::task_queue) async fn load_books_for_extension_repair(
+pub(crate) async fn load_books_for_extension_repair(
     pool: &SqlitePool,
     library_id: &str,
 ) -> anyhow::Result<Vec<PersistedExtensionRepairTarget>> {
@@ -636,7 +634,7 @@ pub(in crate::task_queue) async fn load_books_for_extension_repair(
         .collect())
 }
 
-pub(in crate::task_queue) async fn load_book_for_extension_repair(
+pub(crate) async fn load_book_for_extension_repair(
     pool: &SqlitePool,
     book_id: &str,
 ) -> anyhow::Result<Option<PersistedExtensionRepairTarget>> {
@@ -676,7 +674,7 @@ pub(in crate::task_queue) async fn load_book_for_extension_repair(
     }))
 }
 
-pub(in crate::task_queue) async fn load_book_archive_source(
+pub(crate) async fn load_book_archive_source(
     pool: &SqlitePool,
     book_id: &str,
 ) -> anyhow::Result<Option<PersistedBookArchiveSource>> {

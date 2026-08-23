@@ -7,7 +7,7 @@ use sqlx::{Row, Sqlite, SqlitePool};
 
 use crate::random_hex_token;
 
-use super::media_queries::PersistedHashedPageToDelete;
+use super::persistence::PersistedHashedPageToDelete;
 
 #[derive(Clone)]
 struct BookSseContext {
@@ -16,9 +16,9 @@ struct BookSseContext {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub(in crate::task_queue) struct BookPageHashWrite {
-    pub(in crate::task_queue) page_number: i64,
-    pub(in crate::task_queue) file_hash: String,
+pub(crate) struct BookPageHashWrite {
+    pub(crate) page_number: i64,
+    pub(crate) file_hash: String,
 }
 
 fn emit_book_changed(
@@ -53,7 +53,7 @@ async fn load_book_sse_context(
         })
 }
 
-pub(in crate::task_queue) async fn persist_book_hash(
+pub(crate) async fn persist_book_hash(
     pool: &SqlitePool,
     book_id: &str,
     hash: &str,
@@ -87,7 +87,7 @@ pub(in crate::task_queue) async fn persist_book_hash(
     Ok(())
 }
 
-pub(in crate::task_queue) async fn persist_removed_hashed_pages(
+pub(crate) async fn persist_removed_hashed_pages(
     pool: &SqlitePool,
     runtime_events: &dyn RuntimeSseEventSink,
     book_id: &str,
@@ -157,7 +157,7 @@ pub(in crate::task_queue) async fn persist_removed_hashed_pages(
     Ok(())
 }
 
-pub(in crate::task_queue) async fn persist_book_extension_repair(
+pub(crate) async fn persist_book_extension_repair(
     pool: &SqlitePool,
     book_id: &str,
     library_id: &str,
@@ -226,7 +226,7 @@ pub(in crate::task_queue) async fn persist_book_extension_repair(
     clippy::too_many_arguments,
     reason = "This persistence boundary writes the converted book file fields directly."
 )]
-pub(in crate::task_queue) async fn persist_book_conversion(
+pub(crate) async fn persist_book_conversion(
     pool: &SqlitePool,
     runtime_events: &dyn RuntimeSseEventSink,
     book_id: &str,
@@ -317,7 +317,7 @@ pub(in crate::task_queue) async fn persist_book_conversion(
     Ok(())
 }
 
-pub(in crate::task_queue) async fn adjust_analyzed_book_read_progress(
+pub(crate) async fn adjust_analyzed_book_read_progress(
     pool: &SqlitePool,
     book_id: &str,
     series_id: &str,
@@ -400,7 +400,7 @@ pub(in crate::task_queue) async fn adjust_analyzed_book_read_progress(
     Ok(())
 }
 
-pub(in crate::task_queue) async fn persist_book_conversion_events(
+pub(crate) async fn persist_book_conversion_events(
     pool: &SqlitePool,
     book_id: &str,
     series_id: &str,
@@ -464,7 +464,7 @@ pub(in crate::task_queue) async fn persist_book_conversion_events(
     Ok(())
 }
 
-pub(in crate::task_queue) async fn persist_book_page_hashes(
+pub(crate) async fn persist_book_page_hashes(
     pool: &SqlitePool,
     book_id: &str,
     page_hashes: &[BookPageHashWrite],
@@ -503,7 +503,7 @@ pub(in crate::task_queue) async fn persist_book_page_hashes(
     Ok(())
 }
 
-pub(in crate::task_queue) async fn persist_duplicate_page_deleted_events(
+pub(crate) async fn persist_duplicate_page_deleted_events(
     pool: &SqlitePool,
     book_id: &str,
     series_id: &str,

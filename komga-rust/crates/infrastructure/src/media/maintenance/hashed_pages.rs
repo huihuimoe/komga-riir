@@ -7,26 +7,24 @@ use komga_application::task_processing::{HashedPageToDeletePayload, TaskProcessi
 use komga_domain::discovery::MediaStatus;
 use zip::ZipArchive;
 
-use super::super::index_tasks;
-use super::super::runtime_context::JobRuntime;
-use super::archive_utils::{
-    StoredArchiveEntry, build_stored_zip_archive, metadata_updated_unix_seconds,
-};
-use super::media_analysis::{is_supported_page_image_file_name, media_type_from_entry_name};
-use super::media_queries::{
+use super::archive::{StoredArchiveEntry, build_stored_zip_archive, metadata_updated_unix_seconds};
+use super::persistence::{
     PersistedHashedPageToDelete, load_book_archive_source as load_persisted_book_archive_source,
     load_book_hashed_pages as load_persisted_book_hashed_pages,
 };
-use super::media_updates::{persist_duplicate_page_deleted_events, persist_removed_hashed_pages};
+use super::updates::{persist_duplicate_page_deleted_events, persist_removed_hashed_pages};
+use crate::media::analysis::{is_supported_page_image_file_name, media_type_from_entry_name};
+use crate::task_queue::JobRuntime;
+use crate::task_queue::index_tasks;
 
-pub(in crate::task_queue) type HashedPageToDelete = HashedPageToDeletePayload;
+pub(crate) type HashedPageToDelete = HashedPageToDeletePayload;
 
-pub(in crate::task_queue) struct BookArchiveSource {
-    pub(in crate::task_queue) file_path: PathBuf,
-    pub(in crate::task_queue) series_id: String,
-    pub(in crate::task_queue) file_last_modified: i64,
-    pub(in crate::task_queue) media_type: String,
-    pub(in crate::task_queue) media_status: Option<MediaStatus>,
+pub(crate) struct BookArchiveSource {
+    pub(crate) file_path: PathBuf,
+    pub(crate) series_id: String,
+    pub(crate) file_last_modified: i64,
+    pub(crate) media_type: String,
+    pub(crate) media_status: Option<MediaStatus>,
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -35,7 +33,7 @@ struct BookFileMetadata {
     file_size: i64,
 }
 
-pub(in crate::task_queue) async fn remove_hashed_pages(
+pub(crate) async fn remove_hashed_pages(
     runtime: &JobRuntime<'_>,
     book_id: &str,
     pages: &[HashedPageToDelete],
@@ -176,7 +174,7 @@ fn load_book_file_metadata(
     })
 }
 
-pub(in crate::task_queue) async fn load_book_archive_source(
+pub(crate) async fn load_book_archive_source(
     runtime: &JobRuntime<'_>,
     book_id: &str,
 ) -> Result<Option<BookArchiveSource>, TaskProcessingError> {
@@ -233,7 +231,7 @@ fn matching_hashed_pages_to_remove(
         .collect()
 }
 
-pub(in crate::task_queue) fn rewrite_zip_book_without_pages(
+pub(crate) fn rewrite_zip_book_without_pages(
     archive_path: &PathBuf,
     pages_to_delete: &[HashedPageToDelete],
 ) -> Result<Vec<HashedPageToDelete>, TaskProcessingError> {

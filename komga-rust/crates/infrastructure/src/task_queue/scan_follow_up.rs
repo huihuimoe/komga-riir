@@ -6,11 +6,11 @@ use komga_application::task_processing::{
 };
 use sqlx::SqlitePool;
 
-use super::media_helpers::media_queries::{
+use super::scanner_support::{LibraryScanResult, enqueue_sidecar_refresh_tasks};
+use crate::media::maintenance::persistence::{
     load_books_for_extension_repair, load_books_requiring_analysis,
     load_books_with_missing_file_hash, load_library_hashing_flags, load_library_maintenance_flags,
 };
-use super::scanner_support::{LibraryScanResult, enqueue_sidecar_refresh_tasks};
 
 pub(in crate::task_queue) struct ScanFollowUpPlanner {
     pool: SqlitePool,

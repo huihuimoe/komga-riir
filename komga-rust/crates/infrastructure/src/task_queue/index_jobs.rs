@@ -1,8 +1,8 @@
-use crate::search::index_lifecycle::SearchEntityType;
-use crate::task_queue::JobRuntime;
-use crate::task_queue::media_helpers::{
+use crate::media::maintenance::{
     find_books_for_thumbnail_regeneration, find_books_with_undersized_generated_thumbnails,
 };
+use crate::search::index_lifecycle::SearchEntityType;
+use crate::task_queue::JobRuntime;
 use komga_application::task_processing::{RefreshBookMetadataPayload, TaskKind, TaskRequest};
 use komga_application::task_processing::{TaskExecutionOutcome, TaskProcessingError};
 use komga_domain::discovery::MediaStatus;
@@ -509,13 +509,10 @@ mod tests {
     }
 
     fn analyzed_fixture_page_count(file_name: &str, _book_url: &str) -> i64 {
-        super::super::media_helpers::analyze_book_media_file(
-            &archive_fixture_path(file_name),
-            false,
-        )
-        .expect("analyze-book fixture should be analyzable")
-        .pages
-        .len() as i64
+        crate::media::analysis::analyze_book_media_file(&archive_fixture_path(file_name), false)
+            .expect("analyze-book fixture should be analyzable")
+            .pages
+            .len() as i64
     }
 
     #[tokio::test]

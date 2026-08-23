@@ -2,8 +2,8 @@ use komga_application::task_processing::{
     BookPayload, TaskExecutionOutcome, TaskKind, TaskProcessingError, TaskRequest,
 };
 
-use super::super::media_helpers::{convert_book, find_books_to_convert, repair_extension};
 use super::super::runtime_context::JobRuntime;
+use crate::media::maintenance::{convert_book, find_books_to_convert, repair_extension};
 
 pub(in crate::task_queue) async fn execute_repair_extension(
     runtime: &JobRuntime<'_>,

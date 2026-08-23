@@ -6,7 +6,7 @@ use komga_application::task_processing::TaskProcessingError;
 
 use crate::media::formats::rar::read_rar_entries_bytes;
 
-pub(in crate::task_queue) fn normalize_library_relative_url(
+pub(crate) fn normalize_library_relative_url(
     library_root: &PathBuf,
     absolute_path: &Path,
 ) -> Result<String, TaskProcessingError> {
@@ -20,12 +20,12 @@ pub(in crate::task_queue) fn normalize_library_relative_url(
     Ok(relative.to_string_lossy().replace('\\', "/"))
 }
 
-pub(in crate::task_queue) struct StoredArchiveEntry {
-    pub(in crate::task_queue) file_name: String,
-    pub(in crate::task_queue) bytes: Vec<u8>,
+pub(crate) struct StoredArchiveEntry {
+    pub(crate) file_name: String,
+    pub(crate) bytes: Vec<u8>,
 }
 
-pub(in crate::task_queue) fn load_rar_entries_for_conversion(
+pub(crate) fn load_rar_entries_for_conversion(
     source_path: &Path,
 ) -> Result<Vec<StoredArchiveEntry>, TaskProcessingError> {
     read_rar_entries_bytes(source_path)
@@ -41,7 +41,7 @@ pub(in crate::task_queue) fn load_rar_entries_for_conversion(
         })
 }
 
-pub(in crate::task_queue) fn build_stored_zip_archive(
+pub(crate) fn build_stored_zip_archive(
     entries: Vec<StoredArchiveEntry>,
 ) -> Result<Vec<u8>, TaskProcessingError> {
     let mut payload = Vec::new();
@@ -118,7 +118,7 @@ pub(in crate::task_queue) fn build_stored_zip_archive(
     Ok(payload)
 }
 
-pub(in crate::task_queue) fn crc32_ieee(bytes: &[u8]) -> u32 {
+pub(crate) fn crc32_ieee(bytes: &[u8]) -> u32 {
     let mut crc = 0xffff_ffffu32;
     for &byte in bytes {
         crc ^= byte as u32;
@@ -133,11 +133,11 @@ pub(in crate::task_queue) fn crc32_ieee(bytes: &[u8]) -> u32 {
     !crc
 }
 
-pub(in crate::task_queue) fn push_u16_le(buffer: &mut Vec<u8>, value: u16) {
+pub(crate) fn push_u16_le(buffer: &mut Vec<u8>, value: u16) {
     buffer.extend_from_slice(&value.to_le_bytes());
 }
 
-pub(in crate::task_queue) fn push_u32_le(buffer: &mut Vec<u8>, value: u32) {
+pub(crate) fn push_u32_le(buffer: &mut Vec<u8>, value: u32) {
     buffer.extend_from_slice(&value.to_le_bytes());
 }
 
@@ -162,7 +162,7 @@ fn to_unix_seconds(time: std::time::SystemTime, path: &Path) -> anyhow::Result<i
     }
 }
 
-pub(in crate::task_queue) fn metadata_updated_unix_seconds(
+pub(crate) fn metadata_updated_unix_seconds(
     metadata: &fs::Metadata,
     path: &Path,
 ) -> anyhow::Result<i64> {

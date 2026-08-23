@@ -1,22 +1,22 @@
 use komga_application::task_processing::TaskProcessingError;
 
-use super::super::runtime_context::JobRuntime;
-use super::media_queries::{
+use super::persistence::{
     load_library_hashing_flags as load_persisted_library_hashing_flags,
     load_library_maintenance_flags as load_persisted_library_maintenance_flags,
 };
+use crate::task_queue::JobRuntime;
 
-pub(in crate::task_queue) struct LibraryHashingFlags {
-    pub(in crate::task_queue) hash_files: bool,
-    pub(in crate::task_queue) hash_pages: bool,
-    pub(in crate::task_queue) hash_koreader: bool,
+pub(crate) struct LibraryHashingFlags {
+    pub(crate) hash_files: bool,
+    pub(crate) hash_pages: bool,
+    pub(crate) hash_koreader: bool,
 }
 
-pub(in crate::task_queue) struct LibraryMaintenanceFlags {
-    pub(in crate::task_queue) repair_extensions: bool,
+pub(crate) struct LibraryMaintenanceFlags {
+    pub(crate) repair_extensions: bool,
 }
 
-pub(in crate::task_queue) async fn load_library_hashing_flags(
+pub(crate) async fn load_library_hashing_flags(
     runtime: &JobRuntime<'_>,
     library_id: &str,
 ) -> Result<LibraryHashingFlags, TaskProcessingError> {
@@ -31,7 +31,7 @@ pub(in crate::task_queue) async fn load_library_hashing_flags(
     })
 }
 
-pub(in crate::task_queue) async fn load_library_maintenance_flags(
+pub(crate) async fn load_library_maintenance_flags(
     runtime: &JobRuntime<'_>,
     library_id: &str,
 ) -> Result<LibraryMaintenanceFlags, TaskProcessingError> {
