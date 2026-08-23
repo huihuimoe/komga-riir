@@ -12,8 +12,7 @@ mod filesystem;
 mod identity;
 mod media_reader;
 mod metadata;
-mod opds_catalog_access;
-mod opds_persisted_access;
+mod opds;
 mod operational;
 mod persistence;
 mod progress_writer;
@@ -44,8 +43,7 @@ pub use identity::{
 };
 pub use media_reader::MediaReader;
 pub use metadata::{SqliteBookMetadataPort, generate_book_thumbnail};
-pub use opds_catalog_access::OpdsCatalogAccess;
-pub use opds_persisted_access::OpdsPersistedAccess;
+pub use opds::{OpdsCatalogAccess, OpdsPersistedAccess};
 pub use operational::{
     ActuatorSnapshotAccess, AnnouncementAccess, ClientSettingsAccess, FilesystemBrowseAccess,
     FontAccess, HistoryAccess, OperationalMetricsAccess, PageHashAccess, RememberMeRuntimeSettings,

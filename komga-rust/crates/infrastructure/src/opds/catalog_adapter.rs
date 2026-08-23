@@ -3,13 +3,15 @@ use std::collections::HashSet;
 use sqlx::{Row, SqlitePool};
 
 use crate::persistence::DatabaseHandle;
-use crate::persistence::sqlite::codecs::{clamp_kotlin_int_u32, parse_sqlite_group_concat_values};
+use crate::persistence::sqlite::codecs::clamp_kotlin_int_u32;
 use komga_application::opds::{
     BrowsePublisherEntry, BrowseSeriesNavigationEntry, BrowseSeriesNavigationPage,
     OpdsBookAuthorEntry, OpdsBookFeedEntry, OpdsBookFeedKind, OpdsBookFeedQuery,
     OpdsBrowseCatalogPort, OpdsFeedCatalogPort, OpdsFeedUserContext, OpdsLatestSeriesFeedQuery,
     OpdsLibrarySeriesQuery, OpdsPagedBooks, OpdsPagedSeries, OpdsSeriesEntry, OpdsSeriesFeedPage,
 };
+
+use super::records::{parsed_age_rating, parsed_book_tags, parsed_sharing_labels};
 
 #[derive(Clone)]
 pub struct OpdsCatalogAccess {
@@ -105,18 +107,9 @@ impl OpdsBrowseCatalogPort for OpdsCatalogAccess {
     }
 }
 
-fn parsed_age_rating(row: &sqlx::sqlite::SqliteRow) -> Option<u32> {
-    row.get::<Option<i64>, _>("AGE_RATING")
-        .map(clamp_kotlin_int_u32)
-}
-
 fn optional_non_empty_string(row: &sqlx::sqlite::SqliteRow, column: &str) -> Option<String> {
     let value = row.get::<String, _>(column);
     (!value.is_empty()).then_some(value)
-}
-
-fn parsed_sharing_labels(row: &sqlx::sqlite::SqliteRow) -> Vec<String> {
-    parse_sqlite_group_concat_values(&row.get::<String, _>("SHARING_LABELS"))
 }
 
 fn parsed_book_authors(row: &sqlx::sqlite::SqliteRow) -> Vec<OpdsBookAuthorEntry> {
@@ -130,15 +123,6 @@ fn parsed_book_authors(row: &sqlx::sqlite::SqliteRow) -> Vec<OpdsBookAuthorEntry
             OpdsBookAuthorEntry { name, role }
         })
         .filter(|author| !author.name.is_empty())
-        .collect()
-}
-
-fn parsed_book_tags(row: &sqlx::sqlite::SqliteRow) -> Vec<String> {
-    row.get::<String, _>("TAGS")
-        .split('')
-        .map(str::trim)
-        .filter(|value| !value.is_empty())
-        .map(str::to_string)
         .collect()
 }
 

@@ -19,15 +19,12 @@ use crate::persistence::DatabaseHandle;
 use crate::search::engine::SearchIndexEngine;
 use crate::search::index_lifecycle::SearchEntityType;
 
-mod collections;
-mod records;
-
-use collections::unicode_collation_sort_key;
-use collections::{
+use super::collections::unicode_collation_sort_key;
+use super::collections::{
     load_collection, load_collection_books, load_collection_series, load_collections,
     load_publishers,
 };
-use records::{
+use super::records::{
     parsed_age_rating, parsed_book_author_records, parsed_book_tags, parsed_sharing_labels,
     placeholder_list,
 };
