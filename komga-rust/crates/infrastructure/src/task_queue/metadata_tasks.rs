@@ -13,7 +13,7 @@ pub(super) async fn refresh_book_metadata(
         return Ok(None);
     }
 
-    let outcome = crate::metadata::refresh_book_metadata(
+    let outcome = crate::media::metadata::refresh_book_metadata(
         runtime.database().write_pool(),
         runtime.runtime_events(),
         book_id,
@@ -45,7 +45,7 @@ pub(super) async fn refresh_series_metadata(
         return Ok(());
     }
 
-    crate::metadata::refresh_series_metadata(
+    crate::media::metadata::refresh_series_metadata(
         runtime.database().write_pool(),
         runtime.runtime_events(),
         series_id,
@@ -70,7 +70,7 @@ pub(super) async fn aggregate_series_metadata(
         return Ok(());
     }
 
-    crate::metadata::aggregate_series_metadata(
+    crate::media::metadata::aggregate_series_metadata(
         runtime.database().write_pool(),
         runtime.runtime_events(),
         series_id,
@@ -95,7 +95,7 @@ pub(super) async fn refresh_book_local_artwork(
         return Ok(());
     }
 
-    crate::metadata::refresh_book_local_artwork(
+    crate::media::metadata::refresh_book_local_artwork(
         runtime.database().write_pool(),
         runtime.runtime_events(),
         book_id,
@@ -112,7 +112,7 @@ pub(super) async fn generate_book_thumbnail(
         return Ok(());
     }
 
-    crate::metadata::generate_book_thumbnail(
+    crate::media::metadata::generate_book_thumbnail(
         runtime.database().write_pool(),
         runtime.runtime_events(),
         book_id,
@@ -130,7 +130,7 @@ pub(super) async fn refresh_series_local_artwork(
         return Ok(());
     }
 
-    crate::metadata::refresh_series_local_artwork(
+    crate::media::metadata::refresh_series_local_artwork(
         runtime.database().write_pool(),
         runtime.runtime_events(),
         series_id,

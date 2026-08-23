@@ -6,7 +6,7 @@ use zip::ZipArchive;
 use zip::result::ZipError;
 
 use super::{TransientMetadataInference, epub};
-use crate::metadata::{
+use crate::media::metadata::{
     infer_transient_comicinfo_provider_metadata, infer_transient_epub_provider_metadata,
     load_comicinfo_bytes_from_path,
 };
@@ -61,7 +61,7 @@ fn merge_transient_metadata_inference(
 }
 
 fn transient_metadata_inference_from_provider(
-    provider_inference: crate::metadata::TransientMetadataProviderInference,
+    provider_inference: crate::media::metadata::TransientMetadataProviderInference,
 ) -> TransientMetadataInference {
     TransientMetadataInference {
         series_titles: provider_inference.series_titles,

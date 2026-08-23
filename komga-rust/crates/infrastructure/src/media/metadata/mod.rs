@@ -2,6 +2,7 @@ mod book_metadata;
 mod comicinfo;
 mod read_progress;
 mod refresh;
+mod thumbnail_writer;
 mod thumbnails;
 
 pub use book_metadata::SqliteBookMetadataPort;
@@ -21,6 +22,7 @@ pub(crate) use refresh::{
     refresh_book_local_artwork, refresh_book_metadata, refresh_series_local_artwork,
     refresh_series_metadata,
 };
+pub use thumbnail_writer::ThumbnailWriter;
 pub(crate) use thumbnails::{
     delete_book_thumbnail, delete_collection_thumbnail, delete_readlist_thumbnail,
     delete_series_thumbnail, insert_book_thumbnail, insert_collection_thumbnail,

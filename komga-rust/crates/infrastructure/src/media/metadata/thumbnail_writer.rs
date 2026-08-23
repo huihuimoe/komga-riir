@@ -6,7 +6,7 @@ use komga_application::runtime_sse::RuntimeSseEventSink;
 use sqlx::SqlitePool;
 use std::sync::Arc;
 
-use crate::metadata;
+use crate::media::metadata;
 
 /// Write operations for thumbnails across all entity types (book, series, readlist, collection).
 /// Pure DB writes with no orchestration — side effects (SSE events) are emitted by the

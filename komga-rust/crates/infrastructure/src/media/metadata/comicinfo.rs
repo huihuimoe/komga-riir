@@ -551,7 +551,7 @@ mod tests {
         let path = unique_temp_path("komga-comicinfo-rar", "rar");
         fs::write(
             &path,
-            include_bytes!("../../../../sample/ComicInfo_duplicateInfos.rar"),
+            include_bytes!("../../../../../sample/ComicInfo_duplicateInfos.rar"),
         )
         .expect("RAR fixture should be copied");
 
