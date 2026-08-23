@@ -9,7 +9,10 @@ use komga_application::operational::{
 use rusqlite::{Connection, params};
 
 use crate::random_hex_token;
-use crate::sqlite::write_models::server_settings::ServerSettingsStore;
+
+mod store;
+
+pub use store::ServerSettingsStore;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct RememberMeRuntimeSettings {

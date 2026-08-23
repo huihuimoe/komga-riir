@@ -71,7 +71,7 @@ impl ServerSettingsPort for ServerSettingsStore {
     }
 
     async fn load_settings(&self) -> anyhow::Result<PersistedServerSettings> {
-        crate::operational::load_server_settings(self)
+        super::load_server_settings(self)
             .await
             .map_err(|e| anyhow::anyhow!(e).context("load server settings"))
     }

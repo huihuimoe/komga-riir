@@ -5,11 +5,14 @@ use komga_application::operational::{
 };
 
 use crate::persistence::DatabaseHandle;
-use crate::sqlite::read_models::page_hashes::{
+use persistence::{
     load_page_hash_delete_targets, load_page_hash_matches_page, load_page_hashes_page,
     load_page_hashes_unknown_page,
 };
 
+mod action;
+mod mutation;
+mod persistence;
 mod thumbnails;
 
 #[derive(Clone)]

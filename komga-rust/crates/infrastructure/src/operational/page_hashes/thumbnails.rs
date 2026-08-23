@@ -12,6 +12,11 @@ use sqlx::SqlitePool;
 use std::io::Cursor;
 use zip::ZipArchive;
 
+use super::mutation::upsert_page_hash as upsert_page_hash_model;
+use super::persistence::{
+    load_page_hash_thumbnail as load_page_hash_thumbnail_model,
+    load_unknown_page_hash_match_target, load_unknown_page_hash_source,
+};
 use crate::filesystem::media_access::db_queries::{
     load_persisted_book_media, load_persisted_book_page_row,
 };
@@ -20,11 +25,6 @@ use crate::filesystem::media_access::page_content::{
 };
 use crate::rar_support::read_rar_entry_bytes;
 use crate::resolve_library_item_path;
-use crate::sqlite::read_models::page_hashes::{
-    load_page_hash_thumbnail as load_page_hash_thumbnail_model,
-    load_unknown_page_hash_match_target, load_unknown_page_hash_source,
-};
-use crate::sqlite::write_models::page_hashes::upsert_page_hash as upsert_page_hash_model;
 use std::path::Path;
 
 const KOTLIN_PDF_MIN_EDGE: u32 = 3200;

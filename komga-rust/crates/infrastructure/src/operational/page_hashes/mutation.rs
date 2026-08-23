@@ -1,7 +1,7 @@
 use komga_application::operational::PageHashUpsertCommand;
 use sqlx::SqlitePool;
 
-use super::super::page_hash_action::persisted_page_hash_action;
+use super::action::persisted_page_hash_action;
 
 pub(crate) async fn upsert_page_hash(
     pool: &SqlitePool,

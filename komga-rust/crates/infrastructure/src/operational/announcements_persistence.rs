@@ -1,13 +1,23 @@
-use sqlx::SqlitePool;
-
-use crate::sqlite::read_models::announcements::load_announcement_read_ids as load_announcement_read_ids_model;
-use crate::sqlite::write_models::announcements::save_announcements_read as save_announcements_read_model;
+use sqlx::{Row, SqlitePool};
 
 pub(crate) async fn load_announcement_read_ids(
     pool: &SqlitePool,
     user_id: &str,
 ) -> Result<Vec<String>, sqlx::Error> {
-    load_announcement_read_ids_model(pool, user_id).await
+    let rows = sqlx::query(
+        r#"SELECT ANNOUNCEMENT_ID
+         FROM ANNOUNCEMENTS_READ
+         WHERE USER_ID = ?
+         ORDER BY ANNOUNCEMENT_ID ASC"#,
+    )
+    .bind(user_id)
+    .fetch_all(pool)
+    .await?;
+
+    Ok(rows
+        .into_iter()
+        .map(|row| row.get::<String, _>("ANNOUNCEMENT_ID"))
+        .collect())
 }
 
 pub(crate) async fn save_announcements_read(
@@ -15,7 +25,21 @@ pub(crate) async fn save_announcements_read(
     user_id: &str,
     announcement_ids: &[String],
 ) -> Result<(), sqlx::Error> {
-    save_announcements_read_model(pool, user_id, announcement_ids).await
+    let mut tx = pool.begin().await?;
+
+    for announcement_id in announcement_ids {
+        sqlx::query(
+            r#"INSERT OR IGNORE INTO ANNOUNCEMENTS_READ (USER_ID, ANNOUNCEMENT_ID)
+               VALUES (?, ?)"#,
+        )
+        .bind(user_id)
+        .bind(announcement_id)
+        .execute(&mut *tx)
+        .await?;
+    }
+
+    tx.commit().await?;
+    Ok(())
 }
 
 #[cfg(test)]

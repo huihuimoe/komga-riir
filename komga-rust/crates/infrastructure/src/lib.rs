@@ -52,7 +52,8 @@ pub use opds_persisted_access::OpdsPersistedAccess;
 pub use operational::{
     ActuatorSnapshotAccess, AnnouncementAccess, ClientSettingsAccess, FilesystemBrowseAccess,
     FontAccess, HistoryAccess, OperationalMetricsAccess, PageHashAccess, RememberMeRuntimeSettings,
-    RemoteFeedAccess, SyncpointAccess, TransientBookAccess, load_remember_me_runtime_settings,
+    RemoteFeedAccess, ServerSettingsStore, SyncpointAccess, TransientBookAccess,
+    load_remember_me_runtime_settings,
 };
 pub use persistence::{
     DEFAULT_MAX_CONNECTIONS, DatabaseHandle, SharedSqlitePoolSnapshot, SqlitePersistenceConnection,
@@ -69,7 +70,6 @@ pub use search::{
     prepare_for_rebuild, rebuild_index_from_database, search_analyzer_version,
 };
 pub use search_sync_adapter::SearchSyncAdapter;
-pub use sqlite::ServerSettingsStore;
 pub use task_enqueue_adapter::TaskEnqueueAdapter;
 pub use task_queue::{
     DatabaseRuntime, FilesystemRuntime, JobRuntime, RuntimeBackgroundState, SearchRuntime,

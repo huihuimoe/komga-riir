@@ -9,9 +9,7 @@ use komga_application::operational::{
 use reqwest::Url;
 use sqlx::{QueryBuilder, Row, Sqlite, SqlitePool};
 
-use super::super::page_hash_action::{
-    parse_persisted_page_hash_action, persisted_page_hash_action,
-};
+use super::action::{parse_persisted_page_hash_action, persisted_page_hash_action};
 
 #[derive(Clone, Debug)]
 pub(crate) struct PageHashUnknownSource {

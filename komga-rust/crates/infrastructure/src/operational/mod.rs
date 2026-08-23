@@ -21,8 +21,9 @@ pub use history::HistoryAccess;
 pub use metrics::OperationalMetricsAccess;
 pub use page_hashes::PageHashAccess;
 pub use remote_feeds::RemoteFeedAccess;
-pub(crate) use server_settings::load_server_settings;
-pub use server_settings::{RememberMeRuntimeSettings, load_remember_me_runtime_settings};
+pub use server_settings::{
+    RememberMeRuntimeSettings, ServerSettingsStore, load_remember_me_runtime_settings,
+};
 pub use syncpoints::SyncpointAccess;
 pub use transient_books::TransientBookAccess;
 
