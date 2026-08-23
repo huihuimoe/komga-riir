@@ -12,7 +12,7 @@ use komga_domain::discovery::{
 };
 
 use super::models::{PersistedBookSummary, PersistedBooksBrowseQuery, PersistedBooksSortMode};
-use super::{DiscoveryQueryContext, PersistedDiscoveryBrowseDataSource};
+use super::{DiscoveryQueryContext, SqliteDiscoveryBrowseService};
 
 use komga_application::discovery::BookReadModel;
 
@@ -31,7 +31,7 @@ fn first_readlist_sort_id(condition: Option<&BookCondition>) -> Option<&str> {
 }
 
 pub(super) async fn load_persisted_books_page(
-    backend: &dyn PersistedDiscoveryBrowseDataSource,
+    backend: &SqliteDiscoveryBrowseService,
     context: &DiscoveryQueryContext,
     query: PersistedBooksBrowseQuery,
 ) -> anyhow::Result<PageEnvelope<BookReadModel>> {
@@ -120,7 +120,7 @@ pub(super) async fn load_persisted_books_page(
 }
 
 async fn build_book_eval_context(
-    backend: &dyn PersistedDiscoveryBrowseDataSource,
+    backend: &SqliteDiscoveryBrowseService,
     context: &DiscoveryQueryContext,
     condition: Option<&BookCondition>,
 ) -> anyhow::Result<BookEvaluationContext> {

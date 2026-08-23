@@ -1,10 +1,10 @@
 use serde::Deserialize;
 
-const MAIN_PREFIX_SCHEMA_INVENTORIES_JSON: &str = include_str!(concat!(
+pub(super) const MAIN_PREFIX_SCHEMA_INVENTORIES_JSON: &str = include_str!(concat!(
     env!("OUT_DIR"),
     "/sqlx-migrations/main-prefix-schema-inventories.json"
 ));
-const TASKS_PREFIX_SCHEMA_INVENTORIES_JSON: &str = include_str!(concat!(
+pub(super) const TASKS_PREFIX_SCHEMA_INVENTORIES_JSON: &str = include_str!(concat!(
     env!("OUT_DIR"),
     "/sqlx-migrations/tasks-prefix-schema-inventories.json"
 ));
@@ -611,11 +611,3 @@ pub(super) const LEGACY_MAIN_SCHEMA_V20200706141854: &[(&str, &[&str])] = &[
 ];
 
 pub(super) const LEGACY_MAIN_SCHEMA_V20200706141854_VERSION: i64 = 20200706141854;
-
-pub(super) fn main_prefix_schema_inventories_json() -> &'static str {
-    MAIN_PREFIX_SCHEMA_INVENTORIES_JSON
-}
-
-pub(super) fn tasks_prefix_schema_inventories_json() -> &'static str {
-    TASKS_PREFIX_SCHEMA_INVENTORIES_JSON
-}

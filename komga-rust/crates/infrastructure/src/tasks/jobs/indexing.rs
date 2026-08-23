@@ -1,5 +1,5 @@
-use crate::media::maintenance::{
-    find_books_for_thumbnail_regeneration, find_books_with_undersized_generated_thumbnails,
+use crate::media::maintenance::persistence::{
+    load_books_with_undersized_generated_thumbnails, load_non_deleted_book_ids,
 };
 use crate::search::SearchEntityType;
 use crate::tasks::JobRuntime;
@@ -58,9 +58,13 @@ pub(in crate::tasks) async fn execute_find_book_thumbnails_to_regenerate(
                 .thumbnail_regeneration_policy()
                 .generated_thumbnail_max_edge,
         );
-        find_books_with_undersized_generated_thumbnails(runtime, max_edge).await?
+        load_books_with_undersized_generated_thumbnails(runtime.database().read_pool(), max_edge)
+            .await
+            .map_err(TaskProcessingError::runtime)?
     } else {
-        find_books_for_thumbnail_regeneration(runtime).await?
+        load_non_deleted_book_ids(runtime.database().read_pool())
+            .await
+            .map_err(TaskProcessingError::runtime)?
     };
     let follow_up_tasks = book_ids
         .into_iter()

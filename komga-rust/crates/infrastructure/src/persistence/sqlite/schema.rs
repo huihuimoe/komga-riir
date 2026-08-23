@@ -13,8 +13,8 @@ mod embedded_migrations {
 
 use super::schema_definitions::{
     LEGACY_MAIN_SCHEMA_V20200706141854, LEGACY_MAIN_SCHEMA_V20200706141854_VERSION,
-    PrefixSchemaInventory, REQUIRED_MAIN_SCHEMA, REQUIRED_TASKS_SCHEMA, SchemaInventoryObject,
-    main_prefix_schema_inventories_json, tasks_prefix_schema_inventories_json,
+    MAIN_PREFIX_SCHEMA_INVENTORIES_JSON, PrefixSchemaInventory, REQUIRED_MAIN_SCHEMA,
+    REQUIRED_TASKS_SCHEMA, SchemaInventoryObject, TASKS_PREFIX_SCHEMA_INVENTORIES_JSON,
 };
 use embedded_migrations::{EmbeddedMigration, MAIN_EMBEDDED_MIGRATIONS, TASKS_EMBEDDED_MIGRATIONS};
 
@@ -380,7 +380,7 @@ fn main_prefix_schema_inventories() -> &'static [PrefixSchemaInventory] {
     static INVENTORIES: OnceLock<Vec<PrefixSchemaInventory>> = OnceLock::new();
     INVENTORIES
         .get_or_init(|| {
-            serde_json::from_str(main_prefix_schema_inventories_json())
+            serde_json::from_str(MAIN_PREFIX_SCHEMA_INVENTORIES_JSON)
                 .expect("main prefix schema inventories JSON should parse")
         })
         .as_slice()
@@ -390,7 +390,7 @@ fn tasks_prefix_schema_inventories() -> &'static [PrefixSchemaInventory] {
     static INVENTORIES: OnceLock<Vec<PrefixSchemaInventory>> = OnceLock::new();
     INVENTORIES
         .get_or_init(|| {
-            serde_json::from_str(tasks_prefix_schema_inventories_json())
+            serde_json::from_str(TASKS_PREFIX_SCHEMA_INVENTORIES_JSON)
                 .expect("tasks prefix schema inventories JSON should parse")
         })
         .as_slice()

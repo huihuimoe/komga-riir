@@ -796,7 +796,7 @@ async fn persist_book_imported_event(
     source_file: &Path,
     upgrade: bool,
 ) -> anyhow::Result<()> {
-    let event_id = generated_historical_event_id();
+    let event_id = format!("historical-event-{}", random_hex_token(12));
     let destination_name = destination_file.to_string_lossy().to_string();
     let source_name = source_file.to_string_lossy().to_string();
     let upgrade_value = if upgrade { "Yes" } else { "No" };
@@ -838,14 +838,6 @@ async fn persist_book_imported_event(
         .context("commit historical-event tx for import")?;
 
     Ok(())
-}
-
-fn generated_historical_event_id() -> String {
-    random_prefixed_id("historical-event")
-}
-
-fn random_prefixed_id(prefix: &str) -> String {
-    format!("{prefix}-{}", random_hex_token(12))
 }
 
 #[cfg(test)]

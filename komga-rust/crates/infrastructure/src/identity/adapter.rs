@@ -7,13 +7,18 @@ use komga_application::identity_access::{
     KoboSyncPointBook, KoboSyncStatePort, KoreaderBookLookupError, KoreaderBookTarget,
     PersistedApiKey, PersistedApiKeyMetadata, PersistedAuthenticationActivity,
     PersistedReadProgressRecord, ResolvedAuthToken, SessionLifecyclePort, SessionResolverPort,
-    UpdateAuthUserInput, UpdateAuthUserResult, UserAdminPort, kobo_metadata_pre_paginated,
+    UpdateAuthUserInput, UpdateAuthUserResult, UserAdminPort,
+    invalidate_remember_me_token as invalidate_remember_me_runtime_token,
+    invalidate_session_token as invalidate_runtime_session_token,
+    invalidate_user_sessions as invalidate_all_runtime_user_sessions, issue_remember_me_token,
+    issue_session_token, kobo_metadata_pre_paginated, resolve_authenticated_token,
+    resolve_authenticated_user,
 };
 use komga_application::media_assets::EpubNavigationContentPort;
 
 use crate::persistence::DatabaseHandle;
 
-use super::session_store::RememberMeRuntimeSettings;
+use super::session_store::session_token_store;
 use super::users::{authentication as auth_identity, mutation as user_mutation};
 use super::{device_auth, kobo};
 
@@ -59,7 +64,12 @@ impl SessionResolverPort for IdentityAccess {
         session_token: Option<&str>,
         remember_me_token: Option<&str>,
     ) -> anyhow::Result<Option<AuthUser>> {
-        auth_identity::auth_token_user_from_tokens(session_token, remember_me_token)
+        resolve_authenticated_user(
+            session_token_store(),
+            session_token_store(),
+            session_token,
+            remember_me_token,
+        )
     }
 
     fn resolve_auth_token(
@@ -67,7 +77,12 @@ impl SessionResolverPort for IdentityAccess {
         session_token: Option<&str>,
         remember_me_token: Option<&str>,
     ) -> anyhow::Result<Option<ResolvedAuthToken>> {
-        auth_identity::auth_token_resolution_from_tokens(session_token, remember_me_token)
+        resolve_authenticated_token(
+            session_token_store(),
+            session_token_store(),
+            session_token,
+            remember_me_token,
+        )
     }
 }
 
@@ -95,49 +110,43 @@ impl AuthenticationPort for IdentityAccess {
 
 impl SessionLifecyclePort for IdentityAccess {
     fn session_token_for_user(&self, user: &AuthUser, runtime_key: &str) -> String {
-        auth_identity::session_token_for_user_with_runtime_key(user, runtime_key)
+        issue_session_token(session_token_store(), user, runtime_key)
     }
 
     fn remember_me_token_for_user(&self, user: &AuthUser, runtime_key: &str) -> Option<String> {
-        auth_identity::remember_me_token_for_user_with_runtime_key(user, runtime_key)
+        issue_remember_me_token(session_token_store(), user, runtime_key)
     }
 
     fn sync_session_runtime_settings(&self, runtime_key: &str, max_inactive_seconds: u64) {
-        auth_identity::sync_session_runtime_settings(runtime_key, max_inactive_seconds)
+        session_token_store().sync_session_settings(runtime_key, max_inactive_seconds)
     }
 
     fn sync_remember_me_runtime_database_file(&self, runtime_key: &str) {
-        auth_identity::sync_remember_me_runtime_database_file(runtime_key, self.db.database_file())
+        session_token_store().sync_remember_me_database_path(runtime_key, self.db.database_file())
     }
 
     fn sync_remember_me_runtime_settings(&self, runtime_key: &str, key: &str, duration_days: u64) {
-        auth_identity::sync_remember_me_runtime_settings(
-            runtime_key,
-            RememberMeRuntimeSettings {
-                key: key.to_string(),
-                duration_days,
-            },
-        )
+        session_token_store().sync_remember_me_settings(runtime_key, key, duration_days);
     }
 
     fn remember_me_max_age_seconds(&self, runtime_key: &str) -> u64 {
-        auth_identity::remember_me_max_age_seconds(runtime_key)
+        session_token_store().remember_me_max_age_seconds(runtime_key)
     }
 
     fn invalidate_user_sessions(&self, user_id: &str) {
-        auth_identity::invalidate_user_sessions(user_id)
+        invalidate_all_runtime_user_sessions(session_token_store(), user_id)
     }
 
     fn invalidate_user_sessions_with_runtime_key(&self, user_id: &str, runtime_key: &str) {
-        auth_identity::invalidate_user_sessions_with_runtime_key(user_id, runtime_key)
+        session_token_store().invalidate_user_sessions_for_runtime_key(runtime_key, user_id)
     }
 
     fn invalidate_session_token(&self, token: &str) {
-        auth_identity::invalidate_session_token(token)
+        invalidate_runtime_session_token(session_token_store(), token)
     }
 
     fn invalidate_remember_me_token(&self, token: &str) {
-        auth_identity::invalidate_remember_me_token(token)
+        invalidate_remember_me_runtime_token(session_token_store(), token)
     }
 
     fn store_oauth2_authorization_state(
@@ -147,7 +156,7 @@ impl SessionLifecyclePort for IdentityAccess {
         registration_id: &str,
         state: &str,
     ) {
-        auth_identity::store_oauth2_authorization_state(
+        session_token_store().store_oauth2_authorization_state(
             runtime_key,
             session_token,
             registration_id,
@@ -161,7 +170,11 @@ impl SessionLifecyclePort for IdentityAccess {
         session_token: &str,
         registration_id: &str,
     ) -> Option<String> {
-        auth_identity::take_oauth2_authorization_state(runtime_key, session_token, registration_id)
+        session_token_store().take_oauth2_authorization_state(
+            runtime_key,
+            session_token,
+            registration_id,
+        )
     }
 }
 
@@ -385,9 +398,9 @@ impl IdentityAccess {
 #[async_trait::async_trait]
 impl KoboSyncStatePort for IdentityAccess {
     async fn load_sync_page(&self, request: KoboSyncPageRequest) -> anyhow::Result<KoboSyncPage> {
-        kobo::SqliteKoboSyncState::new(self.db.write_pool())
-            .load_sync_page(request)
+        kobo::load_kobo_sync_page(self.db.write_pool(), request)
             .await
+            .map_err(anyhow::Error::from)
     }
 
     async fn load_sync_book_states(
@@ -395,15 +408,15 @@ impl KoboSyncStatePort for IdentityAccess {
         books: &[KoboSyncPointBook],
         user_id: &str,
     ) -> anyhow::Result<Vec<KoboSyncBookState>> {
-        kobo::SqliteKoboSyncState::new(self.db.read_pool())
-            .load_sync_book_states(books, user_id)
+        kobo::load_sync_book_states(self.db.read_pool(), books, user_id)
             .await
+            .map_err(anyhow::Error::from)
     }
 
     async fn remove_sync_point(&self, sync_point_id: &str) -> anyhow::Result<()> {
-        kobo::SqliteKoboSyncState::new(self.db.write_pool())
-            .remove_sync_point(sync_point_id)
+        kobo::remove_sync_point(self.db.write_pool(), sync_point_id)
             .await
+            .map_err(anyhow::Error::from)
     }
 }
 
@@ -413,6 +426,6 @@ impl KoboProxyPort for IdentityAccess {
         &self,
         request: KoboProxyRequest,
     ) -> anyhow::Result<KoboProxyResponse> {
-        kobo::proxy_kobo_request(self.kobo_proxy_base_url.as_str(), request).await
+        kobo::execute_kobo_proxy_request(self.kobo_proxy_base_url.as_str(), request).await
     }
 }

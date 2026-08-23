@@ -1,6 +1,5 @@
 use komga_application::identity_access::{
-    AuthUser, KoboProxyRequest, KoboProxyResponse, KoboSyncBookState, KoboSyncPage,
-    KoboSyncPageRequest, KoboSyncPointBook, KoboSyncStatePort, random_uuid_like, user_id,
+    AuthUser, KoboSyncPage, KoboSyncPageRequest, random_uuid_like, user_id,
 };
 use sqlx::{Row, SqlitePool};
 
@@ -9,7 +8,8 @@ mod proxy;
 mod seeding;
 mod sync_diff;
 
-use book_state::load_sync_book_states;
+pub(super) use book_state::load_sync_book_states;
+pub(super) use proxy::execute_kobo_proxy_request;
 use seeding::{seed_sync_point_books, seed_sync_point_ondeck};
 use sync_diff::{load_incremental_sync_page, load_initial_sync_page};
 
@@ -20,90 +20,54 @@ struct PersistedSyncPoint {
     id: String,
 }
 
-pub(crate) struct SqliteKoboSyncState<'a> {
-    pool: &'a SqlitePool,
-}
-
-impl<'a> SqliteKoboSyncState<'a> {
-    pub(crate) fn new(pool: &'a SqlitePool) -> Self {
-        Self { pool }
-    }
-}
-
-#[async_trait::async_trait]
-impl KoboSyncStatePort for SqliteKoboSyncState<'_> {
-    async fn load_sync_page(&self, request: KoboSyncPageRequest) -> anyhow::Result<KoboSyncPage> {
-        let user_id_value = user_id(&request.user);
-        load_kobo_sync_page(
-            self.pool,
-            &request.user,
-            user_id_value,
-            request.current_api_key_id.as_deref(),
-            request.ongoing_sync_point_id.as_deref(),
-            request.last_successful_sync_point_id.as_deref(),
-            request.limit,
-        )
-        .await
-        .map_err(anyhow::Error::from)
-    }
-
-    async fn load_sync_book_states(
-        &self,
-        books: &[KoboSyncPointBook],
-        user_id: &str,
-    ) -> anyhow::Result<Vec<KoboSyncBookState>> {
-        load_sync_book_states(self.pool, books, user_id)
-            .await
-            .map_err(anyhow::Error::from)
-    }
-
-    async fn remove_sync_point(&self, sync_point_id: &str) -> anyhow::Result<()> {
-        remove_sync_point(self.pool, sync_point_id)
-            .await
-            .map_err(anyhow::Error::from)
-    }
-}
-
-pub(crate) async fn proxy_kobo_request(
-    base_url: &str,
-    request: KoboProxyRequest,
-) -> anyhow::Result<KoboProxyResponse> {
-    proxy::execute_kobo_proxy_request(base_url, request).await
-}
-
-async fn load_kobo_sync_page(
+pub(super) async fn load_kobo_sync_page(
     pool: &SqlitePool,
-    user: &AuthUser,
-    user_id: &str,
-    current_api_key_id: Option<&str>,
-    ongoing_sync_point_id: Option<&str>,
-    last_successful_sync_point_id: Option<&str>,
-    limit: usize,
+    request: KoboSyncPageRequest,
 ) -> Result<KoboSyncPage, sqlx::Error> {
+    let user_id = user_id(&request.user);
     let mut tx = pool.begin().await?;
 
-    let to_sync_point = if let Some(sync_point_id) = ongoing_sync_point_id {
+    let to_sync_point = if let Some(sync_point_id) = request.ongoing_sync_point_id.as_deref() {
         if let Some(sync_point) = load_sync_point_for_user(&mut tx, sync_point_id, user_id).await? {
             sync_point
         } else {
             let new_sync_point_id = random_uuid_like();
-            create_sync_point(&mut tx, &new_sync_point_id, user, current_api_key_id).await?
+            create_sync_point(
+                &mut tx,
+                &new_sync_point_id,
+                &request.user,
+                request.current_api_key_id.as_deref(),
+            )
+            .await?
         }
     } else {
         let new_sync_point_id = random_uuid_like();
-        create_sync_point(&mut tx, &new_sync_point_id, user, current_api_key_id).await?
+        create_sync_point(
+            &mut tx,
+            &new_sync_point_id,
+            &request.user,
+            request.current_api_key_id.as_deref(),
+        )
+        .await?
     };
 
-    let from_sync_point = if let Some(sync_point_id) = last_successful_sync_point_id {
-        load_sync_point_for_user(&mut tx, sync_point_id, user_id).await?
-    } else {
-        None
-    };
+    let from_sync_point =
+        if let Some(sync_point_id) = request.last_successful_sync_point_id.as_deref() {
+            load_sync_point_for_user(&mut tx, sync_point_id, user_id).await?
+        } else {
+            None
+        };
 
     let page = if let Some(from_sync_point) = from_sync_point.as_ref() {
-        load_incremental_sync_page(&mut tx, &from_sync_point.id, &to_sync_point.id, limit).await?
+        load_incremental_sync_page(
+            &mut tx,
+            &from_sync_point.id,
+            &to_sync_point.id,
+            request.limit,
+        )
+        .await?
     } else {
-        load_initial_sync_page(&mut tx, &to_sync_point.id, limit).await?
+        load_initial_sync_page(&mut tx, &to_sync_point.id, request.limit).await?
     };
 
     tx.commit().await?;
@@ -114,7 +78,10 @@ async fn load_kobo_sync_page(
     })
 }
 
-async fn remove_sync_point(pool: &SqlitePool, sync_point_id: &str) -> Result<(), sqlx::Error> {
+pub(super) async fn remove_sync_point(
+    pool: &SqlitePool,
+    sync_point_id: &str,
+) -> Result<(), sqlx::Error> {
     let mut tx = pool.begin().await?;
     delete_sync_point_children(&mut tx, sync_point_id).await?;
     sqlx::query("DELETE FROM SYNC_POINT WHERE ID = ?")
@@ -232,17 +199,18 @@ mod tests {
             .await
             .expect("sync user should be inserted");
 
-        let state = SqliteKoboSyncState::new(&pool);
-        let page = state
-            .load_sync_page(KoboSyncPageRequest {
+        let page = load_kobo_sync_page(
+            &pool,
+            KoboSyncPageRequest {
                 user: sync_user(),
                 current_api_key_id: Some("api-key-1".to_string()),
                 ongoing_sync_point_id: None,
                 last_successful_sync_point_id: None,
                 limit: 200,
-            })
-            .await
-            .expect("empty sync page should complete");
+            },
+        )
+        .await
+        .expect("empty sync page should complete");
 
         assert!(page.books_added.is_empty());
         assert!(page.readlists_added.is_empty());
@@ -351,32 +319,35 @@ mod tests {
         .await
         .expect("added book should be inserted");
 
-        let state = SqliteKoboSyncState::new(&pool);
-        let page = state
-            .load_sync_page(KoboSyncPageRequest {
+        let page = load_kobo_sync_page(
+            &pool,
+            KoboSyncPageRequest {
                 user: sync_user(),
                 current_api_key_id: Some("api-key-1".to_string()),
                 ongoing_sync_point_id: Some("to-sync-point".to_string()),
                 last_successful_sync_point_id: Some("from-sync-point".to_string()),
                 limit: 1,
-            })
-            .await
-            .expect("sync page should load");
+            },
+        )
+        .await
+        .expect("sync page should load");
 
         assert_eq!(page.books_added.len(), 1);
         assert_eq!(page.books_added[0].book_id, "book-added");
         assert!(page.should_continue);
 
-        let page = state
-            .load_sync_page(KoboSyncPageRequest {
+        let page = load_kobo_sync_page(
+            &pool,
+            KoboSyncPageRequest {
                 user: sync_user(),
                 current_api_key_id: Some("api-key-1".to_string()),
                 ongoing_sync_point_id: Some("to-sync-point".to_string()),
                 last_successful_sync_point_id: Some("from-sync-point".to_string()),
                 limit: 1,
-            })
-            .await
-            .expect("next sync page should load");
+            },
+        )
+        .await
+        .expect("next sync page should load");
 
         assert_eq!(page.readlists_changed.len(), 1);
         assert_eq!(page.readlists_changed[0].id, "KOMGA-ONDECK");

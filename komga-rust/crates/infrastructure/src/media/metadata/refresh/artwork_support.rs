@@ -308,7 +308,7 @@ pub(super) async fn load_series_local_artwork_urls(
             ))
         })?;
         let path = entry.path();
-        if !file_type.is_file() || !supported_series_local_artwork_path(path.as_path()) {
+        if !file_type.is_file() || !supported_book_local_artwork_path(path.as_path()) {
             continue;
         }
         let Some(candidate_stem) = path.file_stem().and_then(|value| value.to_str()) else {
@@ -333,10 +333,6 @@ pub(super) async fn load_series_local_artwork_urls(
     }
 
     Ok(artwork_urls)
-}
-
-fn supported_series_local_artwork_path(path: &Path) -> bool {
-    supported_book_local_artwork_path(path)
 }
 
 fn series_local_artwork_name_matches(candidate_stem: &str) -> bool {

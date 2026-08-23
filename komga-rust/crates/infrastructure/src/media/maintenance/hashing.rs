@@ -8,10 +8,7 @@ use super::hashed_pages::HashedPageToDelete;
 use super::library_flags::load_library_hashing_flags;
 use super::persistence::{
     load_book_file_path, load_book_hash_runtime_state, load_book_library_id,
-    load_books_with_missing_page_hash as load_persisted_books_with_missing_page_hash,
-    load_books_with_undersized_generated_thumbnails,
     load_duplicate_pages_to_delete as load_persisted_duplicate_pages_to_delete,
-    load_non_deleted_book_ids as load_persisted_non_deleted_book_ids,
 };
 use super::updates::persist_book_hash;
 use crate::media::maintenance::page_hashing::persist_book_page_hashes_from_media_content;
@@ -100,32 +97,6 @@ pub(crate) async fn hash_book(
         .collect::<String>();
 
     persist_book_hash(runtime.database().write_pool(), book_id, &hash, koreader)
-        .await
-        .map_err(TaskProcessingError::runtime)
-}
-
-pub(crate) async fn find_books_for_thumbnail_regeneration(
-    runtime: &JobRuntime<'_>,
-) -> Result<Vec<String>, TaskProcessingError> {
-    load_persisted_non_deleted_book_ids(runtime.database().read_pool())
-        .await
-        .map_err(TaskProcessingError::runtime)
-}
-
-pub(crate) async fn find_books_with_undersized_generated_thumbnails(
-    runtime: &JobRuntime<'_>,
-    max_edge: i64,
-) -> Result<Vec<String>, TaskProcessingError> {
-    load_books_with_undersized_generated_thumbnails(runtime.database().read_pool(), max_edge)
-        .await
-        .map_err(TaskProcessingError::runtime)
-}
-
-pub(crate) async fn find_books_with_missing_page_hash(
-    runtime: &JobRuntime<'_>,
-    library_id: Option<&str>,
-) -> Result<Vec<String>, TaskProcessingError> {
-    load_persisted_books_with_missing_page_hash(runtime.database().read_pool(), library_id)
         .await
         .map_err(TaskProcessingError::runtime)
 }

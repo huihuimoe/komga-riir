@@ -560,7 +560,7 @@ async fn insert_historical_event(
     series_id: &str,
     properties: Vec<HistoricalEventProperty>,
 ) -> Result<(), sqlx::Error> {
-    let event_id = generated_historical_event_id();
+    let event_id = format!("historical-event-{}", random_hex_token(12));
     sqlx::query("INSERT INTO HISTORICAL_EVENT (ID, TYPE, BOOK_ID, SERIES_ID) VALUES (?, ?, ?, ?)")
         .bind(&event_id)
         .bind(event_type)
@@ -640,12 +640,4 @@ async fn upsert_series_read_progress_row(
     .await?;
 
     Ok(())
-}
-
-fn generated_historical_event_id() -> String {
-    random_prefixed_id("historical-event")
-}
-
-fn random_prefixed_id(prefix: &str) -> String {
-    format!("{prefix}-{}", random_hex_token(12))
 }

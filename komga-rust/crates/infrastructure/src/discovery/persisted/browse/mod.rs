@@ -39,74 +39,6 @@ struct DiscoveryQueryContext {
     restrictions: Option<QueryRestrictions>,
 }
 
-#[async_trait::async_trait]
-trait PersistedDiscoveryBrowseDataSource: Send + Sync {
-    async fn load_book_poster_summaries(
-        &self,
-    ) -> anyhow::Result<HashMap<String, Vec<PersistedBookPosterSummary>>>;
-
-    async fn load_persisted_book_summaries(
-        &self,
-        user_id: Option<&str>,
-    ) -> anyhow::Result<Vec<PersistedBookSummary>>;
-
-    async fn load_persisted_book_summaries_by_ids(
-        &self,
-        user_id: Option<&str>,
-        ids: &[String],
-    ) -> anyhow::Result<Vec<PersistedBookSummary>>;
-
-    async fn load_persisted_book_count(&self) -> anyhow::Result<usize>;
-
-    async fn load_collection_memberships(
-        &self,
-    ) -> anyhow::Result<BTreeMap<String, BTreeSet<String>>>;
-
-    async fn load_collection_ordering(
-        &self,
-        collection_id: &str,
-    ) -> anyhow::Result<HashMap<String, i64>>;
-
-    async fn load_readlist_memberships(&self)
-    -> anyhow::Result<BTreeMap<String, BTreeSet<String>>>;
-
-    async fn load_readlist_ordering(
-        &self,
-        readlist_id: &str,
-    ) -> anyhow::Result<HashMap<String, i64>>;
-
-    async fn persisted_utc_date_minus_days(&self, days: i64) -> anyhow::Result<Option<String>>;
-
-    async fn load_series_read_progress_counts(
-        &self,
-        user_id: &str,
-    ) -> anyhow::Result<HashMap<String, SeriesReadProgressCounts>>;
-
-    async fn load_series_read_dates(
-        &self,
-        user_id: &str,
-    ) -> anyhow::Result<HashMap<String, String>>;
-
-    async fn load_series_total_book_counts(&self) -> anyhow::Result<HashMap<String, i64>>;
-
-    async fn load_persisted_series_summaries(&self) -> anyhow::Result<Vec<PersistedSeriesSummary>>;
-
-    async fn load_persisted_series_summaries_by_ids(
-        &self,
-        ids: &[String],
-    ) -> anyhow::Result<Vec<PersistedSeriesSummary>>;
-
-    async fn load_persisted_series_count(&self) -> anyhow::Result<usize>;
-
-    async fn search_book_ids(&self, query: &str, limit: usize) -> anyhow::Result<Vec<String>>;
-
-    async fn search_series_scored_ids(
-        &self,
-        query: &str,
-        limit: usize,
-    ) -> anyhow::Result<Vec<ScoredSearchHit>>;
-}
-
 #[derive(Clone)]
 pub struct SqliteDiscoveryBrowseService {
     db: DatabaseHandle,
@@ -411,8 +343,7 @@ fn persisted_series_summary(row: persisted_models::SeriesSummary) -> PersistedSe
     }
 }
 
-#[async_trait::async_trait]
-impl PersistedDiscoveryBrowseDataSource for SqliteDiscoveryBrowseService {
+impl SqliteDiscoveryBrowseService {
     async fn load_book_poster_summaries(
         &self,
     ) -> anyhow::Result<HashMap<String, Vec<PersistedBookPosterSummary>>> {

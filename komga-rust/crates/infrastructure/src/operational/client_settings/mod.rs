@@ -7,15 +7,10 @@ use komga_application::operational::{
 use sqlx::SqlitePool;
 
 use crate::persistence::DatabaseHandle;
-use read::{
-    load_client_settings_global as load_client_settings_global_model,
-    load_client_settings_user as load_client_settings_user_model,
-};
-use write::{
-    delete_client_settings_global as delete_client_settings_global_model,
-    delete_client_settings_user as delete_client_settings_user_model,
-    upsert_client_settings_global as upsert_client_settings_global_model,
-    upsert_client_settings_user as upsert_client_settings_user_model,
+use read::{load_persisted_client_settings_global, load_persisted_client_settings_user};
+pub(crate) use write::{
+    delete_client_settings_global, delete_client_settings_user, upsert_client_settings_global,
+    upsert_client_settings_user,
 };
 
 mod read;
@@ -89,7 +84,7 @@ pub(crate) async fn load_client_settings_global(
     pool: &SqlitePool,
     allow_unauthorized_only: bool,
 ) -> Result<ClientGlobalSettings, sqlx::Error> {
-    let rows = load_client_settings_global_model(pool, allow_unauthorized_only).await?;
+    let rows = load_persisted_client_settings_global(pool, allow_unauthorized_only).await?;
     Ok(rows
         .into_iter()
         .map(|row| {
@@ -108,39 +103,9 @@ pub(crate) async fn load_client_settings_user(
     pool: &SqlitePool,
     user_id: &str,
 ) -> Result<ClientUserSettings, sqlx::Error> {
-    let rows = load_client_settings_user_model(pool, user_id).await?;
+    let rows = load_persisted_client_settings_user(pool, user_id).await?;
     Ok(rows
         .into_iter()
         .map(|row| (row.key, ClientUserSetting { value: row.value }))
         .collect::<BTreeMap<_, _>>())
-}
-
-pub(crate) async fn upsert_client_settings_global(
-    pool: &SqlitePool,
-    settings: &ClientGlobalSettings,
-) -> Result<(), sqlx::Error> {
-    upsert_client_settings_global_model(pool, settings).await
-}
-
-pub(crate) async fn upsert_client_settings_user(
-    pool: &SqlitePool,
-    user_id: &str,
-    settings: &ClientUserSettings,
-) -> Result<(), sqlx::Error> {
-    upsert_client_settings_user_model(pool, user_id, settings).await
-}
-
-pub(crate) async fn delete_client_settings_global(
-    pool: &SqlitePool,
-    keys: &[String],
-) -> Result<(), sqlx::Error> {
-    delete_client_settings_global_model(pool, keys).await
-}
-
-pub(crate) async fn delete_client_settings_user(
-    pool: &SqlitePool,
-    user_id: &str,
-    keys: &[String],
-) -> Result<(), sqlx::Error> {
-    delete_client_settings_user_model(pool, user_id, keys).await
 }

@@ -32,7 +32,7 @@ struct ReadProgressRow {
     locator: Option<Vec<u8>>,
 }
 
-pub(super) async fn load_sync_book_states(
+pub(in crate::identity) async fn load_sync_book_states(
     pool: &SqlitePool,
     books: &[KoboSyncPointBook],
     user_id: &str,

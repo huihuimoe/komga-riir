@@ -1,121 +1,21 @@
 use anyhow::Context;
 use std::fmt::Write as _;
-use std::path::Path;
 
 use bcrypt::{DEFAULT_COST, hash as hash_bcrypt_password, verify as verify_bcrypt_password};
 use komga_application::identity_access::{
     AuthOutcome, AuthUser, AuthUserRole, AuthenticationActivityApiKey, PersistedApiKey,
-    PersistedApiKeyMetadata, PersistedAuthenticationActivity, ResolvedAuthToken,
-    invalidate_remember_me_token as invalidate_remember_me_session_token,
-    invalidate_session_token as invalidate_active_session_token,
-    invalidate_user_sessions as invalidate_all_user_sessions, issue_remember_me_token,
-    issue_session_token, resolve_authenticated_token, user_age_restriction_from_persisted_columns,
-    user_roles_from_persisted_names,
+    PersistedApiKeyMetadata, PersistedAuthenticationActivity,
+    invalidate_user_sessions as invalidate_all_user_sessions,
+    user_age_restriction_from_persisted_columns, user_roles_from_persisted_names,
 };
 use sha2::{Digest, Sha512};
 use sqlx::{Row, SqlitePool};
 
-use super::super::session_store::RememberMeRuntimeSettings;
 use super::super::session_store::session_token_store;
 use crate::random_hex_token;
 
-pub(crate) fn auth_token_user_from_tokens(
-    session_token: Option<&str>,
-    remember_me_token: Option<&str>,
-) -> anyhow::Result<Option<AuthUser>> {
-    auth_token_resolution_from_tokens(session_token, remember_me_token)
-        .map(|resolved| resolved.map(|resolved| resolved.user))
-}
-
-pub(crate) fn auth_token_resolution_from_tokens(
-    session_token: Option<&str>,
-    remember_me_token: Option<&str>,
-) -> anyhow::Result<Option<ResolvedAuthToken>> {
-    resolve_authenticated_token(
-        session_token_store(),
-        session_token_store(),
-        session_token,
-        remember_me_token,
-    )
-}
-
-pub(crate) fn session_token_for_user_with_runtime_key(
-    user: &AuthUser,
-    runtime_key: &str,
-) -> String {
-    issue_session_token(session_token_store(), user, runtime_key)
-}
-
-pub(crate) fn remember_me_token_for_user_with_runtime_key(
-    user: &AuthUser,
-    runtime_key: &str,
-) -> Option<String> {
-    issue_remember_me_token(session_token_store(), user, runtime_key)
-}
-
-pub(crate) fn sync_session_runtime_settings(runtime_key: &str, max_inactive_seconds: u64) {
-    session_token_store().sync_session_settings(runtime_key, max_inactive_seconds);
-}
-
-pub(crate) fn sync_remember_me_runtime_database_file(runtime_key: &str, database_file: &Path) {
-    session_token_store().sync_remember_me_database_path(runtime_key, database_file);
-}
-
-pub(crate) fn sync_remember_me_runtime_settings(
-    runtime_key: &str,
-    settings: RememberMeRuntimeSettings,
-) {
-    session_token_store().sync_remember_me_settings(
-        runtime_key,
-        settings.key.as_str(),
-        settings.duration_days,
-    );
-}
-
-pub(crate) fn remember_me_max_age_seconds(runtime_key: &str) -> u64 {
-    session_token_store().remember_me_max_age_seconds(runtime_key)
-}
-
 pub fn invalidate_user_sessions(user_id: &str) {
     invalidate_all_user_sessions(session_token_store(), user_id)
-}
-
-pub(crate) fn invalidate_user_sessions_with_runtime_key(user_id: &str, runtime_key: &str) {
-    session_token_store().invalidate_user_sessions_for_runtime_key(runtime_key, user_id);
-}
-
-pub(crate) fn invalidate_session_token(token: &str) {
-    invalidate_active_session_token(session_token_store(), token)
-}
-
-pub(crate) fn invalidate_remember_me_token(token: &str) {
-    invalidate_remember_me_session_token(session_token_store(), token)
-}
-
-pub(crate) fn store_oauth2_authorization_state(
-    runtime_key: &str,
-    session_token: &str,
-    registration_id: &str,
-    state: &str,
-) {
-    session_token_store().store_oauth2_authorization_state(
-        runtime_key,
-        session_token,
-        registration_id,
-        state,
-    );
-}
-
-pub(crate) fn take_oauth2_authorization_state(
-    runtime_key: &str,
-    session_token: &str,
-    registration_id: &str,
-) -> Option<String> {
-    session_token_store().take_oauth2_authorization_state(
-        runtime_key,
-        session_token,
-        registration_id,
-    )
 }
 
 pub(crate) async fn authenticate_basic_credentials(

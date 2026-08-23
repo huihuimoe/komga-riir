@@ -13,7 +13,7 @@ use komga_domain::discovery::{
 use super::super::models::{
     PersistedSeriesBrowseQuery, PersistedSeriesSortMode, PersistedSeriesSummary,
 };
-use super::super::{DiscoveryQueryContext, PersistedDiscoveryBrowseDataSource};
+use super::super::{DiscoveryQueryContext, SqliteDiscoveryBrowseService};
 
 fn first_collection_sort_id(condition: Option<&SeriesCondition>) -> Option<&str> {
     fn visit(condition: &SeriesCondition) -> Option<&str> {
@@ -30,7 +30,7 @@ fn first_collection_sort_id(condition: Option<&SeriesCondition>) -> Option<&str>
 }
 
 pub(in crate::discovery::persisted::browse) async fn load_persisted_series_page(
-    backend: &dyn PersistedDiscoveryBrowseDataSource,
+    backend: &SqliteDiscoveryBrowseService,
     context: &DiscoveryQueryContext,
     query: PersistedSeriesBrowseQuery,
 ) -> anyhow::Result<PageEnvelope<PersistedSeriesSummary>> {
@@ -156,7 +156,7 @@ pub(in crate::discovery::persisted::browse) async fn load_persisted_series_page(
 }
 
 async fn build_series_eval_context(
-    backend: &dyn PersistedDiscoveryBrowseDataSource,
+    backend: &SqliteDiscoveryBrowseService,
     context: &DiscoveryQueryContext,
     condition: Option<&SeriesCondition>,
     read_dates: Option<HashMap<String, String>>,

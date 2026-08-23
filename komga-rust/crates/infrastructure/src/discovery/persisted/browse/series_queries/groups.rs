@@ -7,11 +7,11 @@ use super::super::grouping::first_group_key;
 use super::super::models::{
     PersistedSeriesBrowseQuery, PersistedSeriesSortMode, SeriesFilterCriteria,
 };
-use super::super::{DiscoveryQueryContext, PersistedDiscoveryBrowseDataSource};
+use super::super::{DiscoveryQueryContext, SqliteDiscoveryBrowseService};
 use super::filtering::load_persisted_series_page;
 
 pub(in crate::discovery::persisted::browse) async fn load_persisted_alphabetical_groups(
-    backend: &dyn PersistedDiscoveryBrowseDataSource,
+    backend: &SqliteDiscoveryBrowseService,
     context: &DiscoveryQueryContext,
     condition: Option<SeriesCondition>,
     full_text_search: Option<String>,

@@ -3,9 +3,10 @@ use komga_application::task_processing::{
     TaskRequest,
 };
 
+use crate::media::maintenance::persistence::load_books_with_missing_page_hash;
 use crate::media::maintenance::{
-    HashedPageToDelete, find_books_with_missing_page_hash, find_duplicate_pages_to_delete,
-    hash_book, hash_book_pages, load_library_hashing_flags, remove_hashed_pages,
+    HashedPageToDelete, find_duplicate_pages_to_delete, hash_book, hash_book_pages,
+    load_library_hashing_flags, remove_hashed_pages,
 };
 use crate::tasks::JobRuntime;
 
@@ -46,7 +47,10 @@ pub(in crate::tasks) async fn execute_find_books_with_missing_page_hash(
         return Ok(TaskExecutionOutcome::completed());
     }
 
-    let book_ids = find_books_with_missing_page_hash(runtime, Some(library_id)).await?;
+    let book_ids =
+        load_books_with_missing_page_hash(runtime.database().read_pool(), Some(library_id))
+            .await
+            .map_err(TaskProcessingError::runtime)?;
     let follow_up_tasks = book_ids
         .into_iter()
         .map(|book_id| {

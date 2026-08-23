@@ -13,7 +13,7 @@ pub(crate) struct PersistedClientUserSetting {
     pub(crate) value: String,
 }
 
-pub(crate) async fn load_client_settings_global(
+pub(crate) async fn load_persisted_client_settings_global(
     pool: &SqlitePool,
     allow_unauthorized_only: bool,
 ) -> Result<Vec<PersistedClientGlobalSetting>, sqlx::Error> {
@@ -46,7 +46,7 @@ pub(crate) async fn load_client_settings_global(
         .collect())
 }
 
-pub(crate) async fn load_client_settings_user(
+pub(crate) async fn load_persisted_client_settings_user(
     pool: &SqlitePool,
     user_id: &str,
 ) -> Result<Vec<PersistedClientUserSetting>, sqlx::Error> {
