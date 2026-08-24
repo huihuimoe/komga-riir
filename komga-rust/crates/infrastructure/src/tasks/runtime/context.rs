@@ -170,11 +170,15 @@ impl JobRuntime<'_> {
         }
     }
 
-    pub(crate) async fn cleanup_empty_sets_policy(&self) -> anyhow::Result<CleanupEmptySetsPolicy> {
-        let server_settings = ServerSettingsStore::from_context(SqlitePersistenceContext::new(
+    fn server_settings(&self) -> ServerSettingsStore {
+        ServerSettingsStore::from_context(SqlitePersistenceContext::new(
             self.database().write_pool().clone(),
-        ));
-        let settings = server_settings
+        ))
+    }
+
+    pub(crate) async fn cleanup_empty_sets_policy(&self) -> anyhow::Result<CleanupEmptySetsPolicy> {
+        let settings = self
+            .server_settings()
             .load_settings()
             .await
             .map_err(|error| anyhow::anyhow!(error).context("load cleanup policy setting"))?;
@@ -187,10 +191,8 @@ impl JobRuntime<'_> {
     pub(in crate::tasks) async fn thumbnail_regeneration_policy(
         &self,
     ) -> anyhow::Result<ThumbnailRegenerationPolicy> {
-        let server_settings = ServerSettingsStore::from_context(SqlitePersistenceContext::new(
-            self.database().write_pool().clone(),
-        ));
-        let settings = server_settings
+        let settings = self
+            .server_settings()
             .load_settings()
             .await
             .map_err(|error| anyhow::anyhow!(error).context("load thumbnail size setting"))?;
