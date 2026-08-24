@@ -2768,6 +2768,7 @@ dependencies = [
  "komga-domain",
  "komga-epub",
  "komga-infrastructure-base",
+ "komga-infrastructure-search",
  "komga-infrastructure-test-support",
  "komga-kepubify",
  "language-tags",
@@ -2805,6 +2806,19 @@ dependencies = [
  "serde",
  "serde_json",
  "sqlx",
+ "tokio",
+]
+
+[[package]]
+name = "komga-infrastructure-search"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "komga-application",
+ "komga-infrastructure-base",
+ "sqlx",
+ "tantivy",
  "tokio",
 ]
 
@@ -2899,6 +2913,8 @@ dependencies = [
  "komga-config",
  "komga-domain",
  "komga-infrastructure",
+ "komga-infrastructure-base",
+ "komga-infrastructure-search",
  "komga-interfaces",
  "komga-server",
  "lopdf",

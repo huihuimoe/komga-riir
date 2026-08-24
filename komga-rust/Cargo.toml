@@ -7,6 +7,7 @@ members = [
   "crates/application",
   "crates/infrastructure",
   "crates/infrastructure/base",
+  "crates/infrastructure/search",
   "crates/infrastructure/test-support",
   "crates/interfaces",
   "crates/config",
@@ -130,3 +131,5 @@ async-trait.workspace = true
 openidconnect.workspace = true
 chrono.workspace = true
 komga-interfaces = { path = "crates/interfaces", features = ["allow-missing-webui-dist"] }
+komga-infrastructure-base = { path = "crates/infrastructure/base" }
+komga-infrastructure-search = { path = "crates/infrastructure/search" }

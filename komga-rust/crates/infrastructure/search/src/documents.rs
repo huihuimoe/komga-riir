@@ -1,8 +1,8 @@
 use anyhow::Context;
 use sqlx::Row;
 
-use komga_infrastructure_base::persistence::sqlite::codecs::parse_sqlite_group_concat_values;
-use crate::search::lifecycle::{SearchDocument, SearchEntityType, SearchField, SearchFieldEntry};
+use komga_infrastructure_base::sqlite::codecs::parse_sqlite_group_concat_values;
+use crate::lifecycle::{SearchDocument, SearchEntityType, SearchField, SearchFieldEntry};
 
 const AUTHOR_ROLE_DELIMITER: &str = "::";
 
@@ -17,7 +17,7 @@ fn search_fields(field: SearchField, values: String) -> Vec<SearchFieldEntry> {
         .collect()
 }
 
-pub(super) async fn load_rebuild_search_documents(
+pub async fn load_rebuild_search_documents(
     pool: sqlx::SqlitePool,
 ) -> anyhow::Result<Vec<SearchDocument>> {
     let mut docs = load_all_book_search_documents(pool.clone()).await?;
@@ -27,7 +27,7 @@ pub(super) async fn load_rebuild_search_documents(
     Ok(docs)
 }
 
-pub(super) async fn load_rebuild_search_documents_for_entities(
+pub async fn load_rebuild_search_documents_for_entities(
     pool: sqlx::SqlitePool,
     entity_types: &[SearchEntityType],
 ) -> anyhow::Result<Vec<SearchDocument>> {
@@ -51,7 +51,7 @@ pub(super) async fn load_rebuild_search_documents_for_entities(
     Ok(docs)
 }
 
-pub(super) async fn load_book_search_document(
+pub async fn load_book_search_document(
     pool: sqlx::SqlitePool,
     book_id: &str,
 ) -> anyhow::Result<Option<SearchDocument>> {
@@ -122,7 +122,7 @@ pub(super) async fn load_book_search_document(
     Ok(row.map(build_book_document))
 }
 
-pub(super) async fn load_oneshot_book_search_documents(
+pub async fn load_oneshot_book_search_documents(
     pool: sqlx::SqlitePool,
     series_id: &str,
 ) -> anyhow::Result<Vec<SearchDocument>> {
@@ -192,7 +192,7 @@ pub(super) async fn load_oneshot_book_search_documents(
     Ok(rows.into_iter().map(build_book_document).collect())
 }
 
-pub(super) async fn load_series_search_document(
+pub async fn load_series_search_document(
     pool: sqlx::SqlitePool,
     series_id: &str,
 ) -> anyhow::Result<Option<SearchDocument>> {
@@ -274,7 +274,7 @@ pub(super) async fn load_series_search_document(
     Ok(row.map(build_series_document))
 }
 
-pub(super) async fn load_collection_search_document(
+pub async fn load_collection_search_document(
     pool: sqlx::SqlitePool,
     collection_id: &str,
 ) -> anyhow::Result<Option<SearchDocument>> {
@@ -287,7 +287,7 @@ pub(super) async fn load_collection_search_document(
     Ok(row.map(|row| build_named_document(row, SearchEntityType::Collection)))
 }
 
-pub(super) async fn load_readlist_search_document(
+pub async fn load_readlist_search_document(
     pool: sqlx::SqlitePool,
     readlist_id: &str,
 ) -> anyhow::Result<Option<SearchDocument>> {
@@ -655,7 +655,7 @@ mod tests {
     use sqlx::SqlitePool;
 
     use super::*;
-    use komga_infrastructure_base::persistence::sqlite::{connect_test_pool, schema};
+    use komga_infrastructure_base::sqlite::{connect_test_pool, schema};
 
     fn temp_db_path(case_id: &str) -> PathBuf {
         let nanos = std::time::SystemTime::now()

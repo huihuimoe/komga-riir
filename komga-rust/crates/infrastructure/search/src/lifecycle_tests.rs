@@ -4,7 +4,7 @@ use std::io::ErrorKind;
 use std::path::PathBuf;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use crate::search::analyzers::query_tokenizer_profile_name;
+use crate::analyzers::query_tokenizer_profile_name;
 use tantivy::schema::{FieldType, IndexRecordOption};
 
 use super::{

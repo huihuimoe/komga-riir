@@ -15,7 +15,7 @@ use super::lifecycle::{
 mod tests;
 
 #[derive(Clone, Debug)]
-pub(crate) struct SearchIndexEngine {
+pub struct SearchIndexEngine {
     pool: SqlitePool,
     index_dir: PathBuf,
     owns_search_index: bool,
@@ -33,7 +33,7 @@ struct SearchIndexMutationRunner<'a> {
 }
 
 impl SearchIndexEngine {
-    pub(crate) fn new(pool: SqlitePool, index_dir: PathBuf, owns_search_index: bool) -> Self {
+    pub fn new(pool: SqlitePool, index_dir: PathBuf, owns_search_index: bool) -> Self {
         Self {
             pool,
             index_dir,
@@ -41,15 +41,15 @@ impl SearchIndexEngine {
         }
     }
 
-    pub(crate) fn read_only(pool: SqlitePool, index_dir: PathBuf) -> Self {
+    pub fn read_only(pool: SqlitePool, index_dir: PathBuf) -> Self {
         Self::new(pool, index_dir, false)
     }
 
-    pub(crate) fn index_dir(&self) -> &Path {
+    pub fn index_dir(&self) -> &Path {
         self.index_dir.as_path()
     }
 
-    pub(crate) fn search_ids(
+    pub fn search_ids(
         &self,
         query: &str,
         entity_type: SearchEntityType,
@@ -62,7 +62,7 @@ impl SearchIndexEngine {
             .context("failed to execute search query")
     }
 
-    pub(crate) fn search_scored_ids(
+    pub fn search_scored_ids(
         &self,
         query: &str,
         entity_type: SearchEntityType,
@@ -75,45 +75,45 @@ impl SearchIndexEngine {
             .context("failed to execute scored search query")
     }
 
-    pub(crate) async fn upsert_book(&self, book_id: &str) -> anyhow::Result<bool> {
+    pub async fn upsert_book(&self, book_id: &str) -> anyhow::Result<bool> {
         self.upsert_entity(SearchEntityType::Book, book_id).await
     }
 
-    pub(crate) async fn upsert_series(&self, series_id: &str) -> anyhow::Result<bool> {
+    pub async fn upsert_series(&self, series_id: &str) -> anyhow::Result<bool> {
         self.upsert_entity(SearchEntityType::Series, series_id)
             .await
     }
 
-    pub(crate) async fn upsert_collection(&self, collection_id: &str) -> anyhow::Result<bool> {
+    pub async fn upsert_collection(&self, collection_id: &str) -> anyhow::Result<bool> {
         self.upsert_entity(SearchEntityType::Collection, collection_id)
             .await
     }
 
-    pub(crate) async fn upsert_readlist(&self, readlist_id: &str) -> anyhow::Result<bool> {
+    pub async fn upsert_readlist(&self, readlist_id: &str) -> anyhow::Result<bool> {
         self.upsert_entity(SearchEntityType::ReadList, readlist_id)
             .await
     }
 
-    pub(crate) async fn delete_book(&self, book_id: &str) -> anyhow::Result<()> {
+    pub async fn delete_book(&self, book_id: &str) -> anyhow::Result<()> {
         self.delete_entity(SearchEntityType::Book, book_id).await
     }
 
-    pub(crate) async fn delete_series(&self, series_id: &str) -> anyhow::Result<()> {
+    pub async fn delete_series(&self, series_id: &str) -> anyhow::Result<()> {
         self.delete_entity(SearchEntityType::Series, series_id)
             .await
     }
 
-    pub(crate) async fn delete_collection(&self, collection_id: &str) -> anyhow::Result<()> {
+    pub async fn delete_collection(&self, collection_id: &str) -> anyhow::Result<()> {
         self.delete_entity(SearchEntityType::Collection, collection_id)
             .await
     }
 
-    pub(crate) async fn delete_readlist(&self, readlist_id: &str) -> anyhow::Result<()> {
+    pub async fn delete_readlist(&self, readlist_id: &str) -> anyhow::Result<()> {
         self.delete_entity(SearchEntityType::ReadList, readlist_id)
             .await
     }
 
-    pub(crate) async fn refresh_series_after_metadata_update(
+    pub async fn refresh_series_after_metadata_update(
         &self,
         series_id: &str,
     ) -> anyhow::Result<()> {
@@ -129,7 +129,7 @@ impl SearchIndexEngine {
         .await
     }
 
-    pub(crate) async fn rebuild_all(&self) -> anyhow::Result<()> {
+    pub async fn rebuild_all(&self) -> anyhow::Result<()> {
         if !self.owns_search_index {
             return Ok(());
         }
@@ -137,7 +137,7 @@ impl SearchIndexEngine {
         recover_search_index(&self.pool, self.index_dir.as_path()).await
     }
 
-    pub(crate) async fn rebuild_entities(
+    pub async fn rebuild_entities(
         &self,
         entity_types: &[SearchEntityType],
     ) -> anyhow::Result<()> {

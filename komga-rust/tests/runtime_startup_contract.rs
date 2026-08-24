@@ -1,5 +1,6 @@
 use komga_infrastructure::tasks::TaskRuntimeOwnershipOverrides;
-use komga_infrastructure::{persistence::DatabaseHandle, search::search_analyzer_version};
+use komga_infrastructure_base::DatabaseHandle;
+use komga_infrastructure_search::search_analyzer_version;
 use komga_infrastructure::{
     persistence::connect_task_pool, persistence::connect_task_write_pool,
     persistence::default_read_max_connections,

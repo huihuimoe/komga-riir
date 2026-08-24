@@ -9,14 +9,14 @@ use tantivy::tokenizer::{
     TokenFilter, TokenStream, Tokenizer,
 };
 
-pub(in crate::search) const SEARCH_ANALYZER_VERSION: u32 = 6;
+pub const SEARCH_ANALYZER_VERSION: u32 = 6;
 
 pub fn search_analyzer_version() -> u32 {
     SEARCH_ANALYZER_VERSION
 }
 
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
-pub(in crate::search) enum SearchFieldClass {
+pub enum SearchFieldClass {
     MultilingualFullText,
     ExactTerm,
 }
@@ -27,7 +27,7 @@ enum SearchAnalyzerPhase {
     Query,
 }
 
-pub(in crate::search) fn search_text_field_options(class: SearchFieldClass) -> TextOptions {
+pub fn search_text_field_options(class: SearchFieldClass) -> TextOptions {
     TextOptions::default().set_stored().set_indexing_options(
         TextFieldIndexing::default()
             .set_tokenizer(&index_tokenizer_profile_name(class))
@@ -35,7 +35,7 @@ pub(in crate::search) fn search_text_field_options(class: SearchFieldClass) -> T
     )
 }
 
-pub(in crate::search) fn register_search_analyzers(index: &Index) {
+pub fn register_search_analyzers(index: &Index) {
     for class in [
         SearchFieldClass::MultilingualFullText,
         SearchFieldClass::ExactTerm,
@@ -51,22 +51,22 @@ pub(in crate::search) fn register_search_analyzers(index: &Index) {
     }
 }
 
-pub(in crate::search) fn index_tokenizer_profile_name(class: SearchFieldClass) -> String {
+pub fn index_tokenizer_profile_name(class: SearchFieldClass) -> String {
     tokenizer_profile_name(class, SearchAnalyzerPhase::Index)
 }
 
-pub(in crate::search) fn query_tokenizer_profile_name(class: SearchFieldClass) -> String {
+pub fn query_tokenizer_profile_name(class: SearchFieldClass) -> String {
     tokenizer_profile_name(class, SearchAnalyzerPhase::Query)
 }
 
-pub(in crate::search) fn build_index_time_analyzer(class: SearchFieldClass) -> TextAnalyzer {
+pub fn build_index_time_analyzer(class: SearchFieldClass) -> TextAnalyzer {
     match class {
         SearchFieldClass::MultilingualFullText => build_multilingual_index_text_analyzer(),
         SearchFieldClass::ExactTerm => build_exact_term_analyzer(),
     }
 }
 
-pub(in crate::search) fn build_query_time_analyzer(class: SearchFieldClass) -> TextAnalyzer {
+pub fn build_query_time_analyzer(class: SearchFieldClass) -> TextAnalyzer {
     match class {
         SearchFieldClass::MultilingualFullText => build_default_text_analyzer(),
         SearchFieldClass::ExactTerm => build_exact_term_analyzer(),
@@ -432,7 +432,7 @@ fn is_cjk_bigram_char(ch: char) -> bool {
     )
 }
 
-pub(in crate::search) fn normalize_multilingual_width(text: &str) -> Cow<'_, str> {
+pub fn normalize_multilingual_width(text: &str) -> Cow<'_, str> {
     let mut normalized = String::with_capacity(text.len());
     let mut chars = text.chars().peekable();
     let mut changed = false;

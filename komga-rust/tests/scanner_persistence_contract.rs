@@ -9,7 +9,7 @@ use crate::support::sqlite::connect_test_pool;
 use komga_application::task_processing::TaskQueueRecord;
 use komga_config::cli_args::RuntimeCli;
 use komga_config::env_config::RuntimeConfig;
-use komga_infrastructure::{search::SearchEntityType, search::SearchIndexLifecycle};
+use komga_infrastructure_search::{SearchEntityType, SearchIndexLifecycle};
 use komga_infrastructure::{tasks::TaskQueueScheduler, tasks::TaskRuntimeContext};
 use serde_json::{Value, json};
 use sqlx::Row;

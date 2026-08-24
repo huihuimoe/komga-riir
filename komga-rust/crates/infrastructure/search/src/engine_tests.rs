@@ -5,7 +5,7 @@ use sqlx::SqlitePool;
 
 use super::SearchIndexEngine;
 use komga_infrastructure_base::persistence::sqlite::connect_main_write_context;
-use crate::search::lifecycle::{
+use crate::lifecycle::{
     SearchDocument, SearchEntityType, SearchField, SearchFieldEntry, SearchIndexLifecycle,
 };
 

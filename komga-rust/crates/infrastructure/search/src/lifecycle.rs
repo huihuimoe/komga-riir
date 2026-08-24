@@ -59,9 +59,9 @@ fn retained_query_fields() -> &'static [SearchField] {
 }
 
 #[derive(Clone, Debug, PartialEq)]
-pub(crate) struct SearchScoredHit {
-    pub(crate) score: f32,
-    pub(crate) id: String,
+pub struct SearchScoredHit {
+    pub score: f32,
+    pub id: String,
 }
 
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
@@ -316,7 +316,7 @@ pub struct SearchIndexLifecycle {
     fields: SearchFields,
 }
 
-pub(crate) struct SearchQueryLifecycle {
+pub struct SearchQueryLifecycle {
     index: Index,
     reader: IndexReader,
     fields: SearchFields,
@@ -534,7 +534,7 @@ impl SearchIndexLifecycle {
 }
 
 impl SearchQueryLifecycle {
-    pub(crate) fn bootstrap(index_dir: &Path) -> Result<Self, SearchError> {
+    pub fn bootstrap(index_dir: &Path) -> Result<Self, SearchError> {
         let SearchQueryState {
             index,
             reader,
@@ -548,7 +548,7 @@ impl SearchQueryLifecycle {
         })
     }
 
-    pub(crate) fn search_scored_ids(
+    pub fn search_scored_ids(
         &self,
         query: &str,
         entity_type: SearchEntityType,
@@ -564,7 +564,7 @@ impl SearchQueryLifecycle {
         )
     }
 
-    pub(crate) fn search_ids(
+    pub fn search_ids(
         &self,
         query: &str,
         entity_type: SearchEntityType,

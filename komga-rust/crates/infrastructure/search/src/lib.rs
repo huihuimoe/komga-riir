@@ -1,8 +1,8 @@
-mod analyzers;
-mod documents;
-pub(crate) mod engine;
-mod lifecycle;
-mod sync_adapter;
+pub mod analyzers;
+pub mod documents;
+pub mod engine;
+pub mod lifecycle;
+pub mod sync_adapter;
 
 pub use analyzers::search_analyzer_version;
 pub use engine::rebuild_index_from_database;

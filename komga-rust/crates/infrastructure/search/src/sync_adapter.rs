@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use komga_application::media_assets::SearchSyncPort;
 use sqlx::SqlitePool;
 
-use crate::search::engine::SearchIndexEngine;
+use crate::engine::SearchIndexEngine;
 
 #[derive(Clone)]
 pub struct SearchSyncAdapter {

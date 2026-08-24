@@ -5,9 +5,9 @@ use komga_application::runtime_sse::{RuntimeSseEvent, RuntimeSseEventLog, Runtim
 use komga_application::task_processing::TaskQueueRecord;
 use komga_config::profile::RuntimeMode;
 use komga_config::writer_ownership::WriterOwnershipPolicy;
-use komga_infrastructure::{
-    persistence::DatabaseHandle, search::SearchEntityType, search::SearchIndexLifecycle,
-    search::search_analyzer_version,
+use komga_infrastructure_base::DatabaseHandle;
+use komga_infrastructure_search::{
+    search_analyzer_version, SearchEntityType, SearchIndexLifecycle,
 };
 use komga_infrastructure::{
     persistence::connect_task_pool, persistence::connect_task_write_pool,
