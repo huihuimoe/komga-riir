@@ -20,11 +20,11 @@ async fn runtime_blocks_import_book_when_main_database_is_external_owned() {
     std::fs::write(&source_file, b"blocked-import-payload")
         .expect("blocked import source file should be written");
 
-    let runtime = runtime_task_context_with_overrides(
+    let runtime = runtime_task_context_with_ownership(
         ctx.paths(),
-        TaskRuntimeOwnershipOverrides {
-            owns_main_database: Some(false),
-            ..TaskRuntimeOwnershipOverrides::default()
+        TaskRuntimeOwnership {
+            owns_main_database: false,
+            ..TaskRuntimeOwnership::all_owned()
         },
     )
     .await;
@@ -137,11 +137,11 @@ async fn runtime_blocks_extension_repair_when_main_database_is_external_owned() 
     .expect("extension-repair fixture media row should be inserted");
     pool.close().await;
 
-    let runtime = runtime_task_context_with_overrides(
+    let runtime = runtime_task_context_with_ownership(
         ctx.paths(),
-        TaskRuntimeOwnershipOverrides {
-            owns_main_database: Some(false),
-            ..TaskRuntimeOwnershipOverrides::default()
+        TaskRuntimeOwnership {
+            owns_main_database: false,
+            ..TaskRuntimeOwnership::all_owned()
         },
     )
     .await;
@@ -236,11 +236,11 @@ async fn runtime_blocks_find_books_to_convert_when_main_database_is_external_own
     .expect("find-books-to-convert fixture media row should be inserted");
     pool.close().await;
 
-    let runtime = runtime_task_context_with_overrides(
+    let runtime = runtime_task_context_with_ownership(
         ctx.paths(),
-        TaskRuntimeOwnershipOverrides {
-            owns_main_database: Some(false),
-            ..TaskRuntimeOwnershipOverrides::default()
+        TaskRuntimeOwnership {
+            owns_main_database: false,
+            ..TaskRuntimeOwnership::all_owned()
         },
     )
     .await;

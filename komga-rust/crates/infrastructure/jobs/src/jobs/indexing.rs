@@ -84,8 +84,9 @@ pub(crate) async fn execute_find_book_thumbnails_to_regenerate(
 #[cfg(test)]
 mod tests {
     use crate::test_support::{RuntimeTestFixture, execute_and_enqueue};
-    use crate::{TaskRuntimeContext, TaskRuntimeOwnershipOverrides};
+    use crate::{TaskRuntimeContext, TaskRuntimeContextParams, TaskRuntimeOwnership};
     use image::{ImageBuffer, Rgba};
+    use komga_application::runtime_sse::RuntimeSseEventStore;
     use komga_application::task_processing::{
         BookPayload, FindBookThumbnailsToRegeneratePayload, TaskKind, TaskRequest,
     };
@@ -100,6 +101,8 @@ mod tests {
     use sqlx::{Row, SqlitePool};
     use std::fs::File;
     use std::io::Write;
+    use std::path::{Path, PathBuf};
+    use std::sync::Arc;
     use zip::CompressionMethod;
     use zip::ZipWriter;
     use zip::write::SimpleFileOptions;
@@ -145,6 +148,36 @@ mod tests {
         page: i64,
         completed: i64,
         last_modified_date: Option<String>,
+    }
+
+    async fn runtime_context(
+        database_file: &Path,
+        tasks_db_file: PathBuf,
+        lucene_dir: PathBuf,
+        owns_search_index: bool,
+    ) -> TaskRuntimeContext {
+        let task_write_pool = connect_task_write_pool(database_file)
+            .await
+            .expect("test private write pool should open");
+        let task_read_pool = connect_task_pool(database_file, default_read_max_connections())
+            .await
+            .expect("test private read pool should open");
+        TaskRuntimeContext::new(TaskRuntimeContextParams {
+            main_db: DatabaseHandle::file_backed(database_file.to_path_buf())
+                .await
+                .expect("test db should open"),
+            tasks_db_file,
+            lucene_data_directory: lucene_dir,
+            consumes_queue: false,
+            ownership: TaskRuntimeOwnership {
+                owns_search_index,
+                ..TaskRuntimeOwnership::all_owned()
+            },
+            task_pool_size: 1,
+            task_write_pool,
+            task_read_pool,
+            runtime_events: Arc::new(RuntimeSseEventStore::default()),
+        })
     }
 
     #[derive(Debug, PartialEq, Eq)]
@@ -563,23 +596,7 @@ mod tests {
             .expect("selected thumbnail row should be inserted for book-1");
         pool.close().await;
 
-        let task_write_pool = connect_task_write_pool(&database_file)
-            .await
-            .expect("test private write pool should open");
-        let task_read_pool = connect_task_pool(&database_file, default_read_max_connections())
-            .await
-            .expect("test private read pool should open");
-        let runtime = TaskRuntimeContext::new(
-            DatabaseHandle::file_backed(database_file.clone())
-                .await
-                .expect("test db should open"),
-            tasks_db_file,
-            lucene_dir,
-            false,
-            1,
-            task_write_pool,
-            task_read_pool,
-        );
+        let runtime = runtime_context(&database_file, tasks_db_file, lucene_dir, true).await;
         let scheduler =
             TaskQueueScheduler::for_runtime(runtime.clone(), "thumbnail-finder-all-books-test")
                 .await;
@@ -679,23 +696,7 @@ mod tests {
         .expect("thumbnail size setting should be seeded");
         pool.close().await;
 
-        let task_write_pool = connect_task_write_pool(&database_file)
-            .await
-            .expect("test private write pool should open");
-        let task_read_pool = connect_task_pool(&database_file, default_read_max_connections())
-            .await
-            .expect("test private read pool should open");
-        let runtime = TaskRuntimeContext::new(
-            DatabaseHandle::file_backed(database_file.clone())
-                .await
-                .expect("test db should open"),
-            tasks_db_file,
-            lucene_dir,
-            false,
-            1,
-            task_write_pool,
-            task_read_pool,
-        );
+        let runtime = runtime_context(&database_file, tasks_db_file, lucene_dir, true).await;
         let scheduler =
             TaskQueueScheduler::for_runtime(runtime.clone(), "thumbnail-finder-bigger-policy-test")
                 .await;
@@ -1215,27 +1216,7 @@ mod tests {
         }
         pool.close().await;
 
-        let task_write_pool = connect_task_write_pool(&database_file)
-            .await
-            .expect("test private write pool should open");
-        let task_read_pool = connect_task_pool(&database_file, default_read_max_connections())
-            .await
-            .expect("test private read pool should open");
-        let runtime = TaskRuntimeContext::new(
-            DatabaseHandle::file_backed(database_file.clone())
-                .await
-                .expect("test db should open"),
-            tasks_db_file,
-            lucene_dir,
-            false,
-            1,
-            task_write_pool,
-            task_read_pool,
-        )
-        .with_ownership_overrides(TaskRuntimeOwnershipOverrides {
-            owns_search_index: Some(false),
-            ..TaskRuntimeOwnershipOverrides::default()
-        });
+        let runtime = runtime_context(&database_file, tasks_db_file, lucene_dir, false).await;
         let scheduler = TaskQueueScheduler::for_runtime(
             runtime.clone(),
             "analyze-book-read-progress-adjust-test",
@@ -1445,27 +1426,7 @@ mod tests {
         .expect("same-count incomplete series row should be inserted");
         pool.close().await;
 
-        let task_write_pool = connect_task_write_pool(&database_file)
-            .await
-            .expect("test private write pool should open");
-        let task_read_pool = connect_task_pool(&database_file, default_read_max_connections())
-            .await
-            .expect("test private read pool should open");
-        let runtime = TaskRuntimeContext::new(
-            DatabaseHandle::file_backed(database_file.clone())
-                .await
-                .expect("test db should open"),
-            tasks_db_file,
-            lucene_dir,
-            false,
-            1,
-            task_write_pool,
-            task_read_pool,
-        )
-        .with_ownership_overrides(TaskRuntimeOwnershipOverrides {
-            owns_search_index: Some(false),
-            ..TaskRuntimeOwnershipOverrides::default()
-        });
+        let runtime = runtime_context(&database_file, tasks_db_file, lucene_dir, false).await;
         let scheduler = TaskQueueScheduler::for_runtime(
             runtime.clone(),
             "analyze-book-read-progress-keep-test",

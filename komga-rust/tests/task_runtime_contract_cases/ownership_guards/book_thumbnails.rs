@@ -11,11 +11,11 @@ async fn runtime_blocks_book_thumbnail_generation_when_main_database_is_external
     let ctx = TestFixture::new("runtime-blocked-main-database-thumbnail").await;
     write_router_epub_resource(ctx.paths(), "books/book-1.epub", "OEBPS/cover.gif", GIF_1X1);
 
-    let runtime = runtime_task_context_with_overrides(
+    let runtime = runtime_task_context_with_ownership(
         ctx.paths(),
-        TaskRuntimeOwnershipOverrides {
-            owns_main_database: Some(false),
-            ..TaskRuntimeOwnershipOverrides::default()
+        TaskRuntimeOwnership {
+            owns_main_database: false,
+            ..TaskRuntimeOwnership::all_owned()
         },
     )
     .await;

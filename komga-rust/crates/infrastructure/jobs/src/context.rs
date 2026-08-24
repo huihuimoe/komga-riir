@@ -2,7 +2,7 @@ use std::path::PathBuf;
 use std::sync::Arc;
 
 use komga_application::operational::ServerSettingsPort;
-use komga_application::runtime_sse::{RuntimeSseEventSink, RuntimeSseEventStore};
+use komga_application::runtime_sse::RuntimeSseEventSink;
 use komga_application::task_processing::{CleanupEmptySetsPolicy, ThumbnailRegenerationPolicy};
 use sqlx::SqlitePool;
 
@@ -28,12 +28,44 @@ pub struct TaskRuntimeContext {
     media_library: MediaLibraryJobContext,
 }
 
-#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
-pub struct TaskRuntimeOwnershipOverrides {
-    pub owns_main_database: Option<bool>,
-    pub owns_filesystem_scan_output: Option<bool>,
-    pub owns_sidecar_output: Option<bool>,
-    pub owns_search_index: Option<bool>,
+pub struct TaskRuntimeContextParams {
+    pub main_db: DatabaseHandle,
+    pub tasks_db_file: PathBuf,
+    pub lucene_data_directory: PathBuf,
+    pub consumes_queue: bool,
+    pub ownership: TaskRuntimeOwnership,
+    pub task_pool_size: usize,
+    pub task_write_pool: SqlitePool,
+    pub task_read_pool: SqlitePool,
+    pub runtime_events: Arc<dyn RuntimeSseEventSink>,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct TaskRuntimeOwnership {
+    pub owns_main_database: bool,
+    pub owns_filesystem_scan_output: bool,
+    pub owns_sidecar_output: bool,
+    pub owns_search_index: bool,
+}
+
+impl TaskRuntimeOwnership {
+    pub const fn new(
+        owns_main_database: bool,
+        owns_filesystem_scan_output: bool,
+        owns_sidecar_output: bool,
+        owns_search_index: bool,
+    ) -> Self {
+        Self {
+            owns_main_database,
+            owns_filesystem_scan_output,
+            owns_sidecar_output,
+            owns_search_index,
+        }
+    }
+
+    pub const fn all_owned() -> Self {
+        Self::new(true, true, true, true)
+    }
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -62,64 +94,45 @@ pub struct FilesystemRuntime<'a> {
 }
 
 impl TaskRuntimeContext {
-    pub fn new(
-        main_db: DatabaseHandle,
-        tasks_db_file: PathBuf,
-        lucene_data_directory: PathBuf,
-        consumes_queue: bool,
-        task_pool_size: usize,
-        task_write_pool: SqlitePool,
-        task_read_pool: SqlitePool,
-    ) -> Self {
-        let runtime_events: Arc<dyn RuntimeSseEventSink> =
-            Arc::new(RuntimeSseEventStore::default());
-        let media_library =
-            MediaLibraryJobContext::new(main_db.clone(), true, true, runtime_events.clone());
+    pub fn new(params: TaskRuntimeContextParams) -> Self {
+        let TaskRuntimeContextParams {
+            main_db,
+            tasks_db_file,
+            lucene_data_directory,
+            consumes_queue,
+            ownership,
+            task_pool_size,
+            task_write_pool,
+            task_read_pool,
+            runtime_events,
+        } = params;
+        let TaskRuntimeOwnership {
+            owns_main_database,
+            owns_filesystem_scan_output,
+            owns_sidecar_output,
+            owns_search_index,
+        } = ownership;
+        let media_library = MediaLibraryJobContext::new(
+            main_db.clone(),
+            owns_main_database,
+            owns_filesystem_scan_output,
+            runtime_events.clone(),
+        );
         Self {
             main_db,
             tasks_db_file,
             lucene_data_directory,
             consumes_queue,
-            owns_main_database: true,
-            owns_filesystem_scan_output: true,
-            owns_sidecar_output: true,
-            owns_search_index: true,
+            owns_main_database,
+            owns_filesystem_scan_output,
+            owns_sidecar_output,
+            owns_search_index,
             task_pool_size,
             task_write_pool,
             task_read_pool,
             runtime_events,
             media_library,
         }
-    }
-
-    pub fn with_ownership_overrides(mut self, overrides: TaskRuntimeOwnershipOverrides) -> Self {
-        if let Some(value) = overrides.owns_main_database {
-            self.owns_main_database = value;
-        }
-        if let Some(value) = overrides.owns_filesystem_scan_output {
-            self.owns_filesystem_scan_output = value;
-        }
-        if let Some(value) = overrides.owns_sidecar_output {
-            self.owns_sidecar_output = value;
-        }
-        if let Some(value) = overrides.owns_search_index {
-            self.owns_search_index = value;
-        }
-        self.media_library
-            .set_ownership(self.owns_main_database, self.owns_filesystem_scan_output);
-        self
-    }
-
-    pub fn with_task_pool_size(mut self, task_pool_size: usize) -> Self {
-        self.task_pool_size = task_pool_size;
-        self
-    }
-
-    pub fn with_runtime_events(mut self, runtime_events: Arc<dyn RuntimeSseEventSink>) -> Self {
-        self.media_library
-            .set_runtime_events(runtime_events.clone());
-        self.runtime_events = runtime_events;
-        self
     }
 
     pub fn worker(&self) -> WorkerRuntime<'_> {
@@ -273,16 +286,6 @@ impl FilesystemRuntime<'_> {
 
     pub fn owns_sidecar_output(&self) -> bool {
         self.runtime.owns_sidecar_output
-    }
-}
-
-pub trait TaskRuntimeConfig {
-    fn task_runtime_context(&self) -> TaskRuntimeContext;
-}
-
-impl TaskRuntimeConfig for TaskRuntimeContext {
-    fn task_runtime_context(&self) -> TaskRuntimeContext {
-        self.clone()
     }
 }
 

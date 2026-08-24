@@ -8,8 +8,8 @@ mod workers;
 pub(crate) mod test_support;
 
 pub use context::{
-    DatabaseRuntime, FilesystemRuntime, JobRuntime, SearchRuntime, TaskRuntimeConfig,
-    TaskRuntimeContext, TaskRuntimeOwnershipOverrides, WorkerRuntime,
+    DatabaseRuntime, FilesystemRuntime, JobRuntime, SearchRuntime, TaskRuntimeContext,
+    TaskRuntimeContextParams, TaskRuntimeOwnership, WorkerRuntime,
 };
 pub use workers::{
     RuntimeBackgroundState, TaskQueueWakeSignal, cleanup_authentication_activity_once,

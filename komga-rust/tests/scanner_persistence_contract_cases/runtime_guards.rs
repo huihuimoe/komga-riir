@@ -1,10 +1,12 @@
 use super::support::*;
 use super::*;
+use komga_application::runtime_sse::RuntimeSseEventStore;
 use komga_infrastructure_base::DatabaseHandle;
 use komga_infrastructure_base::{
     connect_task_pool, connect_task_write_pool, default_read_max_connections,
 };
-use komga_infrastructure_jobs::TaskRuntimeOwnershipOverrides;
+use komga_infrastructure_jobs::{TaskRuntimeContextParams, TaskRuntimeOwnership};
+use std::sync::Arc;
 
 #[tokio::test]
 async fn scanner_runtime_blocks_scan_output_when_filesystem_scan_writer_is_external_owned() {
@@ -30,20 +32,21 @@ async fn scanner_runtime_blocks_scan_output_when_filesystem_scan_writer_is_exter
     let task_read_pool = connect_task_pool(&fixture.paths.main_db, default_read_max_connections())
         .await
         .expect("test private read pool should open");
-    let runtime = TaskRuntimeContext::new(
-        DatabaseHandle::file_backed(fixture.paths.main_db.clone())
+    let runtime = TaskRuntimeContext::new(TaskRuntimeContextParams {
+        main_db: DatabaseHandle::file_backed(fixture.paths.main_db.clone())
             .await
             .expect("test db should open"),
-        fixture.paths.tasks_db.clone(),
-        fixture.config.lucene_data_directory.clone(),
-        true,
-        1,
+        tasks_db_file: fixture.paths.tasks_db.clone(),
+        lucene_data_directory: fixture.config.lucene_data_directory.clone(),
+        consumes_queue: true,
+        ownership: TaskRuntimeOwnership {
+            owns_filesystem_scan_output: false,
+            ..TaskRuntimeOwnership::all_owned()
+        },
+        task_pool_size: 1,
         task_write_pool,
         task_read_pool,
-    )
-    .with_ownership_overrides(TaskRuntimeOwnershipOverrides {
-        owns_filesystem_scan_output: Some(false),
-        ..TaskRuntimeOwnershipOverrides::default()
+        runtime_events: Arc::new(RuntimeSseEventStore::default()),
     });
     let scheduler = TaskQueueScheduler::for_runtime(runtime.clone(), "rust-main").await;
     scheduler
@@ -255,22 +258,18 @@ async fn scanner_startup_leaves_tasks_untouched_when_tasks_writer_is_external_ow
     let task_read_pool = connect_task_pool(&fixture.paths.main_db, default_read_max_connections())
         .await
         .expect("test private read pool should open");
-    let runtime = TaskRuntimeContext::new(
-        DatabaseHandle::file_backed(fixture.paths.main_db.clone())
+    let runtime = TaskRuntimeContext::new(TaskRuntimeContextParams {
+        main_db: DatabaseHandle::file_backed(fixture.paths.main_db.clone())
             .await
             .expect("test db should open"),
-        fixture.paths.tasks_db.clone(),
-        fixture.config.lucene_data_directory.clone(),
-        false,
-        1,
+        tasks_db_file: fixture.paths.tasks_db.clone(),
+        lucene_data_directory: fixture.config.lucene_data_directory.clone(),
+        consumes_queue: false,
+        ownership: TaskRuntimeOwnership::new(false, false, false, false),
+        task_pool_size: 1,
         task_write_pool,
         task_read_pool,
-    )
-    .with_ownership_overrides(TaskRuntimeOwnershipOverrides {
-        owns_main_database: Some(false),
-        owns_filesystem_scan_output: Some(false),
-        owns_sidecar_output: Some(false),
-        owns_search_index: Some(false),
+        runtime_events: Arc::new(RuntimeSseEventStore::default()),
     });
 
     let background =

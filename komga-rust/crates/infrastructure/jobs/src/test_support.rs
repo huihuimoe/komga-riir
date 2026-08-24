@@ -1,7 +1,9 @@
 use std::path::PathBuf;
+use std::sync::Arc;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use super::{TaskRuntimeContext, TaskRuntimeOwnershipOverrides};
+use super::{TaskRuntimeContext, TaskRuntimeContextParams, TaskRuntimeOwnership};
+use komga_application::runtime_sse::RuntimeSseEventStore;
 use komga_application::task_processing::{
     TaskExecutionResult, TaskProcessingError, TaskQueueRecord, finalize_task_execution,
 };
@@ -53,21 +55,6 @@ impl RuntimeTestFixture {
         consumes_queue: bool,
         owns_search_index: bool,
     ) -> TaskRuntimeContext {
-        self.runtime_context_with_overrides(
-            consumes_queue,
-            TaskRuntimeOwnershipOverrides {
-                owns_search_index: Some(owns_search_index),
-                ..TaskRuntimeOwnershipOverrides::default()
-            },
-        )
-        .await
-    }
-
-    pub(crate) async fn runtime_context_with_overrides(
-        &self,
-        consumes_queue: bool,
-        overrides: TaskRuntimeOwnershipOverrides,
-    ) -> TaskRuntimeContext {
         let main_db = DatabaseHandle::file_backed(self.database_file.clone())
             .await
             .expect("runtime test main db should open");
@@ -77,16 +64,20 @@ impl RuntimeTestFixture {
         let task_read_pool = connect_task_pool(&self.database_file, default_read_max_connections())
             .await
             .expect("runtime test private read pool should open");
-        TaskRuntimeContext::new(
+        TaskRuntimeContext::new(TaskRuntimeContextParams {
             main_db,
-            self.tasks_db_file.clone(),
-            self.lucene_dir.clone(),
+            tasks_db_file: self.tasks_db_file.clone(),
+            lucene_data_directory: self.lucene_dir.clone(),
             consumes_queue,
-            1,
+            ownership: TaskRuntimeOwnership {
+                owns_search_index,
+                ..TaskRuntimeOwnership::all_owned()
+            },
+            task_pool_size: 1,
             task_write_pool,
             task_read_pool,
-        )
-        .with_ownership_overrides(overrides)
+            runtime_events: Arc::new(RuntimeSseEventStore::default()),
+        })
     }
 
     pub(crate) async fn cleanup(self) {

@@ -3,7 +3,7 @@ use std::collections::{BTreeMap, HashMap};
 use std::sync::Arc;
 use std::time::Duration;
 
-use super::{TaskRuntimeConfig, TaskRuntimeContext};
+use super::TaskRuntimeContext;
 use komga_application::task_processing::{
     LibraryScanPipeline, LibraryScanScheduleState, ScanSchedulingTrigger,
     ScheduledLibraryScanBatch, TaskExecutionResult, TaskKind, TaskProcessingError, TaskQueueAdmin,
@@ -125,10 +125,9 @@ fn log_and_skip_if_main_db_unowned(component: &str, runtime: &TaskRuntimeContext
 }
 
 pub async fn prepare_task_queue(
-    config: impl TaskRuntimeConfig,
+    runtime: TaskRuntimeContext,
     startup_search_task: Option<&'static str>,
 ) -> RuntimeBackgroundState {
-    let runtime = config.task_runtime_context();
     let startup_task = startup_search_task.unwrap_or("");
     let wakeup = std::sync::Arc::new(Notify::new());
     let task_queue = TaskQueueScheduler::for_config_with_wakeup(
@@ -275,8 +274,7 @@ fn spawn_runtime_workers(
     spawn_authentication_activity_cleanup_worker(runtime, shutdown_rx);
 }
 
-pub async fn process_startup_library_scans(config: impl TaskRuntimeConfig) {
-    let runtime = config.task_runtime_context();
+pub async fn process_startup_library_scans(runtime: TaskRuntimeContext) {
     if log_and_skip_if_main_db_unowned(STARTUP_LIBRARY_SCAN_PROCESSING_COMPONENT, &runtime) {
         return;
     }
@@ -1126,6 +1124,8 @@ mod tests {
     use std::time::Duration;
     use tokio::sync::{Barrier, Mutex as AsyncMutex, watch};
 
+    use crate::{TaskRuntimeContextParams, TaskRuntimeOwnership};
+    use komga_application::runtime_sse::RuntimeSseEventStore;
     use komga_infrastructure_base::DatabaseHandle;
     use komga_infrastructure_base::sqlite::{
         connect_task_pool, connect_task_write_pool, default_read_max_connections,
@@ -1147,17 +1147,19 @@ mod tests {
         let task_read_pool = connect_task_pool(&db_path, default_read_max_connections())
             .await
             .expect("test private read pool should open");
-        TaskRuntimeContext::new(
-            DatabaseHandle::file_backed(db_path)
+        TaskRuntimeContext::new(TaskRuntimeContextParams {
+            main_db: DatabaseHandle::file_backed(db_path)
                 .await
                 .expect("test db should open"),
-            root.join("tasks.sqlite"),
-            root.join("lucene"),
-            true,
-            1,
+            tasks_db_file: root.join("tasks.sqlite"),
+            lucene_data_directory: root.join("lucene"),
+            consumes_queue: true,
+            ownership: TaskRuntimeOwnership::all_owned(),
+            task_pool_size: 1,
             task_write_pool,
             task_read_pool,
-        )
+            runtime_events: Arc::new(RuntimeSseEventStore::default()),
+        })
     }
 
     #[tokio::test]

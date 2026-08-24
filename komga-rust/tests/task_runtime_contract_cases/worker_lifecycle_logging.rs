@@ -556,12 +556,13 @@ fn authentication_cleanup_logs_skip_complete_and_failure_boundaries() {
         Some("authentication_activity_cleanup")
     );
 
-    let skip_runtime = config
-        .clone()
-        .with_ownership_overrides(TaskRuntimeOwnershipOverrides {
-            owns_main_database: Some(false),
-            ..TaskRuntimeOwnershipOverrides::default()
-        });
+    let skip_runtime = runtime.block_on(runtime_task_context_with_ownership(
+        ctx.paths(),
+        TaskRuntimeOwnership {
+            owns_main_database: false,
+            ..TaskRuntimeOwnership::all_owned()
+        },
+    ));
     let skip_logs = capture_router_logs_async_result(&log_config, async move {
         komga_infrastructure_jobs::cleanup_authentication_activity_once(&skip_runtime)
             .await
@@ -595,24 +596,23 @@ fn authentication_cleanup_logs_skip_complete_and_failure_boundaries() {
             connect_task_pool(&failure_root_db_path, default_read_max_connections())
                 .await
                 .expect("test private read pool should open");
-        TaskRuntimeContext::new(
-            DatabaseHandle::file_backed(failure_root_db_path)
+        TaskRuntimeContext::new(TaskRuntimeContextParams {
+            main_db: DatabaseHandle::file_backed(failure_root_db_path)
                 .await
                 .expect("test db should open"),
-            config.worker().tasks_db_file().to_path_buf(),
-            config.job().search().lucene_data_directory().to_path_buf(),
-            config.worker().consumes_queue(),
-            config.worker().task_pool_size(),
+            tasks_db_file: config.worker().tasks_db_file().to_path_buf(),
+            lucene_data_directory: config.job().search().lucene_data_directory().to_path_buf(),
+            consumes_queue: config.worker().consumes_queue(),
+            ownership: TaskRuntimeOwnership::new(
+                config.job().database().owns_main_database(),
+                config.job().filesystem().owns_filesystem_scan_output(),
+                config.job().filesystem().owns_sidecar_output(),
+                config.job().search().owns_search_index(),
+            ),
+            task_pool_size: config.worker().task_pool_size(),
             task_write_pool,
             task_read_pool,
-        )
-        .with_ownership_overrides(TaskRuntimeOwnershipOverrides {
-            owns_main_database: Some(config.job().database().owns_main_database()),
-            owns_filesystem_scan_output: Some(
-                config.job().filesystem().owns_filesystem_scan_output(),
-            ),
-            owns_sidecar_output: Some(config.job().filesystem().owns_sidecar_output()),
-            owns_search_index: Some(config.job().search().owns_search_index()),
+            runtime_events: Arc::new(RuntimeSseEventStore::default()),
         })
     });
     let failure_logs = capture_router_logs_async_result(&log_config, async move {

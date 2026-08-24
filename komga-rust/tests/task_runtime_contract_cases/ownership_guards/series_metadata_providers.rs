@@ -55,11 +55,11 @@ async fn runtime_refresh_series_metadata_applies_epub_from_book_provider_patch()
         .expect("existing series genres should be cleared before EPUB provider refresh test");
     pool.close().await;
 
-    let runtime = runtime_task_context_with_overrides(
+    let runtime = runtime_task_context_with_ownership(
         ctx.paths(),
-        TaskRuntimeOwnershipOverrides {
-            owns_search_index: Some(false),
-            ..TaskRuntimeOwnershipOverrides::default()
+        TaskRuntimeOwnership {
+            owns_search_index: false,
+            ..TaskRuntimeOwnership::all_owned()
         },
     )
     .await;
@@ -169,11 +169,11 @@ async fn runtime_refresh_series_metadata_ignores_non_iso_language_tags_from_book
     .expect("series metadata should be reset before invalid language refresh test");
     pool.close().await;
 
-    let runtime = runtime_task_context_with_overrides(
+    let runtime = runtime_task_context_with_ownership(
         ctx.paths(),
-        TaskRuntimeOwnershipOverrides {
-            owns_search_index: Some(false),
-            ..TaskRuntimeOwnershipOverrides::default()
+        TaskRuntimeOwnership {
+            owns_search_index: false,
+            ..TaskRuntimeOwnership::all_owned()
         },
     )
     .await;
@@ -271,11 +271,11 @@ async fn runtime_refresh_series_metadata_ignores_generic_series_xml_sidecar_with
     .expect("series metadata should be reset before generic sidecar refresh test");
     pool.close().await;
 
-    let runtime = runtime_task_context_with_overrides(
+    let runtime = runtime_task_context_with_ownership(
         ctx.paths(),
-        TaskRuntimeOwnershipOverrides {
-            owns_search_index: Some(false),
-            ..TaskRuntimeOwnershipOverrides::default()
+        TaskRuntimeOwnership {
+            owns_search_index: false,
+            ..TaskRuntimeOwnership::all_owned()
         },
     )
     .await;
@@ -392,11 +392,11 @@ async fn runtime_refresh_series_metadata_applies_comicinfo_from_book_provider_an
         .expect("existing collection memberships should be normalized before ComicInfo provider refresh test");
     pool.close().await;
 
-    let runtime = runtime_task_context_with_overrides(
+    let runtime = runtime_task_context_with_ownership(
         ctx.paths(),
-        TaskRuntimeOwnershipOverrides {
-            owns_search_index: Some(false),
-            ..TaskRuntimeOwnershipOverrides::default()
+        TaskRuntimeOwnership {
+            owns_search_index: false,
+            ..TaskRuntimeOwnership::all_owned()
         },
     )
     .await;
@@ -586,11 +586,11 @@ async fn runtime_refresh_series_metadata_ignores_deleted_books_from_book_provide
     .expect("series metadata should be reset before deleted-book provider refresh test");
     pool.close().await;
 
-    let runtime = runtime_task_context_with_overrides(
+    let runtime = runtime_task_context_with_ownership(
         ctx.paths(),
-        TaskRuntimeOwnershipOverrides {
-            owns_search_index: Some(false),
-            ..TaskRuntimeOwnershipOverrides::default()
+        TaskRuntimeOwnership {
+            owns_search_index: false,
+            ..TaskRuntimeOwnership::all_owned()
         },
     )
     .await;
@@ -688,11 +688,11 @@ async fn runtime_refresh_series_metadata_applies_mylar_series_provider() {
     .expect("series metadata should be reset before Mylar refresh test");
     pool.close().await;
 
-    let runtime = runtime_task_context_with_overrides(
+    let runtime = runtime_task_context_with_ownership(
         ctx.paths(),
-        TaskRuntimeOwnershipOverrides {
-            owns_search_index: Some(false),
-            ..TaskRuntimeOwnershipOverrides::default()
+        TaskRuntimeOwnership {
+            owns_search_index: false,
+            ..TaskRuntimeOwnership::all_owned()
         },
     )
     .await;
@@ -783,11 +783,11 @@ async fn runtime_refresh_series_metadata_ignores_mylar_series_json_when_library_
     .expect("series metadata should be reset before disabled Mylar refresh test");
     pool.close().await;
 
-    let runtime = runtime_task_context_with_overrides(
+    let runtime = runtime_task_context_with_ownership(
         ctx.paths(),
-        TaskRuntimeOwnershipOverrides {
-            owns_search_index: Some(false),
-            ..TaskRuntimeOwnershipOverrides::default()
+        TaskRuntimeOwnership {
+            owns_search_index: false,
+            ..TaskRuntimeOwnership::all_owned()
         },
     )
     .await;

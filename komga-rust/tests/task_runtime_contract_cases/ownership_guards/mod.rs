@@ -185,11 +185,11 @@ async fn runtime_refresh_series_metadata_applies_oneshot_provider_fields() {
     .expect("oneshot book metadata row should be inserted for series metadata fixture");
     pool.close().await;
 
-    let runtime = runtime_task_context_with_overrides(
+    let runtime = runtime_task_context_with_ownership(
         ctx.paths(),
-        TaskRuntimeOwnershipOverrides {
-            owns_search_index: Some(false),
-            ..TaskRuntimeOwnershipOverrides::default()
+        TaskRuntimeOwnership {
+            owns_search_index: false,
+            ..TaskRuntimeOwnership::all_owned()
         },
     )
     .await;

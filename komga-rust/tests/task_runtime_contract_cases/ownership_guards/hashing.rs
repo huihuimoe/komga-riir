@@ -11,11 +11,11 @@ async fn runtime_blocks_book_hash_when_main_database_is_external_owned() {
     )
     .expect("book file should be written for hash fixture");
 
-    let runtime = runtime_task_context_with_overrides(
+    let runtime = runtime_task_context_with_ownership(
         ctx.paths(),
-        TaskRuntimeOwnershipOverrides {
-            owns_main_database: Some(false),
-            ..TaskRuntimeOwnershipOverrides::default()
+        TaskRuntimeOwnership {
+            owns_main_database: false,
+            ..TaskRuntimeOwnership::all_owned()
         },
     )
     .await;
@@ -222,11 +222,11 @@ async fn runtime_blocks_book_page_hash_when_main_database_is_external_owned() {
     .expect("page-hash fixture media page row should be inserted");
     pool.close().await;
 
-    let runtime = runtime_task_context_with_overrides(
+    let runtime = runtime_task_context_with_ownership(
         ctx.paths(),
-        TaskRuntimeOwnershipOverrides {
-            owns_main_database: Some(false),
-            ..TaskRuntimeOwnershipOverrides::default()
+        TaskRuntimeOwnership {
+            owns_main_database: false,
+            ..TaskRuntimeOwnership::all_owned()
         },
     )
     .await;

@@ -104,9 +104,7 @@ fn scheduler_logs_failure_with_concurrent_success_without_fake_success_events() 
         let failed_task = failed_task.clone();
         let disowned_task = disowned_task.clone();
         async move {
-            let runtime = runtime_task_context_from_config(&config)
-                .await
-                .with_task_pool_size(2);
+            let runtime = runtime_task_context_from_config_with_task_pool_size(&config, 2).await;
             let task_queue = std::sync::Arc::new(tokio::sync::Mutex::new(
                 TaskQueueScheduler::for_runtime(runtime.clone(), "rust-main").await,
             ));

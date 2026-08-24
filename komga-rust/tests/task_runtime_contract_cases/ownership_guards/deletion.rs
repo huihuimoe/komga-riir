@@ -32,11 +32,11 @@ async fn enqueue_delete_series(scheduler: &mut TaskQueueScheduler, series_id: &s
 async fn runtime_blocks_book_delete_when_main_database_is_external_owned() {
     let ctx = TestFixture::new("runtime-blocked-main-database-delete-book").await;
 
-    let runtime = runtime_task_context_with_overrides(
+    let runtime = runtime_task_context_with_ownership(
         ctx.paths(),
-        TaskRuntimeOwnershipOverrides {
-            owns_main_database: Some(false),
-            ..TaskRuntimeOwnershipOverrides::default()
+        TaskRuntimeOwnership {
+            owns_main_database: false,
+            ..TaskRuntimeOwnership::all_owned()
         },
     )
     .await;
@@ -122,11 +122,11 @@ async fn runtime_blocks_series_delete_when_main_database_is_external_owned() {
     .expect("blocked delete-series series sidecar row should be inserted");
     pool.close().await;
 
-    let runtime = runtime_task_context_with_overrides(
+    let runtime = runtime_task_context_with_ownership(
         ctx.paths(),
-        TaskRuntimeOwnershipOverrides {
-            owns_main_database: Some(false),
-            ..TaskRuntimeOwnershipOverrides::default()
+        TaskRuntimeOwnership {
+            owns_main_database: false,
+            ..TaskRuntimeOwnership::all_owned()
         },
     )
     .await;
