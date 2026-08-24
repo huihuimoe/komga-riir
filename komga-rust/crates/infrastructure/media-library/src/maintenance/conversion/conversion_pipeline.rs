@@ -19,8 +19,8 @@ use super::super::updates::{
     persist_book_page_hashes,
 };
 use komga_infrastructure_base::file_io::remove_file_after_release;
-use crate::media::analysis::is_rar_media_type;
-use crate::tasks::JobRuntime;
+use crate::analysis::is_rar_media_type;
+use crate::MediaLibraryJobContext;
 use komga_infrastructure_base::{resolve_library_item_path, resolve_stored_path};
 
 struct PreparedBookConversion {
@@ -54,8 +54,8 @@ fn restored_page_hashes(
         .collect()
 }
 
-pub(crate) async fn find_books_to_convert(
-    runtime: &JobRuntime<'_>,
+pub async fn find_books_to_convert(
+    runtime: &MediaLibraryJobContext,
     library_id: &str,
 ) -> Result<Vec<PersistedBookToConvert>, TaskProcessingError> {
     let maintenance_flags =
@@ -71,8 +71,8 @@ pub(crate) async fn find_books_to_convert(
         .map_err(TaskProcessingError::runtime)
 }
 
-pub(crate) async fn convert_book(
-    runtime: &JobRuntime<'_>,
+pub async fn convert_book(
+    runtime: &MediaLibraryJobContext,
     book_id: &str,
 ) -> Result<(), TaskProcessingError> {
     let book_id = book_id.to_string();
@@ -236,7 +236,7 @@ pub(crate) async fn convert_book(
         .await
         .map_err(TaskProcessingError::runtime)?;
 
-    crate::media::analysis::analyze_book(runtime, &book_id).await?;
+    crate::analysis::analyze_book(runtime, &book_id).await?;
 
     let analyzed_pages = load_book_hashed_pages(runtime.database().read_pool(), &book_id)
         .await

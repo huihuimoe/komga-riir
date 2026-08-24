@@ -13,10 +13,10 @@ use super::persistence::{
     load_book_hashed_pages as load_persisted_book_hashed_pages,
 };
 use super::updates::{persist_duplicate_page_deleted_events, persist_removed_hashed_pages};
-use crate::media::analysis::{is_supported_page_image_file_name, media_type_from_entry_name};
-use crate::tasks::JobRuntime;
+use crate::analysis::{is_supported_page_image_file_name, media_type_from_entry_name};
+use crate::MediaLibraryJobContext;
 
-pub(crate) type HashedPageToDelete = HashedPageToDeletePayload;
+pub type HashedPageToDelete = HashedPageToDeletePayload;
 
 pub(crate) struct BookArchiveSource {
     pub(crate) file_path: PathBuf,
@@ -32,8 +32,8 @@ struct BookFileMetadata {
     file_size: i64,
 }
 
-pub(crate) async fn remove_hashed_pages(
-    runtime: &JobRuntime<'_>,
+pub async fn remove_hashed_pages(
+    runtime: &MediaLibraryJobContext,
     book_id: &str,
     pages: &[HashedPageToDelete],
 ) -> Result<bool, TaskProcessingError> {
@@ -133,7 +133,7 @@ pub(crate) async fn remove_hashed_pages(
     .await
     .map_err(TaskProcessingError::runtime)?;
 
-    crate::media::analysis::analyze_book(runtime, analyze_book_id.as_str()).await?;
+    crate::analysis::analyze_book(runtime, analyze_book_id.as_str()).await?;
 
     persist_duplicate_page_deleted_events(
         runtime.database().write_pool(),
@@ -174,7 +174,7 @@ fn load_book_file_metadata(
 }
 
 pub(crate) async fn load_book_archive_source(
-    runtime: &JobRuntime<'_>,
+    runtime: &MediaLibraryJobContext,
     book_id: &str,
 ) -> Result<Option<BookArchiveSource>, TaskProcessingError> {
     Ok(
@@ -192,7 +192,7 @@ pub(crate) async fn load_book_archive_source(
 }
 
 async fn load_book_hashed_pages(
-    runtime: &JobRuntime<'_>,
+    runtime: &MediaLibraryJobContext,
     book_id: &str,
 ) -> Result<Vec<HashedPageToDelete>, TaskProcessingError> {
     load_persisted_book_hashed_pages(runtime.database().read_pool(), book_id)

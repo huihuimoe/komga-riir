@@ -1,6 +1,7 @@
-use crate::media::maintenance::persistence::{
+use komga_infrastructure_media_library::maintenance::persistence::{
     load_books_with_undersized_generated_thumbnails, load_non_deleted_book_ids,
 };
+use komga_infrastructure_media_library::analysis::analyze_book;
 use komga_infrastructure_search::SearchEntityType;
 use crate::tasks::JobRuntime;
 use komga_application::task_processing::{RefreshBookMetadataPayload, TaskKind, TaskRequest};
@@ -13,7 +14,8 @@ pub(in crate::tasks) async fn execute_analyze_book(
     priority: i32,
 ) -> Result<TaskExecutionOutcome, TaskProcessingError> {
     let book_id = book_id.to_string();
-    let outcome = crate::media::analysis::analyze_book(runtime, &book_id).await?;
+    let media_runtime = runtime.media_library();
+    let outcome = analyze_book(&media_runtime, &book_id).await?;
 
     if outcome.media_status == Some(MediaStatus::Ready) && !outcome.series_id.is_empty() {
         let follow_up_priority = priority.saturating_add(1);
@@ -81,6 +83,7 @@ pub(in crate::tasks) async fn execute_find_book_thumbnails_to_regenerate(
 
 #[cfg(test)]
 mod tests {
+    use komga_infrastructure_media_library::analysis::analyze_book_media_file;
     use komga_infrastructure_base::DatabaseHandle;
     use komga_infrastructure_base::sqlite::{
         connect_main_write_context, connect_task_pool, connect_task_write_pool, connect_test_pool,
@@ -518,7 +521,7 @@ mod tests {
     }
 
     fn analyzed_fixture_page_count(file_name: &str, _book_url: &str) -> i64 {
-        crate::media::analysis::analyze_book_media_file(&archive_fixture_path(file_name), false)
+        analyze_book_media_file(&archive_fixture_path(file_name), false)
             .expect("analyze-book fixture should be analyzable")
             .pages
             .len() as i64

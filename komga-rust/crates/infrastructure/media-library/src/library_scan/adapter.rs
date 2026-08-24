@@ -2,7 +2,7 @@ use anyhow::Context;
 use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 
-use crate::tasks::JobRuntime;
+use crate::MediaLibraryJobContext;
 use komga_application::runtime_sse::{RuntimeSseEventSink, RuntimeSseEventStore};
 use komga_application::task_processing::{
     CleanupEmptySetsPolicy, LibraryScanInterval, LibraryScanPipeline, LibraryScanProfile,
@@ -15,7 +15,7 @@ use tokio::time::Instant;
 
 use super::LibraryScanner;
 use super::follow_up::ScanFollowUpPlanner;
-use crate::discovery::deletion::{cleanup_empty_sets_rows, empty_trash_rows};
+use komga_infrastructure_discovery::{cleanup_empty_sets_rows, empty_trash_rows};
 
 async fn load_library_scan_profiles(pool: &SqlitePool) -> anyhow::Result<Vec<LibraryScanProfile>> {
     let rows = sqlx::query(
@@ -60,21 +60,21 @@ pub struct SqliteFilesystemLibraryScanPipeline {
 }
 
 impl SqliteFilesystemLibraryScanPipeline {
-    pub async fn for_runtime(runtime: &JobRuntime<'_>) -> anyhow::Result<Self> {
+    pub async fn for_runtime(
+        runtime: &MediaLibraryJobContext,
+        cleanup_empty_sets_policy: CleanupEmptySetsPolicy,
+    ) -> anyhow::Result<Self> {
         Ok(Self {
             owns_main_database: runtime.database().owns_main_database(),
             owns_filesystem_scan_output: runtime.filesystem().owns_filesystem_scan_output(),
             task_read_pool: runtime.database().read_pool().clone(),
             task_write_pool: runtime.database().write_pool().clone(),
-            cleanup_empty_sets_policy: runtime
-                .cleanup_empty_sets_policy()
-                .await
-                .map_err(TaskProcessingError::runtime)?,
+            cleanup_empty_sets_policy,
             runtime_events: runtime.runtime_events_arc(),
         })
     }
 
-    pub(crate) async fn execute_scan(
+    pub async fn execute_scan(
         &self,
         request: ScanOneLibrary,
     ) -> Result<ScanOneLibraryResult, TaskProcessingError> {
@@ -159,7 +159,7 @@ impl SqliteFilesystemLibraryScanPipeline {
         Ok(self.emit_scan_tasks(configured_library_count, due_libraries))
     }
 
-    pub(crate) async fn sync_periodic_library_scan_state(
+    pub async fn sync_periodic_library_scan_state(
         &self,
         last_run_by_library: &mut HashMap<String, Instant>,
     ) -> Result<(), TaskProcessingError> {

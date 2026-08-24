@@ -1,44 +1,91 @@
 use anyhow::Context;
-use komga_application::task_processing::{CleanupEmptySetsPolicy, TaskProcessingError};
+use komga_application::task_processing::CleanupEmptySetsPolicy;
 use komga_domain::discovery::compare_book_names;
 use sqlx::sqlite::SqliteRow;
 use sqlx::{Row, Sqlite, SqlitePool, Transaction};
 
-use crate::discovery::deletion::sql::{
-    EMPTY_TRASH_BOOK_DEPENDENCY_SQL, EMPTY_TRASH_SERIES_DEPENDENCY_SQL,
-};
-use crate::tasks::JobRuntime;
+const EMPTY_TRASH_BOOK_DEPENDENCY_SQL: &[&str] = &[
+    "DELETE FROM BOOK_METADATA WHERE BOOK_ID IN (SELECT ID FROM BOOK WHERE LIBRARY_ID = ? AND DELETED_DATE IS NOT NULL)",
+    "DELETE FROM BOOK_METADATA_AUTHOR WHERE BOOK_ID IN (SELECT ID FROM BOOK WHERE LIBRARY_ID = ? AND DELETED_DATE IS NOT NULL)",
+    "DELETE FROM BOOK_METADATA_LINK WHERE BOOK_ID IN (SELECT ID FROM BOOK WHERE LIBRARY_ID = ? AND DELETED_DATE IS NOT NULL)",
+    "DELETE FROM BOOK_METADATA_TAG WHERE BOOK_ID IN (SELECT ID FROM BOOK WHERE LIBRARY_ID = ? AND DELETED_DATE IS NOT NULL)",
+    "DELETE FROM MEDIA WHERE BOOK_ID IN (SELECT ID FROM BOOK WHERE LIBRARY_ID = ? AND DELETED_DATE IS NOT NULL)",
+    "DELETE FROM MEDIA_FILE WHERE BOOK_ID IN (SELECT ID FROM BOOK WHERE LIBRARY_ID = ? AND DELETED_DATE IS NOT NULL)",
+    "DELETE FROM MEDIA_PAGE WHERE BOOK_ID IN (SELECT ID FROM BOOK WHERE LIBRARY_ID = ? AND DELETED_DATE IS NOT NULL)",
+    "DELETE FROM THUMBNAIL_BOOK WHERE BOOK_ID IN (SELECT ID FROM BOOK WHERE LIBRARY_ID = ? AND DELETED_DATE IS NOT NULL)",
+    "DELETE FROM READ_PROGRESS WHERE BOOK_ID IN (SELECT ID FROM BOOK WHERE LIBRARY_ID = ? AND DELETED_DATE IS NOT NULL)",
+    "DELETE FROM READLIST_BOOK WHERE BOOK_ID IN (SELECT ID FROM BOOK WHERE LIBRARY_ID = ? AND DELETED_DATE IS NOT NULL)",
+];
 
-pub(crate) async fn empty_trash(
-    runtime: &JobRuntime<'_>,
-    library_id: &str,
-) -> Result<(), TaskProcessingError> {
-    if !runtime.database().owns_main_database() {
-        return Ok(());
+const EMPTY_TRASH_SERIES_DEPENDENCY_SQL: &[&str] = &[
+    "DELETE FROM READ_PROGRESS_SERIES WHERE SERIES_ID IN (SELECT ID FROM SERIES WHERE LIBRARY_ID = ? AND DELETED_DATE IS NOT NULL)",
+    "DELETE FROM COLLECTION_SERIES WHERE SERIES_ID IN (SELECT ID FROM SERIES WHERE LIBRARY_ID = ? AND DELETED_DATE IS NOT NULL)",
+    "DELETE FROM THUMBNAIL_SERIES WHERE SERIES_ID IN (SELECT ID FROM SERIES WHERE LIBRARY_ID = ? AND DELETED_DATE IS NOT NULL)",
+    "DELETE FROM SERIES_METADATA WHERE SERIES_ID IN (SELECT ID FROM SERIES WHERE LIBRARY_ID = ? AND DELETED_DATE IS NOT NULL)",
+    "DELETE FROM SERIES_METADATA_ALTERNATE_TITLE WHERE SERIES_ID IN (SELECT ID FROM SERIES WHERE LIBRARY_ID = ? AND DELETED_DATE IS NOT NULL)",
+    "DELETE FROM SERIES_METADATA_GENRE WHERE SERIES_ID IN (SELECT ID FROM SERIES WHERE LIBRARY_ID = ? AND DELETED_DATE IS NOT NULL)",
+    "DELETE FROM SERIES_METADATA_LINK WHERE SERIES_ID IN (SELECT ID FROM SERIES WHERE LIBRARY_ID = ? AND DELETED_DATE IS NOT NULL)",
+    "DELETE FROM SERIES_METADATA_SHARING WHERE SERIES_ID IN (SELECT ID FROM SERIES WHERE LIBRARY_ID = ? AND DELETED_DATE IS NOT NULL)",
+    "DELETE FROM SERIES_METADATA_TAG WHERE SERIES_ID IN (SELECT ID FROM SERIES WHERE LIBRARY_ID = ? AND DELETED_DATE IS NOT NULL)",
+    "DELETE FROM BOOK_METADATA_AGGREGATION_AUTHOR WHERE SERIES_ID IN (SELECT ID FROM SERIES WHERE LIBRARY_ID = ? AND DELETED_DATE IS NOT NULL)",
+    "DELETE FROM BOOK_METADATA_AGGREGATION_TAG WHERE SERIES_ID IN (SELECT ID FROM SERIES WHERE LIBRARY_ID = ? AND DELETED_DATE IS NOT NULL)",
+    "DELETE FROM BOOK_METADATA_AGGREGATION WHERE SERIES_ID IN (SELECT ID FROM SERIES WHERE LIBRARY_ID = ? AND DELETED_DATE IS NOT NULL)",
+];
+
+const BOOK_DEPENDENCY_SQL: &[&str] = &[
+    "DELETE FROM BOOK_METADATA WHERE BOOK_ID = ?",
+    "DELETE FROM BOOK_METADATA_AUTHOR WHERE BOOK_ID = ?",
+    "DELETE FROM BOOK_METADATA_LINK WHERE BOOK_ID = ?",
+    "DELETE FROM BOOK_METADATA_TAG WHERE BOOK_ID = ?",
+    "DELETE FROM MEDIA WHERE BOOK_ID = ?",
+    "DELETE FROM MEDIA_FILE WHERE BOOK_ID = ?",
+    "DELETE FROM MEDIA_PAGE WHERE BOOK_ID = ?",
+    "DELETE FROM THUMBNAIL_BOOK WHERE BOOK_ID = ?",
+    "DELETE FROM READ_PROGRESS WHERE BOOK_ID = ?",
+    "DELETE FROM READLIST_BOOK WHERE BOOK_ID = ?",
+];
+
+const SERIES_DEPENDENCY_SQL: &[&str] = &[
+    "DELETE FROM READ_PROGRESS_SERIES WHERE SERIES_ID = ?",
+    "DELETE FROM COLLECTION_SERIES WHERE SERIES_ID = ?",
+    "DELETE FROM THUMBNAIL_SERIES WHERE SERIES_ID = ?",
+    "DELETE FROM SERIES_METADATA_ALTERNATE_TITLE WHERE SERIES_ID = ?",
+    "DELETE FROM SERIES_METADATA_GENRE WHERE SERIES_ID = ?",
+    "DELETE FROM SERIES_METADATA_LINK WHERE SERIES_ID = ?",
+    "DELETE FROM SERIES_METADATA_SHARING WHERE SERIES_ID = ?",
+    "DELETE FROM SERIES_METADATA_TAG WHERE SERIES_ID = ?",
+    "DELETE FROM SERIES_METADATA WHERE SERIES_ID = ?",
+    "DELETE FROM BOOK_METADATA_AGGREGATION_AUTHOR WHERE SERIES_ID = ?",
+    "DELETE FROM BOOK_METADATA_AGGREGATION_TAG WHERE SERIES_ID = ?",
+    "DELETE FROM BOOK_METADATA_AGGREGATION WHERE SERIES_ID = ?",
+];
+
+pub async fn delete_book_dependency_rows(pool: &SqlitePool, book_id: &str) -> anyhow::Result<()> {
+    for sql in BOOK_DEPENDENCY_SQL {
+        sqlx::query(*sql)
+            .bind(book_id)
+            .execute(pool)
+            .await
+            .with_context(|| format!("delete book dependency rows for '{book_id}'"))?;
     }
-
-    empty_trash_rows(runtime.database().write_pool(), library_id)
-        .await
-        .map_err(TaskProcessingError::runtime)
+    Ok(())
 }
 
-pub(crate) async fn cleanup_empty_sets(
-    runtime: &JobRuntime<'_>,
-) -> Result<(), TaskProcessingError> {
-    if !runtime.database().owns_main_database() {
-        return Ok(());
+pub async fn delete_series_dependency_rows(
+    pool: &SqlitePool,
+    series_id: &str,
+) -> anyhow::Result<()> {
+    for sql in SERIES_DEPENDENCY_SQL {
+        sqlx::query(*sql)
+            .bind(series_id)
+            .execute(pool)
+            .await
+            .with_context(|| format!("delete series dependency rows for '{series_id}'"))?;
     }
-
-    let policy = runtime
-        .cleanup_empty_sets_policy()
-        .await
-        .map_err(TaskProcessingError::runtime)?;
-    cleanup_empty_sets_rows(runtime.database().write_pool(), policy)
-        .await
-        .map_err(TaskProcessingError::runtime)
+    Ok(())
 }
 
-pub(crate) async fn empty_trash_rows(pool: &SqlitePool, library_id: &str) -> anyhow::Result<()> {
+pub async fn empty_trash_rows(pool: &SqlitePool, library_id: &str) -> anyhow::Result<()> {
     let mut tx = pool
         .begin()
         .await
@@ -342,7 +389,7 @@ fn empty_trash_book_metadata(
     }))
 }
 
-pub(crate) async fn cleanup_empty_sets_rows(
+pub async fn cleanup_empty_sets_rows(
     pool: &SqlitePool,
     policy: CleanupEmptySetsPolicy,
 ) -> anyhow::Result<()> {

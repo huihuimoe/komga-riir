@@ -4,20 +4,20 @@ use super::persistence::{
     load_library_hashing_flags as load_persisted_library_hashing_flags,
     load_library_maintenance_flags as load_persisted_library_maintenance_flags,
 };
-use crate::tasks::JobRuntime;
+use crate::MediaLibraryJobContext;
 
-pub(crate) struct LibraryHashingFlags {
-    pub(crate) hash_files: bool,
-    pub(crate) hash_pages: bool,
-    pub(crate) hash_koreader: bool,
+pub struct LibraryHashingFlags {
+    pub hash_files: bool,
+    pub hash_pages: bool,
+    pub hash_koreader: bool,
 }
 
 pub(crate) struct LibraryMaintenanceFlags {
     pub(crate) repair_extensions: bool,
 }
 
-pub(crate) async fn load_library_hashing_flags(
-    runtime: &JobRuntime<'_>,
+pub async fn load_library_hashing_flags(
+    runtime: &MediaLibraryJobContext,
     library_id: &str,
 ) -> Result<LibraryHashingFlags, TaskProcessingError> {
     let flags = load_persisted_library_hashing_flags(runtime.database().read_pool(), library_id)
@@ -32,7 +32,7 @@ pub(crate) async fn load_library_hashing_flags(
 }
 
 pub(crate) async fn load_library_maintenance_flags(
-    runtime: &JobRuntime<'_>,
+    runtime: &MediaLibraryJobContext,
     library_id: &str,
 ) -> Result<LibraryMaintenanceFlags, TaskProcessingError> {
     let flags =

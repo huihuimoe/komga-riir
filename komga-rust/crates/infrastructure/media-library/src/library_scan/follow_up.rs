@@ -6,8 +6,8 @@ use komga_application::task_processing::{
 };
 use sqlx::SqlitePool;
 
-use crate::media::library_scan::{LibraryScanResult, enqueue_sidecar_refresh_tasks};
-use crate::media::maintenance::persistence::{
+use crate::library_scan::{LibraryScanResult, enqueue_sidecar_refresh_tasks};
+use crate::maintenance::persistence::{
     load_books_for_extension_repair, load_books_requiring_analysis,
     load_books_with_missing_file_hash, load_library_hashing_flags, load_library_maintenance_flags,
 };
@@ -215,7 +215,7 @@ mod tests {
     use komga_application::task_processing::RefreshBookMetadataPayload;
 
     use super::ScanFollowUpPlanner;
-    use crate::media::library_scan::{
+    use crate::library_scan::{
         BookMetadataRefreshRequest, LibraryScanResult, ScannedBookRow, ScannedSeriesRow,
         ScannedSidecarRow, ScannedSidecarSource, ScannedSidecarType,
     };

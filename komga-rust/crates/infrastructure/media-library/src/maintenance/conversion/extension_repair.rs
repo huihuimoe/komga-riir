@@ -7,11 +7,11 @@ use super::super::library_flags::load_library_maintenance_flags;
 use super::super::persistence::load_book_for_extension_repair;
 use super::super::updates::persist_book_extension_repair;
 use komga_infrastructure_media_core::expected_extension_for_media_type;
-use crate::tasks::JobRuntime;
+use crate::MediaLibraryJobContext;
 use komga_infrastructure_base::{resolve_library_item_path, resolve_stored_path};
 
-pub(crate) async fn repair_extension(
-    runtime: &JobRuntime<'_>,
+pub async fn repair_extension(
+    runtime: &MediaLibraryJobContext,
     book_id: &str,
 ) -> Result<(), TaskProcessingError> {
     let Some(row) = load_book_for_extension_repair(runtime.database().read_pool(), book_id)
@@ -130,11 +130,76 @@ pub(crate) async fn repair_extension(
 
 #[cfg(test)]
 mod tests {
-    use komga_infrastructure_base::sqlite::connect_test_pool;
-    use crate::tasks::test_support::RuntimeTestFixture;
+    use std::path::PathBuf;
+    use std::sync::Arc;
+
+    use komga_application::runtime_sse::RuntimeSseEventStore;
+    use komga_infrastructure_base::DatabaseHandle;
+    use komga_infrastructure_base::sqlite::{
+        connect_main_write_context, connect_test_pool, evict_shared_pools_for_paths,
+    };
+    use crate::MediaLibraryJobContext;
     use sqlx::Row;
 
     use super::repair_extension;
+
+    struct RuntimeTestFixture {
+        database_file: PathBuf,
+        library_root: PathBuf,
+    }
+
+    impl RuntimeTestFixture {
+        fn new(case: &str) -> Self {
+            let unique = format!(
+                "komga-media-library-{case}-{}-{}",
+                std::process::id(),
+                std::time::SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .expect("clock should be after unix epoch")
+                    .as_nanos()
+            );
+            Self {
+                database_file: std::env::temp_dir().join(format!("{unique}.sqlite")),
+                library_root: std::env::temp_dir().join(format!("{unique}-root")),
+            }
+        }
+
+        async fn main_pool(&self) -> sqlx::SqlitePool {
+            connect_main_write_context(&self.database_file)
+                .await
+                .expect("repair-extensions main db should bootstrap")
+                .pool()
+                .clone()
+        }
+
+        async fn runtime_context(&self) -> MediaLibraryJobContext {
+            let main_db = DatabaseHandle::file_backed(self.database_file.clone())
+                .await
+                .expect("repair-extensions main db should open");
+            MediaLibraryJobContext::new(
+                main_db,
+                true,
+                true,
+                Arc::new(RuntimeSseEventStore::default()),
+            )
+        }
+
+        async fn cleanup(self) {
+            for pool in evict_shared_pools_for_paths(std::slice::from_ref(&self.database_file)) {
+                pool.close().await;
+            }
+            let base = self.database_file.to_string_lossy().to_string();
+            for sidecar in [
+                self.database_file.clone(),
+                PathBuf::from(format!("{base}-wal")),
+                PathBuf::from(format!("{base}-shm")),
+                PathBuf::from(format!("{base}-journal")),
+            ] {
+                let _ = std::fs::remove_file(sidecar);
+            }
+            let _ = std::fs::remove_dir_all(self.library_root);
+        }
+    }
 
     async fn seed_extension_repair_fixture(
         fixture: &RuntimeTestFixture,
@@ -195,9 +260,9 @@ mod tests {
 
         seed_extension_repair_fixture(&fixture, "books/repair-book.epub", "application/zip").await;
 
-        let runtime = fixture.runtime_context(true, true).await;
+        let runtime = fixture.runtime_context().await;
 
-        repair_extension(&runtime.job(), "book-1")
+        repair_extension(&runtime, "book-1")
             .await
             .expect("first repair-extension call should skip EPUB-detected-as-ZIP cleanly");
 
@@ -212,7 +277,7 @@ mod tests {
             .expect("repair-extensions media type should be changed after first skipped run");
         pool.close().await;
 
-        repair_extension(&runtime.job(), "book-1")
+        repair_extension(&runtime, "book-1")
             .await
             .expect("second repair-extension call should short-circuit previously skipped books");
 
@@ -250,9 +315,9 @@ mod tests {
 
         seed_extension_repair_fixture(&fixture, "books/repair-book.pdf", "application/pdf").await;
 
-        let runtime = fixture.runtime_context(true, true).await;
+        let runtime = fixture.runtime_context().await;
 
-        repair_extension(&runtime.job(), "book-1")
+        repair_extension(&runtime, "book-1")
             .await
             .expect("first repair-extension call should ignore already-correct books cleanly");
 
@@ -272,7 +337,7 @@ mod tests {
             .expect("repair-extensions candidate book url should be changed after first run");
         pool.close().await;
 
-        repair_extension(&runtime.job(), "book-1")
+        repair_extension(&runtime, "book-1")
             .await
             .expect("second repair-extension call should repair newly mismatched books");
 
@@ -303,9 +368,9 @@ mod tests {
     async fn repair_extensions_propagates_invalid_source_path_metadata_error() {
         let fixture = RuntimeTestFixture::new("repair-extensions-invalid-source-path");
         seed_extension_repair_fixture(&fixture, "books/repair-book\0.bin", "application/pdf").await;
-        let runtime = fixture.runtime_context(true, true).await;
+        let runtime = fixture.runtime_context().await;
 
-        let error = repair_extension(&runtime.job(), "book-1")
+        let error = repair_extension(&runtime, "book-1")
             .await
             .expect_err("invalid source path metadata error should fail extension repair");
 
@@ -328,9 +393,9 @@ mod tests {
 
         seed_extension_repair_fixture(&fixture, "books/repair-book.epub", "application/zip").await;
 
-        let skipped_runtime = fixture.runtime_context(true, true).await;
+        let skipped_runtime = fixture.runtime_context().await;
 
-        repair_extension(&skipped_runtime.job(), "book-1")
+        repair_extension(&skipped_runtime, "book-1")
             .await
             .expect("first runtime should mark its epub-detected-as-zip book as skipped");
 
@@ -345,9 +410,9 @@ mod tests {
             .expect("isolated runtime media type should be changed after first skipped run");
         pool.close().await;
 
-        let candidate_runtime = fixture.runtime_context(true, true).await;
+        let candidate_runtime = fixture.runtime_context().await;
 
-        repair_extension(&candidate_runtime.job(), "book-1")
+        repair_extension(&candidate_runtime, "book-1")
             .await
             .expect("separate task runtime should not inherit the previous runtime skip cache");
 

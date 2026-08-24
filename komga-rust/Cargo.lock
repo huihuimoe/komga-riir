@@ -2768,7 +2768,9 @@ dependencies = [
  "komga-domain",
  "komga-epub",
  "komga-infrastructure-base",
+ "komga-infrastructure-discovery",
  "komga-infrastructure-media-core",
+ "komga-infrastructure-media-library",
  "komga-infrastructure-search",
  "komga-infrastructure-test-support",
  "komga-kepubify",
@@ -2847,6 +2849,28 @@ dependencies = [
  "pdfium-render",
  "regex",
  "serde_json",
+ "sqlx",
+ "tokio",
+ "unrar",
+ "zip 9.0.0-pre3",
+]
+
+[[package]]
+name = "komga-infrastructure-media-library"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "image",
+ "komga-application",
+ "komga-domain",
+ "komga-epub",
+ "komga-infrastructure-base",
+ "komga-infrastructure-discovery",
+ "komga-infrastructure-media-core",
+ "komga-infrastructure-test-support",
+ "lopdf",
+ "sha2 0.11.0",
  "sqlx",
  "tokio",
  "unrar",

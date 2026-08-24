@@ -2,7 +2,7 @@ use komga_application::task_processing::{
     BookPayload, TaskExecutionOutcome, TaskKind, TaskProcessingError, TaskRequest,
 };
 
-use crate::media::maintenance::{convert_book, find_books_to_convert, repair_extension};
+use komga_infrastructure_media_library::maintenance::{convert_book, find_books_to_convert, repair_extension};
 use crate::tasks::JobRuntime;
 
 pub(in crate::tasks) async fn execute_repair_extension(
@@ -13,7 +13,8 @@ pub(in crate::tasks) async fn execute_repair_extension(
         return Ok(TaskExecutionOutcome::completed());
     }
 
-    repair_extension(runtime, book_id).await?;
+    let media_runtime = runtime.media_library();
+    repair_extension(&media_runtime, book_id).await?;
 
     Ok(TaskExecutionOutcome::completed())
 }
@@ -27,7 +28,8 @@ pub(in crate::tasks) async fn execute_find_books_to_convert(
         return Ok(TaskExecutionOutcome::completed());
     }
 
-    let books = find_books_to_convert(runtime, library_id).await?;
+    let media_runtime = runtime.media_library();
+    let books = find_books_to_convert(&media_runtime, library_id).await?;
 
     let follow_up_tasks = books
         .into_iter()
@@ -49,7 +51,8 @@ pub(in crate::tasks) async fn execute_convert_book(
         return Ok(TaskExecutionOutcome::completed());
     }
 
-    convert_book(runtime, book_id).await?;
+    let media_runtime = runtime.media_library();
+    convert_book(&media_runtime, book_id).await?;
     Ok(TaskExecutionOutcome::completed())
 }
 

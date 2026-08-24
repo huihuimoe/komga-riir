@@ -8,7 +8,7 @@ use sqlx::{Row, SqlitePool};
 
 use komga_domain::media_assets::ThumbnailType;
 
-use crate::discovery::deletion::sql::DELETE_BOOK_DEPENDENCY_SQL;
+use komga_infrastructure_discovery::delete_book_dependency_rows;
 use komga_infrastructure_base::stored_paths::resolve_rooted_path;
 
 use super::scan_models::{
@@ -291,16 +291,9 @@ SELECT ?, LABEL, URL FROM BOOK_METADATA_LINK WHERE BOOK_ID = ?"#,
             .context("failed to restore BOOK_METADATA_LINK rows")?;
         }
 
-        for sql in DELETE_BOOK_DEPENDENCY_SQL {
-            sqlx::query(*sql)
-                .bind(&matched_deleted_book_id)
-                .execute(pool)
-                .await
-                .map_err(|error| {
-                    anyhow::anyhow!(error)
-                        .context("failed to delete restored legacy book dependencies: ")
-                })?;
-        }
+        delete_book_dependency_rows(pool, &matched_deleted_book_id)
+            .await
+            .context("failed to delete restored legacy book dependencies")?;
         sqlx::query("DELETE FROM BOOK WHERE ID = ?")
             .bind(&matched_deleted_book_id)
             .execute(pool)

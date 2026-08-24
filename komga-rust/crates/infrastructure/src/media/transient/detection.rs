@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use crate::media::analysis::transient_media_type_from_path;
+use komga_infrastructure_media_library::analysis::transient_media_type_from_path;
 
 pub(crate) fn transient_book_content_type(path: &str, media_type: &str) -> &'static str {
     if !media_type.is_empty() {

@@ -2,21 +2,21 @@ use super::persistence::{
     AnalyzedBookMedia, AnalyzedBookMediaFile, AnalyzedBookPage, analyze_book_input,
     persist_book_analysis,
 };
-use crate::media::analysis::analyze_book_media_file;
-use crate::media::maintenance::updates::adjust_analyzed_book_read_progress;
+use crate::analysis::analyze_book_media_file;
+use crate::maintenance::updates::adjust_analyzed_book_read_progress;
 use komga_infrastructure_base::resolve_library_item_path;
-use crate::tasks::JobRuntime;
+use crate::MediaLibraryJobContext;
 use komga_application::task_processing::TaskProcessingError;
 use komga_domain::discovery::MediaStatus;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub(crate) struct AnalyzeBookOutcome {
-    pub(crate) series_id: String,
-    pub(crate) media_status: Option<MediaStatus>,
+pub struct AnalyzeBookOutcome {
+    pub series_id: String,
+    pub media_status: Option<MediaStatus>,
 }
 
-pub(crate) async fn analyze_book(
-    runtime: &JobRuntime<'_>,
+pub async fn analyze_book(
+    runtime: &MediaLibraryJobContext,
     book_id: &str,
 ) -> Result<AnalyzeBookOutcome, TaskProcessingError> {
     let book_id = book_id.to_string();
@@ -79,12 +79,6 @@ pub(crate) async fn analyze_book(
     let current_page_count = persisted.page_count.min(i64::MAX as u64) as i64;
 
     persist_book_analysis(runtime.database().write_pool(), &book_id, &persisted)
-        .await
-        .map_err(TaskProcessingError::runtime)?;
-
-    runtime
-        .search_engine()
-        .upsert_book(&book_id)
         .await
         .map_err(TaskProcessingError::runtime)?;
 

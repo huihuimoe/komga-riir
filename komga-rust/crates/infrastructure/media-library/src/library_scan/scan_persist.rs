@@ -5,7 +5,9 @@ use komga_application::runtime_sse::RuntimeSseEventSink;
 use komga_domain::discovery::compare_book_names;
 use sqlx::{Row, SqlitePool};
 
-use crate::discovery::deletion::sql::{DELETE_BOOK_DEPENDENCY_SQL, DELETE_SERIES_DEPENDENCY_SQL};
+use komga_infrastructure_discovery::{
+    delete_book_dependency_rows, delete_series_dependency_rows,
+};
 use komga_infrastructure_base::stored_paths::resolve_stored_path;
 
 use super::scan_models::{
@@ -762,32 +764,18 @@ async fn delete_restored_legacy_series(
         })?;
     for deleted_book_row in deleted_book_ids {
         let deleted_book_id = deleted_book_row.get::<String, _>("ID");
-        for sql in DELETE_BOOK_DEPENDENCY_SQL {
-            sqlx::query(*sql)
-                .bind(&deleted_book_id)
-                .execute(pool)
-                .await
-                .map_err(|error| {
-                    anyhow::anyhow!(error)
-                        .context("failed to delete restored legacy series book dependencies: ")
-                })?;
-        }
+        delete_book_dependency_rows(pool, &deleted_book_id)
+            .await
+            .context("failed to delete restored legacy series book dependencies")?;
     }
     sqlx::query("DELETE FROM BOOK WHERE SERIES_ID = ?")
         .bind(deleted_series_id)
         .execute(pool)
         .await
         .context("failed to delete restored legacy series BOOK rows: ")?;
-    for sql in DELETE_SERIES_DEPENDENCY_SQL {
-        sqlx::query(*sql)
-            .bind(deleted_series_id)
-            .execute(pool)
-            .await
-            .map_err(|error| {
-                anyhow::anyhow!(error)
-                    .context("failed to delete restored legacy series dependencies: ")
-            })?;
-    }
+    delete_series_dependency_rows(pool, deleted_series_id)
+        .await
+        .context("failed to delete restored legacy series dependencies")?;
     sqlx::query("DELETE FROM SERIES WHERE ID = ?")
         .bind(deleted_series_id)
         .execute(pool)

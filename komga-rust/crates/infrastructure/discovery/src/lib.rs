@@ -1,6 +1,7 @@
 pub mod codecs;
 pub mod books;
 pub mod collections;
+pub mod deletion;
 pub mod detail_adapter;
 pub mod libraries;
 pub mod persisted;
@@ -12,5 +13,9 @@ pub mod set_persistence;
 pub mod visibility;
 
 pub use detail_adapter::DiscoveryDetailAccess;
+pub use deletion::{
+    cleanup_empty_sets_rows, delete_book_dependency_rows, delete_series_dependency_rows,
+    empty_trash_rows,
+};
 pub use libraries::LibraryCatalogAccess;
 pub use persisted::{DiscoveryQuerySupportAccess, SqliteDiscoveryBrowseService};

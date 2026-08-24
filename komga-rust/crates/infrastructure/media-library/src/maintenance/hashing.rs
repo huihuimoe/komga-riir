@@ -11,11 +11,11 @@ use super::persistence::{
     load_duplicate_pages_to_delete as load_persisted_duplicate_pages_to_delete,
 };
 use super::updates::persist_book_hash;
-use crate::media::maintenance::page_hashing::persist_book_page_hashes_from_media_content;
-use crate::tasks::JobRuntime;
+use crate::maintenance::page_hashing::persist_book_page_hashes_from_media_content;
+use crate::MediaLibraryJobContext;
 
-pub(crate) async fn hash_book_pages(
-    runtime: &JobRuntime<'_>,
+pub async fn hash_book_pages(
+    runtime: &MediaLibraryJobContext,
     book_id: &str,
 ) -> Result<(), TaskProcessingError> {
     let Some(library_id) = load_book_library_id(runtime.database().read_pool(), book_id)
@@ -34,8 +34,8 @@ pub(crate) async fn hash_book_pages(
         .map_err(TaskProcessingError::runtime)
 }
 
-pub(crate) async fn hash_book(
-    runtime: &JobRuntime<'_>,
+pub async fn hash_book(
+    runtime: &MediaLibraryJobContext,
     book_id: &str,
     koreader: bool,
 ) -> Result<(), TaskProcessingError> {
@@ -101,8 +101,8 @@ pub(crate) async fn hash_book(
         .map_err(TaskProcessingError::runtime)
 }
 
-pub(crate) async fn find_duplicate_pages_to_delete(
-    runtime: &JobRuntime<'_>,
+pub async fn find_duplicate_pages_to_delete(
+    runtime: &MediaLibraryJobContext,
     library_id: &str,
 ) -> Result<HashMap<String, Vec<HashedPageToDelete>>, TaskProcessingError> {
     let persisted =

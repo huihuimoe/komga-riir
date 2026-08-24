@@ -3,8 +3,8 @@ use komga_application::task_processing::{
     TaskRequest,
 };
 
-use crate::media::maintenance::persistence::load_books_with_missing_page_hash;
-use crate::media::maintenance::{
+use komga_infrastructure_media_library::maintenance::persistence::load_books_with_missing_page_hash;
+use komga_infrastructure_media_library::maintenance::{
     HashedPageToDelete, find_duplicate_pages_to_delete, hash_book, hash_book_pages,
     load_library_hashing_flags, remove_hashed_pages,
 };
@@ -18,7 +18,8 @@ pub(in crate::tasks) async fn execute_hash_book_pages(
         return Ok(TaskExecutionOutcome::completed());
     }
 
-    hash_book_pages(runtime, book_id)
+    let media_runtime = runtime.media_library();
+    hash_book_pages(&media_runtime, book_id)
         .await
         .map(|()| TaskExecutionOutcome::completed())
 }
@@ -28,7 +29,8 @@ pub(in crate::tasks) async fn execute_hash_book(
     book_id: &str,
     koreader: bool,
 ) -> Result<TaskExecutionOutcome, TaskProcessingError> {
-    hash_book(runtime, book_id, koreader).await?;
+    let media_runtime = runtime.media_library();
+    hash_book(&media_runtime, book_id, koreader).await?;
 
     Ok(TaskExecutionOutcome::completed())
 }
@@ -42,7 +44,8 @@ pub(in crate::tasks) async fn execute_find_books_with_missing_page_hash(
         return Ok(TaskExecutionOutcome::completed());
     }
 
-    let hashing_flags = load_library_hashing_flags(runtime, library_id).await?;
+    let media_runtime = runtime.media_library();
+    let hashing_flags = load_library_hashing_flags(&media_runtime, library_id).await?;
     if !hashing_flags.hash_pages {
         return Ok(TaskExecutionOutcome::completed());
     }
@@ -72,7 +75,8 @@ pub(in crate::tasks) async fn execute_find_duplicate_pages_to_delete(
         return Ok(TaskExecutionOutcome::completed());
     }
 
-    let targets = find_duplicate_pages_to_delete(runtime, library_id).await?;
+    let media_runtime = runtime.media_library();
+    let targets = find_duplicate_pages_to_delete(&media_runtime, library_id).await?;
     let mut follow_up_tasks = Vec::new();
     for (book_id, pages) in targets {
         let priority = priority.saturating_add(1);
@@ -99,7 +103,8 @@ pub(in crate::tasks) async fn execute_remove_hashed_pages(
     }
 
     let book_id = book_id.to_string();
-    let regenerate_thumbnail = remove_hashed_pages(runtime, &book_id, pages).await?;
+    let media_runtime = runtime.media_library();
+    let regenerate_thumbnail = remove_hashed_pages(&media_runtime, &book_id, pages).await?;
     let follow_up_tasks = if regenerate_thumbnail {
         vec![
             TaskRequest::new(TaskKind::GenerateBookThumbnail)
@@ -125,7 +130,7 @@ mod tests {
     use sqlx::{Row, SqlitePool};
     use std::io::Write;
 
-    use crate::media::maintenance::HashedPageToDelete;
+    use komga_infrastructure_media_library::maintenance::HashedPageToDelete;
 
     struct ZipFixturePageEntry {
         file_name: String,

@@ -11,14 +11,14 @@ use komga_infrastructure_media_core::formats::rar::{detect_rar_media_type, read_
 mod persistence;
 mod task;
 
-pub(crate) use task::analyze_book;
+pub use task::{AnalyzeBookOutcome, analyze_book};
 
 const IMAGE_DIMENSIONS_INITIAL_READ_BYTES: usize = 512;
 const IMAGE_DIMENSIONS_READ_CHUNK_BYTES: usize = 16 * 1024;
 const IMAGE_DIMENSIONS_MAX_READ_BYTES: usize = 1024 * 1024;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub(crate) enum MediaAnalysisProfile {
+pub enum MediaAnalysisProfile {
     PersistedBook { include_dimensions: bool },
     Transient,
 }
@@ -89,37 +89,37 @@ impl MediaAnalysisProfile {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub(crate) struct AnalyzedMediaPage {
-    pub(crate) file_name: String,
-    pub(crate) media_type: String,
-    pub(crate) width: Option<i64>,
-    pub(crate) height: Option<i64>,
-    pub(crate) file_size: i64,
+pub struct AnalyzedMediaPage {
+    pub file_name: String,
+    pub media_type: String,
+    pub width: Option<i64>,
+    pub height: Option<i64>,
+    pub file_size: i64,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub(crate) struct MediaFileAnalysis {
-    pub(crate) status: MediaStatus,
-    pub(crate) media_type: String,
-    pub(crate) comment: Option<String>,
-    pub(crate) page_count: u64,
-    pub(crate) epub_divina_compatible: bool,
-    pub(crate) epub_is_kepub: bool,
-    pub(crate) pages: Vec<AnalyzedMediaPage>,
-    pub(crate) files: Vec<String>,
-    pub(crate) media_files: Vec<AnalyzedMediaFile>,
-    pub(crate) epub_extension_blob: Option<Vec<u8>>,
+pub struct MediaFileAnalysis {
+    pub status: MediaStatus,
+    pub media_type: String,
+    pub comment: Option<String>,
+    pub page_count: u64,
+    pub epub_divina_compatible: bool,
+    pub epub_is_kepub: bool,
+    pub pages: Vec<AnalyzedMediaPage>,
+    pub files: Vec<String>,
+    pub media_files: Vec<AnalyzedMediaFile>,
+    pub epub_extension_blob: Option<Vec<u8>>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub(crate) struct AnalyzedMediaFile {
-    pub(crate) file_name: String,
-    pub(crate) media_type: Option<String>,
-    pub(crate) sub_type: Option<String>,
-    pub(crate) file_size: Option<i64>,
+pub struct AnalyzedMediaFile {
+    pub file_name: String,
+    pub media_type: Option<String>,
+    pub sub_type: Option<String>,
+    pub file_size: Option<i64>,
 }
 
-pub(crate) struct MediaFileAnalyzer;
+pub struct MediaFileAnalyzer;
 
 #[derive(Default)]
 struct AnalyzedMediaFileContents {
@@ -153,7 +153,7 @@ fn empty_media_analysis_with_comment(
 }
 
 impl MediaFileAnalyzer {
-    pub(crate) fn analyze(
+    pub fn analyze(
         &self,
         file_path: &Path,
         profile: MediaAnalysisProfile,
@@ -271,7 +271,7 @@ impl MediaFileAnalyzer {
     }
 }
 
-pub(crate) fn analyze_book_media_file(
+pub fn analyze_book_media_file(
     file_path: &Path,
     analyze_dimensions: bool,
 ) -> anyhow::Result<MediaFileAnalysis> {
@@ -350,7 +350,7 @@ fn is_epub_file(path: &Path) -> bool {
         && String::from_utf8_lossy(&bytes).trim() == "application/epub+zip"
 }
 
-pub(crate) fn transient_media_type_from_path(path: &Path) -> Option<String> {
+pub fn transient_media_type_from_path(path: &Path) -> Option<String> {
     let file_name = path.file_name()?.to_str()?;
     let fallback = transient_media_type_from_file_name(file_name).to_string();
     let detected = detected_media_type_from_path(path).unwrap_or_else(|_| fallback.clone());
@@ -361,7 +361,7 @@ pub(crate) fn transient_media_type_from_path(path: &Path) -> Option<String> {
     }
 }
 
-pub(crate) fn media_type_from_entry_name(file_name: &str) -> String {
+pub fn media_type_from_entry_name(file_name: &str) -> String {
     match extension(file_name).as_deref() {
         Some("jpg") | Some("jpeg") => "image/jpeg",
         Some("png") => "image/png",
@@ -377,7 +377,7 @@ pub(crate) fn media_type_from_entry_name(file_name: &str) -> String {
     .to_string()
 }
 
-pub(crate) fn is_supported_page_image_file_name(file_name: &str) -> bool {
+pub fn is_supported_page_image_file_name(file_name: &str) -> bool {
     matches!(
         extension(file_name).as_deref(),
         Some("jpg" | "jpeg" | "png" | "gif" | "webp" | "avif" | "bmp")
@@ -421,21 +421,7 @@ fn looks_like_text(bytes: &[u8]) -> bool {
             .all(|byte| *byte == b'\n' || *byte == b'\r' || *byte == b'\t' || *byte >= 0x20)
 }
 
-pub(crate) fn expected_extension_for_media_type(media_type: &str) -> Option<&'static str> {
-    match media_type {
-        "application/vnd.comicbook-rar"
-        | "application/x-rar-compressed"
-        | "application/x-rar-compressed; version=4"
-        | "application/x-rar-compressed; version=5" => Some("cbr"),
-        "application/zip" => Some("cbz"),
-        "application/pdf" => Some("pdf"),
-        "application/epub+zip" => Some("epub"),
-        MOBI_MEDIA_TYPE => Some("mobi"),
-        _ => None,
-    }
-}
-
-pub(crate) fn is_rar_media_type(media_type: &str) -> bool {
+pub fn is_rar_media_type(media_type: &str) -> bool {
     matches!(
         media_type,
         "application/x-rar-compressed; version=4" | "application/x-rar-compressed; version=5"
@@ -496,12 +482,12 @@ fn image_dimensions_from_bytes_i64(bytes: &[u8]) -> Option<MediaDimensions> {
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub(crate) struct ImageDimensions {
-    pub(crate) width: u32,
-    pub(crate) height: u32,
+pub struct ImageDimensions {
+    pub width: u32,
+    pub height: u32,
 }
 
-pub(crate) fn image_dimensions_from_bytes_u32(bytes: &[u8]) -> Option<ImageDimensions> {
+pub fn image_dimensions_from_bytes_u32(bytes: &[u8]) -> Option<ImageDimensions> {
     let dimensions = image_dimensions_from_bytes_i64(bytes)?;
     Some(ImageDimensions {
         width: dimensions.width.try_into().ok()?,

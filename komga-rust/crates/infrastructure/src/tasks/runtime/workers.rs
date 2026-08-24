@@ -17,7 +17,7 @@ use tracing::{Instrument, Span, error, info};
 use super::execution_loop::BackgroundTaskExecutionLoop;
 use super::execution_loop::SharedTaskQueue;
 use super::execution_pool::TaskExecutionPoolHandle;
-use crate::media::library_scan::SqliteFilesystemLibraryScanPipeline;
+use komga_infrastructure_media_library::library_scan::SqliteFilesystemLibraryScanPipeline;
 use crate::tasks::queue::{RuntimeTaskEngine, TaskQueueScheduler, process_available_serial};
 pub type TaskQueueWakeSignal = Arc<Notify>;
 
@@ -844,7 +844,10 @@ async fn schedule_startup_library_scan_batch(
     runtime: &TaskRuntimeContext,
     action: &str,
 ) -> anyhow::Result<ScheduledLibraryScanBatch> {
-    SqliteFilesystemLibraryScanPipeline::for_runtime(&runtime.job())
+    let job = runtime.job();
+    let media_runtime = job.media_library();
+    let cleanup_policy = job.cleanup_empty_sets_policy().await?;
+    SqliteFilesystemLibraryScanPipeline::for_runtime(&media_runtime, cleanup_policy)
         .await?
         .schedule(
             ScanSchedulingTrigger::Startup,
@@ -858,7 +861,10 @@ async fn schedule_periodic_library_scan_batch(
     runtime: &TaskRuntimeContext,
     last_run_by_library: &HashMap<String, tokio::time::Instant>,
 ) -> anyhow::Result<ScheduledLibraryScanBatch> {
-    SqliteFilesystemLibraryScanPipeline::for_runtime(&runtime.job())
+    let job = runtime.job();
+    let media_runtime = job.media_library();
+    let cleanup_policy = job.cleanup_empty_sets_policy().await?;
+    SqliteFilesystemLibraryScanPipeline::for_runtime(&media_runtime, cleanup_policy)
         .await?
         .schedule(
             ScanSchedulingTrigger::Tick,
@@ -877,7 +883,10 @@ async fn sync_periodic_library_scan_state(
     runtime: &TaskRuntimeContext,
     last_run_by_library: &mut HashMap<String, tokio::time::Instant>,
 ) -> anyhow::Result<()> {
-    SqliteFilesystemLibraryScanPipeline::for_runtime(&runtime.job())
+    let job = runtime.job();
+    let media_runtime = job.media_library();
+    let cleanup_policy = job.cleanup_empty_sets_policy().await?;
+    SqliteFilesystemLibraryScanPipeline::for_runtime(&media_runtime, cleanup_policy)
         .await?
         .sync_periodic_library_scan_state(last_run_by_library)
         .await

@@ -15,6 +15,8 @@ komga-domain = { path = "../domain" }
 komga-application = { path = "../application" }
 komga-infrastructure-base = { path = "base" }
 komga-infrastructure-media-core = { path = "media-core" }
+komga-infrastructure-discovery = { path = "discovery" }
+komga-infrastructure-media-library = { path = "media-library" }
 komga-infrastructure-search = { path = "search" }
 komga-epub = { path = "../epub" }
 komga-kepubify = { path = "../kepubify" }

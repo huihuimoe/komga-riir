@@ -6,8 +6,24 @@ pub(in crate::tasks) async fn execute_empty_trash(
     runtime: &JobRuntime<'_>,
     library_id: &str,
 ) -> Result<TaskExecutionOutcome, TaskProcessingError> {
-    crate::discovery::deletion::empty_trash(runtime, library_id).await?;
-    crate::discovery::deletion::cleanup_empty_sets(runtime).await?;
+    if runtime.database().owns_main_database() {
+        komga_infrastructure_discovery::empty_trash_rows(
+            runtime.database().write_pool(),
+            library_id,
+        )
+        .await
+        .map_err(TaskProcessingError::runtime)?;
+        let policy = runtime
+            .cleanup_empty_sets_policy()
+            .await
+            .map_err(TaskProcessingError::runtime)?;
+        komga_infrastructure_discovery::cleanup_empty_sets_rows(
+            runtime.database().write_pool(),
+            policy,
+        )
+        .await
+        .map_err(TaskProcessingError::runtime)?;
+    }
     Ok(TaskExecutionOutcome::completed())
 }
 

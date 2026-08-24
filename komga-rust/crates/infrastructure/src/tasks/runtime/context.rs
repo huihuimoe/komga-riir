@@ -10,6 +10,7 @@ use sqlx::SqlitePool;
 use crate::operational::ServerSettingsStore;
 use komga_infrastructure_base::{DatabaseHandle, SqlitePersistenceContext};
 use komga_infrastructure_search::engine::SearchIndexEngine;
+use komga_infrastructure_media_library::MediaLibraryJobContext;
 
 #[derive(Clone)]
 pub struct TaskRuntimeContext {
@@ -144,6 +145,15 @@ impl WorkerRuntime<'_> {
 }
 
 impl JobRuntime<'_> {
+    pub(crate) fn media_library(&self) -> MediaLibraryJobContext {
+        MediaLibraryJobContext::new(
+            self.runtime.main_db.clone(),
+            self.runtime.owns_main_database,
+            self.runtime.owns_filesystem_scan_output,
+            self.runtime.runtime_events.clone(),
+        )
+    }
+
     pub fn database(&self) -> DatabaseRuntime<'_> {
         DatabaseRuntime {
             runtime: self.runtime,

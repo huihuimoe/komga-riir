@@ -60,9 +60,9 @@ pub(crate) struct PersistedConversionTarget {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub(crate) struct PersistedBookToConvert {
-    pub(crate) book_id: String,
-    pub(crate) series_id: String,
+pub struct PersistedBookToConvert {
+    pub book_id: String,
+    pub series_id: String,
 }
 
 #[derive(Clone, Debug)]
@@ -266,7 +266,7 @@ pub(crate) async fn load_book_file_path(
     }))
 }
 
-pub(crate) async fn load_non_deleted_book_ids(pool: &SqlitePool) -> anyhow::Result<Vec<String>> {
+pub async fn load_non_deleted_book_ids(pool: &SqlitePool) -> anyhow::Result<Vec<String>> {
     let rows = sqlx::query(
         r#"
         SELECT b.ID
@@ -288,7 +288,7 @@ pub(crate) async fn load_non_deleted_book_ids(pool: &SqlitePool) -> anyhow::Resu
         .collect())
 }
 
-pub(crate) async fn load_books_with_undersized_generated_thumbnails(
+pub async fn load_books_with_undersized_generated_thumbnails(
     pool: &SqlitePool,
     max_edge: i64,
 ) -> anyhow::Result<Vec<String>> {
@@ -317,7 +317,7 @@ pub(crate) async fn load_books_with_undersized_generated_thumbnails(
         .collect())
 }
 
-pub(crate) async fn load_books_with_missing_page_hash(
+pub async fn load_books_with_missing_page_hash(
     pool: &SqlitePool,
     library_id: Option<&str>,
 ) -> anyhow::Result<Vec<String>> {
