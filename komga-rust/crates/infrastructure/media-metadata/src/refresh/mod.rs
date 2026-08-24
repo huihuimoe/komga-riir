@@ -4,7 +4,7 @@ use komga_application::runtime_sse::RuntimeSseEventSink;
 use sqlx::{Row, SqlitePool};
 
 use komga_infrastructure_media_core::content::epub_resources::load_epub_package_document;
-use crate::media::metadata::{load_comicinfo_bytes_for_media, parse_comicinfo_xml};
+use crate::{load_comicinfo_bytes_for_media, parse_comicinfo_xml};
 use komga_infrastructure_base::resolve_stored_path;
 
 mod artwork_refresh;
@@ -21,9 +21,9 @@ mod sources;
 mod support;
 
 pub use artwork_refresh::generate_book_thumbnail;
-pub(crate) use artwork_refresh::{refresh_book_local_artwork, refresh_series_local_artwork};
+pub use artwork_refresh::{refresh_book_local_artwork, refresh_series_local_artwork};
 use epub::{extract_epub_book_patch, extract_epub_series_patch};
-pub(crate) use series_aggregation::aggregate_series_metadata;
+pub use series_aggregation::aggregate_series_metadata;
 use series_metadata::{
     apply_mylar_series_import, apply_oneshot_series_metadata_import,
     apply_series_metadata_from_book_imports,
@@ -33,17 +33,17 @@ use sources::{
 };
 
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
-pub(crate) struct RefreshBookMetadataOutcome {
-    pub(crate) series_id: Option<String>,
-    pub(crate) library_id: Option<String>,
-    pub(crate) changed_readlist_ids: Vec<String>,
-    pub(crate) book_changed: bool,
+pub struct RefreshBookMetadataOutcome {
+    pub series_id: Option<String>,
+    pub library_id: Option<String>,
+    pub changed_readlist_ids: Vec<String>,
+    pub book_changed: bool,
 }
 
 #[derive(Clone, Debug, Default, PartialEq)]
-pub(crate) struct TransientMetadataProviderInference {
-    pub(crate) series_titles: Vec<String>,
-    pub(crate) number: Option<f64>,
+pub struct TransientMetadataProviderInference {
+    pub series_titles: Vec<String>,
+    pub number: Option<f64>,
 }
 
 struct SeriesMetadataRefreshContext {
@@ -61,7 +61,7 @@ fn push_transient_series_title(series_titles: &mut Vec<String>, title: Option<St
     series_titles.push(title);
 }
 
-pub(crate) fn infer_transient_epub_provider_metadata(
+pub fn infer_transient_epub_provider_metadata(
     package_document: &[u8],
 ) -> anyhow::Result<TransientMetadataProviderInference> {
     let book_patch = extract_epub_book_patch(package_document)?;
@@ -75,7 +75,7 @@ pub(crate) fn infer_transient_epub_provider_metadata(
     })
 }
 
-pub(crate) fn infer_transient_comicinfo_provider_metadata(
+pub fn infer_transient_comicinfo_provider_metadata(
     xml: &[u8],
 ) -> anyhow::Result<TransientMetadataProviderInference> {
     let document = parse_comicinfo_xml(xml)?;
@@ -92,7 +92,7 @@ pub(crate) fn infer_transient_comicinfo_provider_metadata(
     })
 }
 
-pub(crate) async fn refresh_book_metadata(
+pub async fn refresh_book_metadata(
     pool: &SqlitePool,
     runtime_events: &dyn RuntimeSseEventSink,
     book_id: &str,
@@ -312,7 +312,7 @@ use queries::{
     persist_book_metadata_for_refresh,
 };
 
-pub(crate) async fn refresh_series_metadata(
+pub async fn refresh_series_metadata(
     pool: &SqlitePool,
     runtime_events: &dyn RuntimeSseEventSink,
     series_id: &str,

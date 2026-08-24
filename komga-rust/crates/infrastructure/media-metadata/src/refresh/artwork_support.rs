@@ -8,7 +8,7 @@ use sqlx::{Row, Sqlite, SqlitePool, Transaction};
 use tokio::fs;
 
 use komga_infrastructure_media_core::formats::pdfium::load_pdfium;
-use crate::codec_compat::parse_thumbnail_type;
+use crate::codecs::parse_thumbnail_type;
 use komga_infrastructure_base::resolve_rooted_path;
 
 pub(super) struct RenderedThumbnail {

@@ -3,7 +3,7 @@ use std::collections::HashSet;
 use komga_application::runtime_sse::{RuntimeSseEvent, RuntimeSseEventSink};
 use sqlx::{Row, SqlitePool};
 
-pub(crate) async fn aggregate_series_metadata(
+pub async fn aggregate_series_metadata(
     pool: &SqlitePool,
     runtime_events: &dyn RuntimeSseEventSink,
     series_id: &str,

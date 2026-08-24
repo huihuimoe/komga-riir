@@ -8,7 +8,7 @@ use komga_application::media_assets::{
 use sqlx::SqlitePool;
 
 use komga_infrastructure_media_core::content::persistence as db_queries;
-use crate::media::metadata;
+use komga_infrastructure_media_metadata as metadata;
 use crate::media::progress::persistence as media_read_progress;
 
 /// Direct read access to media assets backed by SQLite.

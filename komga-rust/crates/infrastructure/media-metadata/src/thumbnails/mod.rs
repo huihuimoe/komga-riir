@@ -12,20 +12,20 @@ mod series;
 
 static GENERATED_THUMBNAIL_ID_COUNTER: AtomicU64 = AtomicU64::new(0);
 
-pub(crate) use books::{
+pub use books::{
     delete_book_thumbnail, insert_book_thumbnail, load_book_thumbnail_by_id,
     load_persisted_book_thumbnails, load_selected_book_thumbnail, select_book_thumbnail,
 };
-pub(crate) use collections::{
+pub use collections::{
     delete_collection_thumbnail, insert_collection_thumbnail, load_collection_thumbnail_by_id,
     load_persisted_collection_thumbnails, persisted_collection_exists, select_collection_thumbnail,
 };
-pub(crate) use readlists::{
+pub use readlists::{
     delete_readlist_thumbnail, insert_readlist_thumbnail, load_persisted_readlist_name,
     load_persisted_readlist_thumbnails, load_readlist_thumbnail_by_id, persisted_readlist_exists,
     select_readlist_thumbnail,
 };
-pub(crate) use series::{
+pub use series::{
     delete_series_thumbnail, insert_series_thumbnail, load_persisted_series_thumbnails,
     load_selected_series_thumbnail, load_series_thumbnail_by_id, select_series_thumbnail,
 };
@@ -70,7 +70,7 @@ fn generated_thumbnail_id(prefix: &str) -> String {
     format!("{prefix}-{timestamp:032x}{counter:016x}")
 }
 
-pub(crate) fn emit_thumbnail_book_event(
+pub fn emit_thumbnail_book_event(
     runtime_events: &dyn RuntimeSseEventSink,
     book_id: &str,
     series_id: &str,
@@ -93,7 +93,7 @@ pub(crate) fn emit_thumbnail_book_event(
     runtime_events.register(event);
 }
 
-pub(crate) fn emit_thumbnail_series_event(
+pub fn emit_thumbnail_series_event(
     runtime_events: &dyn RuntimeSseEventSink,
     series_id: &str,
     selected: bool,
@@ -113,7 +113,7 @@ pub(crate) fn emit_thumbnail_series_event(
     runtime_events.register(event);
 }
 
-pub(crate) fn emit_thumbnail_readlist_event(
+pub fn emit_thumbnail_readlist_event(
     runtime_events: &dyn RuntimeSseEventSink,
     readlist_id: &str,
     selected: bool,
@@ -133,7 +133,7 @@ pub(crate) fn emit_thumbnail_readlist_event(
     runtime_events.register(event);
 }
 
-pub(crate) fn emit_thumbnail_collection_event(
+pub fn emit_thumbnail_collection_event(
     runtime_events: &dyn RuntimeSseEventSink,
     collection_id: &str,
     selected: bool,

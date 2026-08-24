@@ -1,5 +1,14 @@
 use std::collections::BTreeSet;
 
+use komga_infrastructure_media_metadata::{
+    aggregate_series_metadata as metadata_aggregate_series_metadata,
+    generate_book_thumbnail as metadata_generate_book_thumbnail,
+    refresh_book_local_artwork as metadata_refresh_book_local_artwork,
+    refresh_book_metadata as metadata_refresh_book_metadata,
+    refresh_series_local_artwork as metadata_refresh_series_local_artwork,
+    refresh_series_metadata as metadata_refresh_series_metadata,
+};
+
 use komga_application::task_processing::{
     SeriesPayload, TaskExecutionOutcome, TaskKind, TaskProcessingError, TaskRequest,
 };
@@ -90,7 +99,7 @@ async fn refresh_book_metadata(
         return Ok(None);
     }
 
-    let outcome = crate::media::metadata::refresh_book_metadata(
+    let outcome = metadata_refresh_book_metadata(
         runtime.database().write_pool(),
         runtime.runtime_events(),
         book_id,
@@ -122,7 +131,7 @@ async fn refresh_series_metadata(
         return Ok(());
     }
 
-    crate::media::metadata::refresh_series_metadata(
+    metadata_refresh_series_metadata(
         runtime.database().write_pool(),
         runtime.runtime_events(),
         series_id,
@@ -145,7 +154,7 @@ async fn aggregate_series_metadata(
         return Ok(());
     }
 
-    crate::media::metadata::aggregate_series_metadata(
+    metadata_aggregate_series_metadata(
         runtime.database().write_pool(),
         runtime.runtime_events(),
         series_id,
@@ -170,7 +179,7 @@ async fn refresh_book_local_artwork(
         return Ok(());
     }
 
-    crate::media::metadata::refresh_book_local_artwork(
+    metadata_refresh_book_local_artwork(
         runtime.database().write_pool(),
         runtime.runtime_events(),
         book_id,
@@ -187,7 +196,7 @@ async fn generate_book_thumbnail(
         return Ok(());
     }
 
-    crate::media::metadata::generate_book_thumbnail(
+    metadata_generate_book_thumbnail(
         runtime.database().write_pool(),
         runtime.runtime_events(),
         book_id,
@@ -208,7 +217,7 @@ async fn refresh_series_local_artwork(
         return Ok(());
     }
 
-    crate::media::metadata::refresh_series_local_artwork(
+    metadata_refresh_series_local_artwork(
         runtime.database().write_pool(),
         runtime.runtime_events(),
         series_id,

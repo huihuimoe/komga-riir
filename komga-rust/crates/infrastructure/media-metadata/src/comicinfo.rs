@@ -15,37 +15,37 @@ use komga_infrastructure_media_core::formats::rar::{list_rar_entries, read_rar_e
 const COMICINFO_FILE_NAME: &str = "ComicInfo.xml";
 
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
-pub(crate) struct ComicInfoDocument {
-    pub(crate) title: Option<String>,
-    pub(crate) series: Option<String>,
-    pub(crate) number: Option<String>,
-    pub(crate) count: Option<String>,
-    pub(crate) volume: Option<String>,
-    pub(crate) alternate_series: Option<String>,
-    pub(crate) alternate_number: Option<String>,
-    pub(crate) summary: Option<String>,
-    pub(crate) year: Option<String>,
-    pub(crate) month: Option<String>,
-    pub(crate) day: Option<String>,
-    pub(crate) writer: Option<String>,
-    pub(crate) penciller: Option<String>,
-    pub(crate) inker: Option<String>,
-    pub(crate) colorist: Option<String>,
-    pub(crate) letterer: Option<String>,
-    pub(crate) cover_artist: Option<String>,
-    pub(crate) editor: Option<String>,
-    pub(crate) translator: Option<String>,
-    pub(crate) publisher: Option<String>,
-    pub(crate) genre: Option<String>,
-    pub(crate) tags: Option<String>,
-    pub(crate) web: Option<String>,
-    pub(crate) language_iso: Option<String>,
-    pub(crate) manga: Option<String>,
-    pub(crate) story_arc: Option<String>,
-    pub(crate) story_arc_number: Option<String>,
-    pub(crate) series_group: Option<String>,
-    pub(crate) age_rating: Option<String>,
-    pub(crate) gtin: Option<String>,
+pub struct ComicInfoDocument {
+    pub title: Option<String>,
+    pub series: Option<String>,
+    pub number: Option<String>,
+    pub count: Option<String>,
+    pub volume: Option<String>,
+    pub alternate_series: Option<String>,
+    pub alternate_number: Option<String>,
+    pub summary: Option<String>,
+    pub year: Option<String>,
+    pub month: Option<String>,
+    pub day: Option<String>,
+    pub writer: Option<String>,
+    pub penciller: Option<String>,
+    pub inker: Option<String>,
+    pub colorist: Option<String>,
+    pub letterer: Option<String>,
+    pub cover_artist: Option<String>,
+    pub editor: Option<String>,
+    pub translator: Option<String>,
+    pub publisher: Option<String>,
+    pub genre: Option<String>,
+    pub tags: Option<String>,
+    pub web: Option<String>,
+    pub language_iso: Option<String>,
+    pub manga: Option<String>,
+    pub story_arc: Option<String>,
+    pub story_arc_number: Option<String>,
+    pub series_group: Option<String>,
+    pub age_rating: Option<String>,
+    pub gtin: Option<String>,
 }
 
 #[derive(Clone, Copy)]
@@ -164,7 +164,7 @@ impl ComicInfoDocument {
     }
 }
 
-pub(crate) fn parse_comicinfo_xml(xml: &[u8]) -> anyhow::Result<ComicInfoDocument> {
+pub fn parse_comicinfo_xml(xml: &[u8]) -> anyhow::Result<ComicInfoDocument> {
     let mut reader = XmlReader::from_reader(xml);
     reader.config_mut().trim_text(false);
 
@@ -281,7 +281,7 @@ fn decode_xml_general_ref(event: &BytesRef<'_>) -> anyhow::Result<String> {
         .ok_or_else(|| anyhow::anyhow!("unknown ComicInfo.xml entity '&{};'", name))
 }
 
-pub(crate) fn load_comicinfo_bytes_for_media(
+pub fn load_comicinfo_bytes_for_media(
     media: &BookMediaRecord,
 ) -> anyhow::Result<Option<Vec<u8>>> {
     if book_media_is_zip_archive(media) || book_media_is_rar_archive(media) {
@@ -290,7 +290,7 @@ pub(crate) fn load_comicinfo_bytes_for_media(
     Ok(None)
 }
 
-pub(crate) fn load_comicinfo_bytes_from_path(
+pub fn load_comicinfo_bytes_from_path(
     path: &Path,
     media_type: &str,
 ) -> anyhow::Result<Option<Vec<u8>>> {
@@ -551,7 +551,7 @@ mod tests {
         let path = unique_temp_path("komga-comicinfo-rar", "rar");
         fs::write(
             &path,
-            include_bytes!("../../../../../sample/ComicInfo_duplicateInfos.rar"),
+            include_bytes!("../../../../sample/ComicInfo_duplicateInfos.rar"),
         )
         .expect("RAR fixture should be copied");
 

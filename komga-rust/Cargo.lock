@@ -2771,6 +2771,7 @@ dependencies = [
  "komga-infrastructure-discovery",
  "komga-infrastructure-media-core",
  "komga-infrastructure-media-library",
+ "komga-infrastructure-media-metadata",
  "komga-infrastructure-search",
  "komga-infrastructure-test-support",
  "komga-kepubify",
@@ -2874,6 +2875,31 @@ dependencies = [
  "sqlx",
  "tokio",
  "unrar",
+ "zip 9.0.0-pre3",
+]
+
+[[package]]
+name = "komga-infrastructure-media-metadata"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "image",
+ "komga-application",
+ "komga-domain",
+ "komga-infrastructure-base",
+ "komga-infrastructure-media-core",
+ "komga-infrastructure-test-support",
+ "language-tags",
+ "lopdf",
+ "pdfium-render",
+ "quick-xml",
+ "rxing",
+ "serde",
+ "serde_json",
+ "sqlx",
+ "tokio",
+ "url",
  "zip 9.0.0-pre3",
 ]
 

@@ -5,7 +5,7 @@ use url::Url;
 use komga_application::discovery::SeriesReadingDirection;
 use komga_application::media_assets::{BookMetadataAuthor, BookMetadataLink};
 
-use crate::media::metadata::ComicInfoDocument;
+use crate::ComicInfoDocument;
 
 use super::readlist::ComicInfoReadListEntry;
 use super::support::{

@@ -11,6 +11,7 @@ members = [
   "crates/infrastructure/media-core",
   "crates/infrastructure/discovery",
   "crates/infrastructure/media-library",
+  "crates/infrastructure/media-metadata",
   "crates/infrastructure/test-support",
   "crates/interfaces",
   "crates/config",

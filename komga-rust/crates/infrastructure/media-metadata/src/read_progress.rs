@@ -182,7 +182,7 @@ fn emit_read_progress_series_event(
     runtime_events.register(event);
 }
 
-pub(crate) async fn persist_read_progress(
+pub async fn persist_read_progress(
     pool: &SqlitePool,
     runtime_events: &dyn RuntimeSseEventSink,
     book_id: &str,
@@ -226,7 +226,7 @@ pub(crate) async fn persist_read_progress(
     Ok(())
 }
 
-pub(crate) async fn persist_book_progression(
+pub async fn persist_book_progression(
     pool: &SqlitePool,
     runtime_events: &dyn RuntimeSseEventSink,
     input: BookProgressionInput,
@@ -269,7 +269,7 @@ pub(crate) async fn persist_book_progression(
     Ok(())
 }
 
-pub(crate) async fn load_book_progression(
+pub async fn load_book_progression(
     pool: &SqlitePool,
     book_id: &str,
     user_id_value: &str,
@@ -344,7 +344,7 @@ fn decode_book_progression_locator(locator: Option<&[u8]>) -> anyhow::Result<Val
     }
 }
 
-pub(crate) async fn load_book_read_progress_completed(
+pub async fn load_book_read_progress_completed(
     pool: &SqlitePool,
     book_id: &str,
     user_id_value: &str,
@@ -366,7 +366,7 @@ pub(crate) async fn load_book_read_progress_completed(
     Ok(row.map(|row| row.get::<bool, _>("COMPLETED")))
 }
 
-pub(crate) async fn load_book_page_count(
+pub async fn load_book_page_count(
     pool: &SqlitePool,
     book_id: &str,
 ) -> anyhow::Result<Option<u64>> {
@@ -379,7 +379,7 @@ pub(crate) async fn load_book_page_count(
     Ok(row.map(|row| row.get::<i64, _>("PAGE_COUNT").max(0) as u64))
 }
 
-pub(crate) async fn delete_persisted_read_progress(
+pub async fn delete_persisted_read_progress(
     pool: &SqlitePool,
     runtime_events: &dyn RuntimeSseEventSink,
     book_id: &str,
@@ -411,7 +411,7 @@ pub(crate) async fn delete_persisted_read_progress(
     Ok(())
 }
 
-pub(crate) async fn read_progress_completed_by_book_ids(
+pub async fn read_progress_completed_by_book_ids(
     pool: &SqlitePool,
     ordered_book_ids: &[String],
     user_id_value: &str,

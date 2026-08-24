@@ -6,9 +6,9 @@ use komga_application::runtime_sse::RuntimeSseEventSink;
 use sqlx::{Row, SqlitePool};
 
 use super::{emit_thumbnail_series_event, generated_thumbnail_id, load_thumbnail_bytes_or_sidecar};
-use crate::codec_compat::parse_thumbnail_type;
+use crate::codecs::parse_thumbnail_type;
 
-pub(crate) async fn load_persisted_series_thumbnails(
+pub async fn load_persisted_series_thumbnails(
     pool: &SqlitePool,
     series_id: &str,
 ) -> anyhow::Result<Vec<SeriesThumbnailRecord>> {
@@ -41,7 +41,7 @@ pub(crate) async fn load_persisted_series_thumbnails(
         .collect()
 }
 
-pub(crate) async fn load_selected_series_thumbnail(
+pub async fn load_selected_series_thumbnail(
     pool: &SqlitePool,
     series_id: &str,
 ) -> anyhow::Result<Option<EntityThumbnailBinary>> {
@@ -82,7 +82,7 @@ pub(crate) async fn load_selected_series_thumbnail(
     }))
 }
 
-pub(crate) async fn load_series_thumbnail_by_id(
+pub async fn load_series_thumbnail_by_id(
     pool: &SqlitePool,
     thumbnail_id: &str,
 ) -> anyhow::Result<Option<EntityThumbnailBinary>> {
@@ -126,7 +126,7 @@ pub(crate) async fn load_series_thumbnail_by_id(
     clippy::too_many_arguments,
     reason = "This persistence boundary writes the thumbnail record fields directly."
 )]
-pub(crate) async fn insert_series_thumbnail(
+pub async fn insert_series_thumbnail(
     pool: &SqlitePool,
     runtime_events: &dyn RuntimeSseEventSink,
     series_id: &str,
@@ -214,7 +214,7 @@ pub(crate) async fn insert_series_thumbnail(
     Ok(record)
 }
 
-pub(crate) async fn select_series_thumbnail(
+pub async fn select_series_thumbnail(
     pool: &SqlitePool,
     runtime_events: &dyn RuntimeSseEventSink,
     series_id: &str,
@@ -295,7 +295,7 @@ pub(crate) async fn select_series_thumbnail(
     Ok(true)
 }
 
-pub(crate) async fn delete_series_thumbnail(
+pub async fn delete_series_thumbnail(
     pool: &SqlitePool,
     runtime_events: &dyn RuntimeSseEventSink,
     series_id: &str,

@@ -4,7 +4,7 @@ use serde_json::Value;
 use sqlx::SqlitePool;
 use std::sync::Arc;
 
-use crate::media::metadata;
+use komga_infrastructure_media_metadata as metadata;
 use crate::media::progress::persistence as media_read_progress;
 
 /// Write operations for read progress (book and series level).
