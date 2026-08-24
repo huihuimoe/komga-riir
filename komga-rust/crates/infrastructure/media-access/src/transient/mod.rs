@@ -921,7 +921,7 @@ mod tests {
     #[test]
     fn analyze_transient_book_populates_rar_page_dimensions() {
         let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("../../../komga/src/test/resources/archives/rar4.rar");
+            .join("../../../../komga/src/test/resources/archives/rar4.rar");
 
         let analysis = analyze_transient_book(path.to_string_lossy().as_ref())
             .expect("transient rar analysis should complete");
@@ -948,7 +948,7 @@ mod tests {
     #[test]
     fn analyze_transient_book_populates_rar_page_size_bytes() {
         let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("../../../komga/src/test/resources/archives/rar4.rar");
+            .join("../../../../komga/src/test/resources/archives/rar4.rar");
 
         let analysis = analyze_transient_book(path.to_string_lossy().as_ref())
             .expect("transient rar analysis should complete");
@@ -967,7 +967,7 @@ mod tests {
     #[test]
     fn analyze_transient_book_marks_encrypted_rar_as_unsupported() {
         let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("../../../komga/src/test/resources/archives/rar4-encrypted.rar");
+            .join("../../../../komga/src/test/resources/archives/rar4-encrypted.rar");
 
         let analysis = analyze_transient_book(path.to_string_lossy().as_ref())
             .expect("encrypted transient RAR analysis should complete");
@@ -1027,7 +1027,7 @@ mod tests {
 
     #[test]
     fn analyze_transient_mobi_reads_the_local_sample_when_available() {
-        let path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../sample/epub3.mobi");
+        let path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../../sample/epub3.mobi");
         if !path.is_file() {
             return;
         }

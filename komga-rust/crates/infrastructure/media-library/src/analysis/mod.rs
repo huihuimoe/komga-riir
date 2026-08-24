@@ -1404,7 +1404,7 @@ mod tests {
     #[test]
     fn persisted_analysis_detects_rar4_versioned_media_type() {
         let fixture_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("../../../komga/src/test/resources/archives/rar4.rar");
+            .join("../../../../komga/src/test/resources/archives/rar4.rar");
 
         let analysis = MediaFileAnalyzer
             .analyze(
@@ -1426,7 +1426,7 @@ mod tests {
     #[test]
     fn persisted_analysis_marks_encrypted_rar_as_unsupported() {
         let fixture_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("../../../komga/src/test/resources/archives/rar4-encrypted.rar");
+            .join("../../../../komga/src/test/resources/archives/rar4-encrypted.rar");
 
         let analysis = MediaFileAnalyzer
             .analyze(
@@ -1466,7 +1466,7 @@ mod tests {
 
     #[test]
     fn persisted_mobi_analysis_reads_the_local_sample_when_available() {
-        let path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../sample/epub3.mobi");
+        let path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../../sample/epub3.mobi");
         if !path.is_file() {
             return;
         }
@@ -1494,8 +1494,9 @@ mod tests {
 
     #[test]
     fn persisted_epub_analysis_keeps_reflowable_content_as_resources() {
-        let fixture_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("../../../komga/src/test/resources/epub/The Incomplete Theft - Ralph Burke.epub");
+        let fixture_path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join(
+            "../../../../komga/src/test/resources/epub/The Incomplete Theft - Ralph Burke.epub",
+        );
 
         let analysis = MediaFileAnalyzer
             .analyze(
@@ -1523,7 +1524,7 @@ mod tests {
     #[test]
     fn persisted_epub_analysis_marks_complete_image_mapping_as_divina_compatible() {
         let fixture_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("../../../komga/src/test/resources/archives/epub3.epub");
+            .join("../../../../komga/src/test/resources/archives/epub3.epub");
 
         let analysis = MediaFileAnalyzer
             .analyze(
@@ -1542,7 +1543,7 @@ mod tests {
     #[test]
     fn persisted_analysis_reads_rar_page_dimensions() {
         let fixture_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("../../../komga/src/test/resources/archives/rar4.rar");
+            .join("../../../../komga/src/test/resources/archives/rar4.rar");
 
         let analysis = MediaFileAnalyzer
             .analyze(
@@ -1574,7 +1575,7 @@ mod tests {
     #[test]
     fn media_type_detection_is_shared_between_transient_and_persisted_paths() {
         let rar4 = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("../../../komga/src/test/resources/archives/rar4.rar");
+            .join("../../../../komga/src/test/resources/archives/rar4.rar");
 
         assert_eq!(
             transient_media_type_from_path(rar4.as_path()).as_deref(),

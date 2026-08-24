@@ -833,7 +833,8 @@ mod tests {
 
     #[tokio::test]
     async fn read_mobi_resources_generates_content_on_request() {
-        let file_path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../sample/epub3.mobi");
+        let file_path =
+            PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../../sample/epub3.mobi");
         if !file_path.is_file() {
             return;
         }
