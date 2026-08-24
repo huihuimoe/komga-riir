@@ -105,10 +105,8 @@ impl TaskRuntimeContext {
         if let Some(value) = overrides.owns_search_index {
             self.owns_search_index = value;
         }
-        self.media_library = self
-            .media_library
-            .clone()
-            .with_ownership(self.owns_main_database, self.owns_filesystem_scan_output);
+        self.media_library
+            .set_ownership(self.owns_main_database, self.owns_filesystem_scan_output);
         self
     }
 
@@ -118,10 +116,8 @@ impl TaskRuntimeContext {
     }
 
     pub fn with_runtime_events(mut self, runtime_events: Arc<dyn RuntimeSseEventSink>) -> Self {
-        self.media_library = self
-            .media_library
-            .clone()
-            .with_runtime_events(runtime_events.clone());
+        self.media_library
+            .set_runtime_events(runtime_events.clone());
         self.runtime_events = runtime_events;
         self
     }
