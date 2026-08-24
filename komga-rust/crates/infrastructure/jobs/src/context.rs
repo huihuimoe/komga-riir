@@ -46,22 +46,13 @@ pub struct TaskRuntimeOwnership {
 }
 
 impl TaskRuntimeOwnership {
-    pub const fn new(
-        owns_main_database: bool,
-        owns_filesystem_scan_output: bool,
-        owns_sidecar_output: bool,
-        owns_search_index: bool,
-    ) -> Self {
-        Self {
-            owns_main_database,
-            owns_filesystem_scan_output,
-            owns_sidecar_output,
-            owns_search_index,
-        }
-    }
-
     pub const fn all_owned() -> Self {
-        Self::new(true, true, true, true)
+        Self {
+            owns_main_database: true,
+            owns_filesystem_scan_output: true,
+            owns_sidecar_output: true,
+            owns_search_index: true,
+        }
     }
 }
 

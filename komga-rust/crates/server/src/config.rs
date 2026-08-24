@@ -30,20 +30,20 @@ pub(crate) async fn task_runtime_context(
         consumes_queue: config
             .writer_decision(WriterKind::TasksDatabase)
             .allows_write(),
-        ownership: TaskRuntimeOwnership::new(
-            config
+        ownership: TaskRuntimeOwnership {
+            owns_main_database: config
                 .writer_decision(WriterKind::MainDatabase)
                 .allows_write(),
-            config
+            owns_filesystem_scan_output: config
                 .writer_decision(WriterKind::FilesystemScanOutput)
                 .allows_write(),
-            config
+            owns_sidecar_output: config
                 .writer_decision(WriterKind::SidecarOutput)
                 .allows_write(),
-            config
+            owns_search_index: config
                 .writer_decision(WriterKind::SearchIndex)
                 .allows_write(),
-        ),
+        },
         task_pool_size: config.task_pool_size,
         task_write_pool,
         task_read_pool,

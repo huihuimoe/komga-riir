@@ -33,20 +33,20 @@ async fn runtime_task_context(
         consumes_queue: config
             .writer_decision(komga_config::writer_ownership::WriterKind::TasksDatabase)
             .allows_write(),
-        ownership: TaskRuntimeOwnership::new(
-            config
+        ownership: TaskRuntimeOwnership {
+            owns_main_database: config
                 .writer_decision(komga_config::writer_ownership::WriterKind::MainDatabase)
                 .allows_write(),
-            config
+            owns_filesystem_scan_output: config
                 .writer_decision(komga_config::writer_ownership::WriterKind::FilesystemScanOutput)
                 .allows_write(),
-            config
+            owns_sidecar_output: config
                 .writer_decision(komga_config::writer_ownership::WriterKind::SidecarOutput)
                 .allows_write(),
-            config
+            owns_search_index: config
                 .writer_decision(komga_config::writer_ownership::WriterKind::SearchIndex)
                 .allows_write(),
-        ),
+        },
         task_pool_size: config.task_pool_size,
         task_write_pool,
         task_read_pool,

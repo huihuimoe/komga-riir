@@ -265,7 +265,12 @@ async fn scanner_startup_leaves_tasks_untouched_when_tasks_writer_is_external_ow
         tasks_db_file: fixture.paths.tasks_db.clone(),
         lucene_data_directory: fixture.config.lucene_data_directory.clone(),
         consumes_queue: false,
-        ownership: TaskRuntimeOwnership::new(false, false, false, false),
+        ownership: TaskRuntimeOwnership {
+            owns_main_database: false,
+            owns_filesystem_scan_output: false,
+            owns_sidecar_output: false,
+            owns_search_index: false,
+        },
         task_pool_size: 1,
         task_write_pool,
         task_read_pool,

@@ -603,12 +603,15 @@ fn authentication_cleanup_logs_skip_complete_and_failure_boundaries() {
             tasks_db_file: config.worker().tasks_db_file().to_path_buf(),
             lucene_data_directory: config.job().search().lucene_data_directory().to_path_buf(),
             consumes_queue: config.worker().consumes_queue(),
-            ownership: TaskRuntimeOwnership::new(
-                config.job().database().owns_main_database(),
-                config.job().filesystem().owns_filesystem_scan_output(),
-                config.job().filesystem().owns_sidecar_output(),
-                config.job().search().owns_search_index(),
-            ),
+            ownership: TaskRuntimeOwnership {
+                owns_main_database: config.job().database().owns_main_database(),
+                owns_filesystem_scan_output: config
+                    .job()
+                    .filesystem()
+                    .owns_filesystem_scan_output(),
+                owns_sidecar_output: config.job().filesystem().owns_sidecar_output(),
+                owns_search_index: config.job().search().owns_search_index(),
+            },
             task_pool_size: config.worker().task_pool_size(),
             task_write_pool,
             task_read_pool,
