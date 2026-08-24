@@ -1,9 +1,9 @@
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::path::PathBuf;
 
-use crate::discovery::persisted::{facets, library_mappings, runtime_queries};
-use crate::discovery::records as persisted_models;
-use crate::discovery::{books::persistence as books, series::persistence as series};
+use crate::persisted::{facets, library_mappings, runtime_queries};
+use crate::records as persisted_models;
+use crate::{books::persistence as books, series::persistence as series};
 use komga_infrastructure_base::DatabaseHandle;
 use komga_infrastructure_search::SearchEntityType;
 use komga_infrastructure_search::engine::SearchIndexEngine;

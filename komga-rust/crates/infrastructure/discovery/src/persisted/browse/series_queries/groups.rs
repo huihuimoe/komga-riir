@@ -10,7 +10,7 @@ use super::super::models::{
 use super::super::{DiscoveryQueryContext, SqliteDiscoveryBrowseService};
 use super::filtering::load_persisted_series_page;
 
-pub(in crate::discovery::persisted::browse) async fn load_persisted_alphabetical_groups(
+pub(in crate::persisted::browse) async fn load_persisted_alphabetical_groups(
     backend: &SqliteDiscoveryBrowseService,
     context: &DiscoveryQueryContext,
     condition: Option<SeriesCondition>,

@@ -9,6 +9,7 @@ members = [
   "crates/infrastructure/base",
   "crates/infrastructure/search",
   "crates/infrastructure/media-core",
+  "crates/infrastructure/discovery",
   "crates/infrastructure/test-support",
   "crates/interfaces",
   "crates/config",

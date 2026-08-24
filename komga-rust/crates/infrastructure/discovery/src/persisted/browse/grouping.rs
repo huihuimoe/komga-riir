@@ -1,4 +1,4 @@
-pub(in crate::discovery::persisted::browse) fn first_group_key(title: &str) -> String {
+pub(in crate::persisted::browse) fn first_group_key(title: &str) -> String {
     title
         .trim()
         .chars()

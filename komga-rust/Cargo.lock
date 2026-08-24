@@ -2811,6 +2811,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "komga-infrastructure-discovery"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "komga-application",
+ "komga-domain",
+ "komga-infrastructure-base",
+ "komga-infrastructure-media-core",
+ "komga-infrastructure-search",
+ "komga-infrastructure-test-support",
+ "serde",
+ "sqlx",
+ "time",
+ "tokio",
+ "unicode-normalization",
+]
+
+[[package]]
 name = "komga-infrastructure-media-core"
 version = "0.1.0"
 dependencies = [

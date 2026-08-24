@@ -1,14 +1,14 @@
 use anyhow::Context;
 use sqlx::{Row, SqlitePool};
 
-use crate::discovery::set_persistence;
+use crate::set_persistence;
 
 use komga_application::discovery::{
     DiscoveryPersistedReadlistBookRecord, DiscoveryPersistedReadlistRecord,
     PersistedComicrackMatchCandidateRecord,
 };
 
-pub(in crate::discovery) async fn load_persisted_readlists(
+pub(crate) async fn load_persisted_readlists(
     pool: &SqlitePool,
 ) -> anyhow::Result<Vec<DiscoveryPersistedReadlistRecord>> {
     let rows = sqlx::query(
@@ -33,7 +33,7 @@ ORDER BY NAME COLLATE NOCASE ASC"#,
         .collect())
 }
 
-pub(in crate::discovery) async fn load_persisted_readlist_detail(
+pub(crate) async fn load_persisted_readlist_detail(
     pool: &SqlitePool,
     readlist_id: &str,
 ) -> anyhow::Result<Option<DiscoveryPersistedReadlistRecord>> {
@@ -57,7 +57,7 @@ WHERE ID = ?"#,
     }))
 }
 
-pub(in crate::discovery) async fn load_persisted_readlist_book_rows(
+pub(crate) async fn load_persisted_readlist_book_rows(
     pool: &SqlitePool,
     readlist_id: &str,
 ) -> anyhow::Result<Vec<DiscoveryPersistedReadlistBookRecord>> {
@@ -82,7 +82,7 @@ ORDER BY rb.NUMBER ASC"#,
         .collect())
 }
 
-pub(in crate::discovery) async fn load_comicrack_match_candidates(
+pub(crate) async fn load_comicrack_match_candidates(
     pool: &SqlitePool,
 ) -> anyhow::Result<Vec<PersistedComicrackMatchCandidateRecord>> {
     let rows = sqlx::query(
@@ -115,7 +115,7 @@ LEFT JOIN BOOK_METADATA_AGGREGATION bma ON bma.SERIES_ID = s.ID"#,
         .collect())
 }
 
-pub(in crate::discovery) async fn persist_readlist_create(
+pub(crate) async fn persist_readlist_create(
     pool: &SqlitePool,
     readlist_id: &str,
     name: &str,
@@ -154,7 +154,7 @@ VALUES (?, ?, ?, ?, ?)"#,
     Ok(())
 }
 
-pub(in crate::discovery) async fn persist_readlist_update(
+pub(crate) async fn persist_readlist_update(
     pool: &SqlitePool,
     readlist_id: &str,
     name: &str,
@@ -201,7 +201,7 @@ WHERE ID = ?"#,
     Ok(true)
 }
 
-pub(in crate::discovery) async fn delete_persisted_readlist(
+pub(crate) async fn delete_persisted_readlist(
     pool: &SqlitePool,
     readlist_id: &str,
 ) -> anyhow::Result<bool> {

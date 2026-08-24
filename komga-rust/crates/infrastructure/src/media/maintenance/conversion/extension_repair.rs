@@ -6,7 +6,7 @@ use super::super::archive::{metadata_updated_unix_seconds, normalize_library_rel
 use super::super::library_flags::load_library_maintenance_flags;
 use super::super::persistence::load_book_for_extension_repair;
 use super::super::updates::persist_book_extension_repair;
-use crate::media::analysis::expected_extension_for_media_type;
+use komga_infrastructure_media_core::expected_extension_for_media_type;
 use crate::tasks::JobRuntime;
 use komga_infrastructure_base::{resolve_library_item_path, resolve_stored_path};
 

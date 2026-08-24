@@ -8,10 +8,10 @@ use komga_domain::discovery::SeriesStatus;
 use sqlx::sqlite::SqliteRow;
 use sqlx::{Error, QueryBuilder, Row, Sqlite, SqlitePool};
 
-use crate::discovery::query_values;
-use crate::discovery::records::SeriesSummary;
+use crate::query_values;
+use crate::records::SeriesSummary;
 
-pub(in crate::discovery) async fn load_persisted_series_summaries(
+pub(crate) async fn load_persisted_series_summaries(
     pool: &SqlitePool,
 ) -> anyhow::Result<Vec<SeriesSummary>> {
     let rows = fetch_persisted_series_summary_rows(pool, None)
@@ -21,7 +21,7 @@ pub(in crate::discovery) async fn load_persisted_series_summaries(
     Ok(rows.into_iter().map(map_series_summary).collect())
 }
 
-pub(in crate::discovery) async fn load_persisted_series_summaries_by_ids(
+pub(crate) async fn load_persisted_series_summaries_by_ids(
     pool: &SqlitePool,
     ids: &[String],
 ) -> anyhow::Result<Vec<SeriesSummary>> {
@@ -155,7 +155,7 @@ pub(crate) async fn load_persisted_series_read_models(
         .map(|summaries| summaries.into_iter().map(series_read_model).collect())
 }
 
-pub(in crate::discovery) async fn load_persisted_series_count(
+pub(crate) async fn load_persisted_series_count(
     pool: &SqlitePool,
 ) -> anyhow::Result<usize> {
     let row = sqlx::query("SELECT COUNT(*) AS COUNT FROM SERIES")

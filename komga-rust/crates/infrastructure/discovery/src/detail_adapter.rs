@@ -22,7 +22,7 @@ use komga_application::discovery::{
 use komga_application::runtime_sse::RuntimeSseEventSink;
 use komga_domain::discovery::{DiscoveryQueryContext, PageEnvelope};
 
-use crate::discovery::persisted::runtime_queries;
+use crate::persisted::runtime_queries;
 use komga_infrastructure_base::DatabaseHandle;
 use komga_infrastructure_search::SearchEntityType;
 use komga_infrastructure_search::engine::SearchIndexEngine;

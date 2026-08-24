@@ -3,7 +3,7 @@ use sqlx::{QueryBuilder, Row, Sqlite, SqlitePool};
 
 use komga_application::discovery::{ReferentialTagsInclude, ReferentialTagsScope};
 
-use crate::discovery::query_values;
+use crate::query_values;
 
 fn push_ids(query: &mut QueryBuilder<Sqlite>, ids: &[String]) {
     let mut separated = query.separated(",");

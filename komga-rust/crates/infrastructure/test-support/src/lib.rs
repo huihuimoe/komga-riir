@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 use sqlx::SqlitePool;
 
-use komga_infrastructure_base::persistence::sqlite::{connect_test_pool, schema};
+use komga_infrastructure_base::sqlite::{connect_test_pool, schema};
 
 pub struct BootstrappedBookFixture {
     pub db_path: PathBuf,

@@ -4,7 +4,7 @@ use std::collections::BTreeSet;
 use sqlx::{QueryBuilder, Row, Sqlite, SqlitePool};
 use unicode_normalization::{UnicodeNormalization, char::is_combining_mark};
 
-use crate::discovery::records::{AuthorEntry, AuthorsScope};
+use crate::records::{AuthorEntry, AuthorsScope};
 
 pub(super) async fn load_persisted_author_names(
     pool: &SqlitePool,

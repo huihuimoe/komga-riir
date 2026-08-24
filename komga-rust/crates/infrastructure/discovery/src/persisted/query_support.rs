@@ -11,7 +11,7 @@ use komga_infrastructure_search::SearchEntityType;
 use komga_infrastructure_search::engine::SearchIndexEngine;
 
 use super::{authors, library_mappings, runtime_queries};
-use crate::discovery::records as models;
+use crate::records as models;
 
 #[derive(Clone)]
 pub struct DiscoveryQuerySupportAccess {

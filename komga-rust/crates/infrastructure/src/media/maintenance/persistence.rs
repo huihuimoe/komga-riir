@@ -6,7 +6,7 @@ use komga_domain::discovery::MediaStatus;
 use komga_domain::media_assets::ThumbnailType;
 use sqlx::{Row, SqlitePool};
 
-use crate::media::analysis::expected_extension_for_media_type;
+use komga_infrastructure_media_core::expected_extension_for_media_type;
 use komga_infrastructure_base::resolve_library_item_path;
 
 #[derive(Clone, Debug)]

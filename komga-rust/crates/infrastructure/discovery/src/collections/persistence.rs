@@ -1,19 +1,19 @@
 use anyhow::Context;
 use sqlx::{Row, SqlitePool};
 
-use crate::discovery::set_persistence;
+use crate::set_persistence;
 
 use komga_application::discovery::{
     PersistedCollectionAccessRecord, PersistedSeriesRestrictionRecord,
 };
 
-pub(in crate::discovery) async fn persisted_collections_exist(
+pub(crate) async fn persisted_collections_exist(
     pool: &SqlitePool,
 ) -> anyhow::Result<bool> {
     set_persistence::table_has_rows(pool, "COLLECTION", "persisted collections").await
 }
 
-pub(in crate::discovery) async fn load_persisted_collections(
+pub(crate) async fn load_persisted_collections(
     pool: &SqlitePool,
 ) -> anyhow::Result<Vec<PersistedCollectionAccessRecord>> {
     let rows = sqlx::query(
@@ -37,7 +37,7 @@ ORDER BY NAME COLLATE NOCASE ASC"#,
         .collect())
 }
 
-pub(in crate::discovery) async fn load_persisted_collection_detail(
+pub(crate) async fn load_persisted_collection_detail(
     pool: &SqlitePool,
     collection_id: &str,
 ) -> anyhow::Result<Option<PersistedCollectionAccessRecord>> {
@@ -60,7 +60,7 @@ WHERE ID = ?"#,
     }))
 }
 
-pub(in crate::discovery) async fn load_persisted_collection_series_ids(
+pub(crate) async fn load_persisted_collection_series_ids(
     pool: &SqlitePool,
     collection_id: &str,
 ) -> anyhow::Result<Vec<String>> {
@@ -81,7 +81,7 @@ ORDER BY NUMBER ASC"#,
         .collect())
 }
 
-pub(in crate::discovery) async fn load_series_library_id(
+pub(crate) async fn load_series_library_id(
     pool: &SqlitePool,
     series_id: &str,
 ) -> anyhow::Result<Option<String>> {
@@ -99,7 +99,7 @@ LIMIT 1"#,
     Ok(row.map(|row| row.get::<String, _>("LIBRARY_ID")))
 }
 
-pub(in crate::discovery) async fn load_series_restrictions(
+pub(crate) async fn load_series_restrictions(
     pool: &SqlitePool,
     series_id: &str,
 ) -> anyhow::Result<PersistedSeriesRestrictionRecord> {
@@ -135,7 +135,7 @@ WHERE SERIES_ID = ?"#,
     Ok(PersistedSeriesRestrictionRecord { age_rating, labels })
 }
 
-pub(in crate::discovery) async fn persist_collection_create(
+pub(crate) async fn persist_collection_create(
     pool: &SqlitePool,
     collection_id: &str,
     name: &str,
@@ -173,7 +173,7 @@ VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"#,
     Ok(())
 }
 
-pub(in crate::discovery) async fn persist_collection_update(
+pub(crate) async fn persist_collection_update(
     pool: &SqlitePool,
     collection_id: &str,
     name: &str,
@@ -219,7 +219,7 @@ WHERE ID = ?"#,
     Ok(true)
 }
 
-pub(in crate::discovery) async fn delete_persisted_collection(
+pub(crate) async fn delete_persisted_collection(
     pool: &SqlitePool,
     collection_id: &str,
 ) -> anyhow::Result<bool> {
