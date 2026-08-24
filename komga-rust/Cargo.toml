@@ -7,6 +7,7 @@ members = [
   "crates/application",
   "crates/infrastructure",
   "crates/infrastructure/base",
+  "crates/infrastructure/test-support",
   "crates/interfaces",
   "crates/config",
   "crates/oauth",

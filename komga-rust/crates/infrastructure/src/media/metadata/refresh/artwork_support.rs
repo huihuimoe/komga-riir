@@ -640,7 +640,7 @@ mod tests {
     use super::book_thumbnail_housekeeping;
     use super::render_pdf_thumbnail;
     #[cfg(unix)]
-    use crate::test_support::BootstrappedBookFixture;
+    use komga_infrastructure_test_support::BootstrappedBookFixture;
 
     fn unique_temp_path(prefix: &str) -> PathBuf {
         let nanos = SystemTime::now()

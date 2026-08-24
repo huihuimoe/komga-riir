@@ -752,7 +752,7 @@ mod tests {
     use komga_application::runtime_sse::RuntimeSseEventStore;
 
     use super::{apply_mylar_series_import, apply_series_metadata_from_book_imports};
-    use crate::test_support::BootstrappedBookFixture;
+    use komga_infrastructure_test_support::BootstrappedBookFixture;
 
     #[tokio::test]
     async fn apply_series_metadata_from_book_imports_propagates_corrupt_comicinfo_archive_error() {

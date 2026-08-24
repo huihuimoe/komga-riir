@@ -393,7 +393,7 @@ mod tests {
     use super::{
         load_persisted_book_media, load_persisted_book_pages, load_series_book_number_sorts,
     };
-    use crate::test_support::BootstrappedBookFixture;
+    use komga_infrastructure_test_support::BootstrappedBookFixture;
 
     #[tokio::test]
     async fn media_access_queries_preserve_runtime_defaults_and_page_dimensions() {

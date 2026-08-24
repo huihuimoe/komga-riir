@@ -50,3 +50,6 @@ windows-sys.workspace = true
 
 [build-dependencies]
 komga-build-support = { path = "../build-support" }
+
+[dev-dependencies]
+komga-infrastructure-test-support = { path = "test-support" }

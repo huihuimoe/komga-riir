@@ -4,23 +4,23 @@ use sqlx::SqlitePool;
 
 use komga_infrastructure_base::persistence::sqlite::{connect_test_pool, schema};
 
-pub(crate) struct BootstrappedBookFixture {
-    pub(crate) db_path: PathBuf,
-    pub(crate) pool: SqlitePool,
+pub struct BootstrappedBookFixture {
+    pub db_path: PathBuf,
+    pub pool: SqlitePool,
 }
 
-pub(crate) struct MediaPageFixture<'a> {
-    pub(crate) book_id: &'a str,
-    pub(crate) page_number: i64,
-    pub(crate) file_name: &'a str,
-    pub(crate) media_type: &'a str,
-    pub(crate) width: i64,
-    pub(crate) height: i64,
-    pub(crate) file_size: Option<i64>,
+pub struct MediaPageFixture<'a> {
+    pub book_id: &'a str,
+    pub page_number: i64,
+    pub file_name: &'a str,
+    pub media_type: &'a str,
+    pub width: i64,
+    pub height: i64,
+    pub file_size: Option<i64>,
 }
 
 impl BootstrappedBookFixture {
-    pub(crate) async fn open(case_id: &str) -> Self {
+    pub async fn open(case_id: &str) -> Self {
         let db_path = temp_db_path(case_id);
         let pool = connect_test_pool(db_path.as_path(), 1)
             .await
@@ -31,12 +31,12 @@ impl BootstrappedBookFixture {
         Self { db_path, pool }
     }
 
-    pub(crate) async fn close(self) {
+    pub async fn close(self) {
         self.pool.close().await;
         let _ = std::fs::remove_file(self.db_path);
     }
 
-    pub(crate) async fn insert_library_series(&self) {
+    pub async fn insert_library_series(&self) {
         sqlx::query("INSERT INTO LIBRARY (ID, NAME, ROOT) VALUES (?, ?, ?)")
             .bind("library-1")
             .bind("Library 1")
@@ -62,7 +62,7 @@ impl BootstrappedBookFixture {
         .expect("series row should be inserted");
     }
 
-    pub(crate) async fn insert_series_metadata(&self) {
+    pub async fn insert_series_metadata(&self) {
         sqlx::query(
             r#"
             INSERT INTO SERIES_METADATA (
@@ -80,7 +80,7 @@ impl BootstrappedBookFixture {
         .expect("series metadata row should be inserted");
     }
 
-    pub(crate) async fn insert_book(&self, book_id: &str) {
+    pub async fn insert_book(&self, book_id: &str) {
         sqlx::query(
             r#"
             INSERT INTO BOOK (
@@ -102,7 +102,7 @@ impl BootstrappedBookFixture {
         .expect("book row should be inserted");
     }
 
-    pub(crate) async fn insert_book_metadata(&self, book_id: &str) {
+    pub async fn insert_book_metadata(&self, book_id: &str) {
         sqlx::query(
             r#"
             INSERT INTO BOOK_METADATA (
@@ -120,12 +120,12 @@ impl BootstrappedBookFixture {
         .expect("book metadata row should be inserted");
     }
 
-    pub(crate) async fn insert_media(&self, book_id: &str, media_type: Option<&str>) {
+    pub async fn insert_media(&self, book_id: &str, media_type: Option<&str>) {
         self.insert_media_with_page_count(book_id, media_type, "READY", 1)
             .await;
     }
 
-    pub(crate) async fn insert_media_with_page_count(
+    pub async fn insert_media_with_page_count(
         &self,
         book_id: &str,
         media_type: Option<&str>,
@@ -149,7 +149,7 @@ impl BootstrappedBookFixture {
         .expect("media row should be inserted");
     }
 
-    pub(crate) async fn insert_media_page(
+    pub async fn insert_media_page(
         &self,
         book_id: &str,
         page_number: i64,
@@ -169,7 +169,7 @@ impl BootstrappedBookFixture {
         .await;
     }
 
-    pub(crate) async fn insert_media_page_with_dimensions(&self, page: MediaPageFixture<'_>) {
+    pub async fn insert_media_page_with_dimensions(&self, page: MediaPageFixture<'_>) {
         sqlx::query(
             r#"
             INSERT INTO MEDIA_PAGE (

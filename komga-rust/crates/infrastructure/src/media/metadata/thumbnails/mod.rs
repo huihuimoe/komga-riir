@@ -155,7 +155,7 @@ pub(crate) fn emit_thumbnail_collection_event(
 
 #[cfg(test)]
 mod tests {
-    use crate::test_support::BootstrappedBookFixture;
+    use komga_infrastructure_test_support::BootstrappedBookFixture;
 
     use super::{load_selected_book_thumbnail, load_selected_series_thumbnail};
 

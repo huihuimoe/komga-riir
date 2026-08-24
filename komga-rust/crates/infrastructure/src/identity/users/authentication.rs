@@ -590,7 +590,7 @@ mod tests {
 
     use super::*;
     use komga_infrastructure_base::persistence::sqlite::connect_test_pool;
-    use crate::test_support::BootstrappedBookFixture;
+    use komga_infrastructure_test_support::BootstrappedBookFixture;
     use sqlx::SqlitePool;
 
     fn temp_db_path(case_id: &str) -> PathBuf {

@@ -685,7 +685,7 @@ fn collect_transient_book_entries(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::test_support::BootstrappedBookFixture;
+    use komga_infrastructure_test_support::BootstrappedBookFixture;
     use image::{ImageBuffer, Rgba};
     use lopdf::{Document as PdfDocument, Object, Stream, dictionary};
     use std::fs::File;

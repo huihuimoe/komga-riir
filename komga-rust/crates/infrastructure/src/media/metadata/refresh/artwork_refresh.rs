@@ -486,7 +486,7 @@ mod tests {
     use zip::{CompressionMethod, ZipWriter};
 
     use super::{find_best_cover_page, generate_book_thumbnail};
-    use crate::test_support::{BootstrappedBookFixture, MediaPageFixture};
+    use komga_infrastructure_test_support::{BootstrappedBookFixture, MediaPageFixture};
 
     fn unique_temp_dir(case: &str) -> PathBuf {
         let nanos = SystemTime::now()

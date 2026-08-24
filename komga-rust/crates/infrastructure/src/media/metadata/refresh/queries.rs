@@ -268,7 +268,7 @@ pub(super) async fn persist_book_metadata_for_refresh(
 #[cfg(test)]
 mod tests {
     use super::load_book_page_row_for_refresh;
-    use crate::test_support::BootstrappedBookFixture;
+    use komga_infrastructure_test_support::BootstrappedBookFixture;
 
     #[tokio::test]
     async fn load_book_page_row_for_refresh_maps_public_page_number_to_persisted_row() {

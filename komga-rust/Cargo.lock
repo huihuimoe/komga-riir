@@ -2768,6 +2768,7 @@ dependencies = [
  "komga-domain",
  "komga-epub",
  "komga-infrastructure-base",
+ "komga-infrastructure-test-support",
  "komga-kepubify",
  "language-tags",
  "libc",
@@ -2805,6 +2806,14 @@ dependencies = [
  "serde_json",
  "sqlx",
  "tokio",
+]
+
+[[package]]
+name = "komga-infrastructure-test-support"
+version = "0.1.0"
+dependencies = [
+ "komga-infrastructure-base",
+ "sqlx",
 ]
 
 [[package]]

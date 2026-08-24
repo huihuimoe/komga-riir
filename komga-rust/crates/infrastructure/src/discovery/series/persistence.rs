@@ -311,7 +311,7 @@ fn parse_alternate_titles(raw: &str) -> Vec<SeriesAlternateTitleRecord> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::test_support::BootstrappedBookFixture;
+    use komga_infrastructure_test_support::BootstrappedBookFixture;
 
     #[tokio::test]
     async fn load_persisted_series_summaries_preserves_metadata_values() {

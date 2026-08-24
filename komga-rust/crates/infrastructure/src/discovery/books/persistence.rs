@@ -375,7 +375,7 @@ fn parse_web_link_entries(raw: &str) -> Vec<WebLinkEntry> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::test_support::BootstrappedBookFixture;
+    use komga_infrastructure_test_support::BootstrappedBookFixture;
 
     #[tokio::test]
     async fn load_persisted_book_summaries_preserves_commas_in_metadata_values() {

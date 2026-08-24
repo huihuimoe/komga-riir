@@ -455,7 +455,7 @@ mod tests {
     use komga_application::runtime_sse::RuntimeSseEventStore;
 
     use super::refresh_book_metadata;
-    use crate::test_support::BootstrappedBookFixture;
+    use komga_infrastructure_test_support::BootstrappedBookFixture;
 
     async fn set_library_import_flag(pool: &sqlx::SqlitePool, column: &str, value: i64) {
         let query = match column {

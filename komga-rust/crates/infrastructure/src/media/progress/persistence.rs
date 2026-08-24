@@ -82,7 +82,7 @@ pub(crate) async fn load_series_tachiyomi_progress_books(
 #[cfg(test)]
 mod tests {
     use super::load_series_tachiyomi_progress_books;
-    use crate::test_support::BootstrappedBookFixture;
+    use komga_infrastructure_test_support::BootstrappedBookFixture;
 
     #[tokio::test]
     async fn load_series_tachiyomi_progress_books_defaults_number_sort_without_metadata() {
