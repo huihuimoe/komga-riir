@@ -2,8 +2,8 @@ use anyhow::Context;
 use sha2::{Digest, Sha256};
 use sqlx::SqlitePool;
 
-use crate::media::content::page_rendering::resolve_book_page_bytes;
-use crate::media::content::persistence::{
+use komga_infrastructure_media_core::content::page_rendering::resolve_book_page_bytes;
+use komga_infrastructure_media_core::content::persistence::{
     load_persisted_book_media, load_persisted_book_pages, public_page_number_to_persisted,
 };
 

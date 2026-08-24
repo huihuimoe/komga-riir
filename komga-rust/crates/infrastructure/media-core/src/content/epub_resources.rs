@@ -15,9 +15,9 @@ use komga_application::media_assets::{
 use zip::ZipArchive;
 use zip::result::ZipError;
 
-use crate::media::content::page_rendering as page_content;
+use crate::content::page_rendering as page_content;
 
-pub(crate) async fn read_epub_publication_bytes(
+pub async fn read_epub_publication_bytes(
     media: &BookMediaRecord,
 ) -> anyhow::Result<Option<Vec<u8>>> {
     if !book_media_is_epub(media) {
@@ -35,7 +35,7 @@ pub(crate) async fn read_epub_publication_bytes(
     page_content::read_media_file_bytes(&media.file_path).await
 }
 
-pub(crate) async fn read_epub_resource_bytes(
+pub async fn read_epub_resource_bytes(
     epub_path: &Path,
     resource_name: &str,
 ) -> anyhow::Result<Option<Vec<u8>>> {
@@ -80,7 +80,7 @@ async fn read_epub_resource_from_archive_path(
     })?
 }
 
-pub(crate) fn decode_epub_navigation_extension(
+pub fn decode_epub_navigation_extension(
     blob: &[u8],
 ) -> anyhow::Result<EpubNavigationExtension> {
     let extension = komga_epub::decode_epub_navigation_extension(blob)?;
@@ -188,7 +188,7 @@ fn extract_image_from_html_page<R: Read + Seek>(
         .cloned())
 }
 
-pub(crate) async fn load_epub_cover_bytes(
+pub async fn load_epub_cover_bytes(
     media: &BookMediaRecord,
 ) -> anyhow::Result<Option<EpubCoverImage>> {
     if !book_media_is_epub(media) {
@@ -316,7 +316,7 @@ pub(crate) async fn load_epub_cover_bytes(
     })?
 }
 
-pub(crate) async fn load_epub_package_document(
+pub async fn load_epub_package_document(
     media: &BookMediaRecord,
 ) -> anyhow::Result<Option<Vec<u8>>> {
     if !book_media_is_epub(media) {

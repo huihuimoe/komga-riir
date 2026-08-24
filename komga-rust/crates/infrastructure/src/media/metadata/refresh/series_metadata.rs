@@ -6,7 +6,7 @@ use komga_application::media_assets::{
 use komga_application::runtime_sse::RuntimeSseEventSink;
 use sqlx::{Row, SqlitePool};
 
-use crate::media::content::epub_resources::load_epub_package_document;
+use komga_infrastructure_media_core::content::epub_resources::load_epub_package_document;
 use crate::media::metadata::{load_comicinfo_bytes_for_media, parse_comicinfo_xml};
 use komga_infrastructure_base::resolve_rooted_path;
 

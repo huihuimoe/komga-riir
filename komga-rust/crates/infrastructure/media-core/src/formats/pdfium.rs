@@ -7,7 +7,7 @@ use pdfium_render::prelude::*;
 static PDFIUM: OnceLock<anyhow::Result<Pdfium>> = OnceLock::new();
 const DEFAULT_PDFIUM_LIBRARY_PATH: &str = env!("KOMGA_PDFIUM_LIB_PATH");
 
-pub(crate) fn load_pdfium() -> anyhow::Result<&'static Pdfium> {
+pub fn load_pdfium() -> anyhow::Result<&'static Pdfium> {
     match PDFIUM.get_or_init(init_pdfium) {
         Ok(pdfium) => Ok(pdfium),
         Err(error) => Err(anyhow::anyhow!(error.to_string())),

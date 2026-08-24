@@ -8,6 +8,7 @@ members = [
   "crates/infrastructure",
   "crates/infrastructure/base",
   "crates/infrastructure/search",
+  "crates/infrastructure/media-core",
   "crates/infrastructure/test-support",
   "crates/interfaces",
   "crates/config",
@@ -87,7 +88,7 @@ version.workspace = true
 edition.workspace = true
 
 [features]
-image-nasm = ["komga-infrastructure/image-nasm"]
+image-nasm = ["komga-infrastructure-media-core/image-nasm"]
 
 [dependencies]
 axum.workspace = true
@@ -103,6 +104,7 @@ komga-server = { path = "crates/server" }
 komga-domain = { path = "crates/domain" }
 komga-application = { path = "crates/application" }
 komga-infrastructure = { path = "crates/infrastructure" }
+komga-infrastructure-media-core = { path = "crates/infrastructure/media-core" }
 komga-interfaces = { path = "crates/interfaces" }
 mimalloc.workspace = true
 

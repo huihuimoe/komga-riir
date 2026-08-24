@@ -10,7 +10,7 @@ use std::io::Read;
 use std::path::Path;
 use zip::ZipArchive;
 
-use crate::media::formats::rar::{list_rar_entries, read_rar_entry_bytes};
+use komga_infrastructure_media_core::formats::rar::{list_rar_entries, read_rar_entry_bytes};
 
 const COMICINFO_FILE_NAME: &str = "ComicInfo.xml";
 

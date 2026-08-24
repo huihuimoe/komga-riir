@@ -11,17 +11,17 @@ use komga_infrastructure_base::sqlite::codecs::{clamp_kotlin_int_u32, parse_sqli
 use komga_infrastructure_base::resolve_library_item_path;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub(crate) struct PersistedMediaFileRow {
-    pub(crate) file_name: String,
-    pub(crate) media_type: String,
-    pub(crate) sub_type: Option<String>,
+pub struct PersistedMediaFileRow {
+    pub file_name: String,
+    pub media_type: String,
+    pub sub_type: Option<String>,
 }
 
 fn persisted_page_number_to_public(number: i64) -> u64 {
     number as u64 + 1
 }
 
-pub(crate) fn public_page_number_to_persisted(page_number: u64) -> Option<i64> {
+pub fn public_page_number_to_persisted(page_number: u64) -> Option<i64> {
     page_number
         .checked_sub(1)
         .and_then(|value| i64::try_from(value).ok())
@@ -38,7 +38,7 @@ fn map_persisted_book_page_row(row: SqliteRow) -> BookPageRecord {
     }
 }
 
-pub(crate) async fn load_persisted_book_media(
+pub async fn load_persisted_book_media(
     pool: &SqlitePool,
     book_id: &str,
 ) -> anyhow::Result<Option<BookMediaRecord>> {
@@ -69,7 +69,7 @@ pub(crate) async fn load_persisted_book_media(
     }))
 }
 
-pub(crate) async fn load_persisted_book_media_files(
+pub async fn load_persisted_book_media_files(
     pool: &SqlitePool,
     book_id: &str,
 ) -> anyhow::Result<Vec<String>> {
@@ -85,7 +85,7 @@ pub(crate) async fn load_persisted_book_media_files(
         })
 }
 
-pub(crate) async fn load_persisted_media_file_records(
+pub async fn load_persisted_media_file_records(
     pool: &SqlitePool,
     book_id: &str,
 ) -> anyhow::Result<Vec<PersistedMediaFileRow>> {
@@ -112,7 +112,7 @@ pub(crate) async fn load_persisted_media_file_records(
     })
 }
 
-pub(crate) async fn book_media_is_ready_status(
+pub async fn book_media_is_ready_status(
     pool: &SqlitePool,
     book_id: &str,
 ) -> anyhow::Result<bool> {
@@ -128,7 +128,7 @@ pub(crate) async fn book_media_is_ready_status(
         == Some(MediaStatus::Ready))
 }
 
-pub(crate) async fn load_persisted_book_pages(
+pub async fn load_persisted_book_pages(
     pool: &SqlitePool,
     book_id: &str,
 ) -> anyhow::Result<Vec<BookPageRecord>> {
@@ -144,7 +144,7 @@ pub(crate) async fn load_persisted_book_pages(
     Ok(rows.into_iter().map(map_persisted_book_page_row).collect())
 }
 
-pub(crate) async fn load_persisted_book_page_row(
+pub async fn load_persisted_book_page_row(
     pool: &SqlitePool,
     book_id: &str,
     page_number: u64,
@@ -166,7 +166,7 @@ pub(crate) async fn load_persisted_book_page_row(
     Ok(row.map(map_persisted_book_page_row))
 }
 
-pub(crate) async fn persisted_book_exists(
+pub async fn persisted_book_exists(
     pool: &SqlitePool,
     book_id: &str,
 ) -> anyhow::Result<bool> {
@@ -180,7 +180,7 @@ pub(crate) async fn persisted_book_exists(
     )
 }
 
-pub(crate) async fn persisted_series_exists(
+pub async fn persisted_series_exists(
     pool: &SqlitePool,
     series_id: &str,
 ) -> anyhow::Result<bool> {
@@ -194,7 +194,7 @@ pub(crate) async fn persisted_series_exists(
     )
 }
 
-pub(crate) async fn load_persisted_series_oneshot(
+pub async fn load_persisted_series_oneshot(
     pool: &SqlitePool,
     series_id: &str,
 ) -> anyhow::Result<Option<bool>> {
@@ -207,7 +207,7 @@ pub(crate) async fn load_persisted_series_oneshot(
     Ok(row.map(|row| row.get::<i64, _>("ONESHOT") != 0))
 }
 
-pub(crate) async fn load_series_book_ids(
+pub async fn load_series_book_ids(
     pool: &SqlitePool,
     series_id: &str,
 ) -> anyhow::Result<Vec<String>> {
@@ -228,7 +228,7 @@ pub(crate) async fn load_series_book_ids(
         .collect())
 }
 
-pub(crate) async fn load_series_book_number_sorts(
+pub async fn load_series_book_number_sorts(
     pool: &SqlitePool,
     series_id: &str,
 ) -> anyhow::Result<Vec<SeriesBookNumberSort>> {
@@ -252,7 +252,7 @@ pub(crate) async fn load_series_book_number_sorts(
         .collect())
 }
 
-pub(crate) async fn load_book_restrictions(
+pub async fn load_book_restrictions(
     pool: &SqlitePool,
     book_id: &str,
 ) -> anyhow::Result<Option<BookAccessRestrictions>> {
@@ -282,7 +282,7 @@ pub(crate) async fn load_book_restrictions(
     }))
 }
 
-pub(crate) async fn load_persisted_manifest_book(
+pub async fn load_persisted_manifest_book(
     pool: &SqlitePool,
     book_id: &str,
 ) -> anyhow::Result<Option<ManifestBookRecord>> {
@@ -311,7 +311,7 @@ pub(crate) async fn load_persisted_manifest_book(
     }))
 }
 
-pub(crate) async fn load_persisted_epub_extension_blob(
+pub async fn load_persisted_epub_extension_blob(
     pool: &SqlitePool,
     book_id: &str,
 ) -> anyhow::Result<Option<EpubExtensionBlob>> {
@@ -338,7 +338,7 @@ pub(crate) async fn load_persisted_epub_extension_blob(
     }))
 }
 
-pub(crate) async fn load_series_archive_entries(
+pub async fn load_series_archive_entries(
     pool: &SqlitePool,
     series_id: &str,
 ) -> anyhow::Result<Option<SeriesArchiveEntries>> {

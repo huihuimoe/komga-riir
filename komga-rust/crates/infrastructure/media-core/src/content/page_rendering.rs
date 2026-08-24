@@ -14,15 +14,15 @@ use lopdf::Document as PdfDocument;
 use pdfium_render::prelude::*;
 use zip::ZipArchive;
 
-use crate::media::formats::pdfium::load_pdfium;
-use crate::media::formats::rar::{list_rar_entries, read_rar_entry_bytes};
+use crate::formats::pdfium::load_pdfium;
+use crate::formats::rar::{list_rar_entries, read_rar_entry_bytes};
 
 // 300 PPI for an A4-sized page.
 const PDF_MAX_RENDER_EDGE: u32 = 3_508;
 const AVIF_ENCODING_SPEED: u8 = 7;
 const AVIF_ENCODING_QUALITY: u8 = 80;
 
-pub(crate) async fn resolve_book_page_bytes(
+pub async fn resolve_book_page_bytes(
     media: &BookMediaRecord,
     page: &BookPageRecord,
     page_number: u64,
@@ -71,7 +71,7 @@ pub(crate) async fn resolve_book_page_bytes(
     Ok(None)
 }
 
-pub(crate) async fn render_book_page_thumbnail(
+pub async fn render_book_page_thumbnail(
     media: &BookMediaRecord,
     page: &BookPageRecord,
     page_number: u64,
@@ -88,7 +88,7 @@ pub(crate) async fn render_book_page_thumbnail(
     render_image_thumbnail(&bytes, max_edge, output_format).map(Some)
 }
 
-pub(crate) async fn load_archive_page_row(
+pub async fn load_archive_page_row(
     media: &BookMediaRecord,
     page_number: u64,
 ) -> anyhow::Result<Option<BookPageRecord>> {
@@ -106,7 +106,7 @@ pub(crate) async fn load_archive_page_row(
         })?))
 }
 
-pub(crate) async fn load_archive_page_rows(
+pub async fn load_archive_page_rows(
     media: &BookMediaRecord,
 ) -> anyhow::Result<Option<Vec<BookPageRecord>>> {
     if book_media_is_zip_archive(media) {
@@ -118,7 +118,7 @@ pub(crate) async fn load_archive_page_rows(
     Ok(None)
 }
 
-pub(crate) fn load_pdf_page_row(
+pub fn load_pdf_page_row(
     media: &BookMediaRecord,
     page_number: u64,
 ) -> anyhow::Result<Option<BookPageRecord>> {
@@ -133,7 +133,7 @@ pub(crate) fn load_pdf_page_row(
     ))
 }
 
-pub(crate) fn load_generated_pdf_page_rows(
+pub fn load_generated_pdf_page_rows(
     media: &BookMediaRecord,
 ) -> anyhow::Result<Vec<BookPageRecord>> {
     if !book_media_is_pdf(media) {
@@ -166,7 +166,7 @@ pub(crate) fn load_generated_pdf_page_rows(
         .collect())
 }
 
-pub(crate) async fn render_pdf_page(
+pub async fn render_pdf_page(
     media: &BookMediaRecord,
     page_number: u64,
     output_format: ImageOutputFormat,
@@ -211,7 +211,7 @@ fn render_pdf_page_blocking(
     )
 }
 
-pub(crate) fn read_pdf_page_as_single_page_pdf(
+pub fn read_pdf_page_as_single_page_pdf(
     media: &BookMediaRecord,
     page_number: u64,
 ) -> anyhow::Result<Option<Vec<u8>>> {
@@ -655,7 +655,7 @@ fn read_rar_archive_page_bytes(
     read_rar_entry_bytes(&media.file_path, &page_file_name)
 }
 
-pub(crate) async fn read_media_file_bytes(path: &Path) -> anyhow::Result<Option<Vec<u8>>> {
+pub async fn read_media_file_bytes(path: &Path) -> anyhow::Result<Option<Vec<u8>>> {
     match tokio::fs::read(path).await {
         Ok(bytes) => Ok(Some(bytes)),
         Err(error) if error.kind() == ErrorKind::NotFound => Ok(None),
@@ -666,7 +666,7 @@ pub(crate) async fn read_media_file_bytes(path: &Path) -> anyhow::Result<Option<
     }
 }
 
-pub(crate) async fn read_media_file_size(path: &Path) -> anyhow::Result<Option<i64>> {
+pub async fn read_media_file_size(path: &Path) -> anyhow::Result<Option<i64>> {
     match tokio::fs::metadata(path).await {
         Ok(value) if value.is_file() => i64::try_from(value.len()).map(Some).map_err(|error| {
             anyhow::anyhow!(error)
@@ -684,7 +684,7 @@ pub(crate) async fn read_media_file_size(path: &Path) -> anyhow::Result<Option<i
     }
 }
 
-pub(crate) async fn read_media_image_dimensions(
+pub async fn read_media_image_dimensions(
     path: &Path,
 ) -> anyhow::Result<Option<MediaImageDimensions>> {
     let Some(bytes) = read_media_file_bytes(path).await? else {
@@ -702,7 +702,7 @@ pub(crate) async fn read_media_image_dimensions(
     }))
 }
 
-pub(crate) fn convert_image_bytes(
+pub fn convert_image_bytes(
     bytes: &[u8],
     source_content_type: &str,
     target_content_type: &str,

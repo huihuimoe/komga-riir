@@ -6,7 +6,7 @@ use komga_domain::discovery::MediaStatus;
 use komga_epub::{MOBI_MEDIA_TYPE, analyze_epub_file, normalize_mobi};
 use lopdf::{Document as PdfDocument, Object};
 
-use crate::media::formats::rar::{detect_rar_media_type, read_rar_entries_bytes};
+use komga_infrastructure_media_core::formats::rar::{detect_rar_media_type, read_rar_entries_bytes};
 
 mod persistence;
 mod task;

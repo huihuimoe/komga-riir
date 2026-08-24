@@ -7,8 +7,8 @@ use pdfium_render::prelude::*;
 use rxing::{BarcodeFormat, DecodeHints, Exceptions, helpers as rxing_helpers};
 use sqlx::SqlitePool;
 
-use crate::media::content::page_rendering::{load_archive_page_row, resolve_book_page_bytes};
-use crate::media::formats::pdfium::load_pdfium;
+use komga_infrastructure_media_core::content::page_rendering::{load_archive_page_row, resolve_book_page_bytes};
+use komga_infrastructure_media_core::formats::pdfium::load_pdfium;
 
 use super::BookMetadataImportPatch;
 use super::support::normalize_isbn13;

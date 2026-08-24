@@ -546,7 +546,7 @@ mod tests {
         let source_path = fixture.library_root.join("books/book-1.cbr");
         std::fs::copy(archive_fixture_path("rar4.rar"), &source_path)
             .expect("convert-book success source fixture should be copied");
-        let preserved_page = crate::media::formats::rar::list_rar_entries(
+        let preserved_page = komga_infrastructure_media_core::formats::rar::list_rar_entries(
             archive_fixture_path("rar4.rar").as_path(),
         )
         .expect("convert-book success rar fixture should be listable")

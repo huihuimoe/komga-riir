@@ -4,7 +4,7 @@ use std::path::PathBuf;
 
 use komga_application::task_processing::TaskProcessingError;
 
-use crate::media::formats::rar::read_rar_entries_bytes;
+use komga_infrastructure_media_core::formats::rar::read_rar_entries_bytes;
 
 pub(crate) fn normalize_library_relative_url(
     library_root: &PathBuf,

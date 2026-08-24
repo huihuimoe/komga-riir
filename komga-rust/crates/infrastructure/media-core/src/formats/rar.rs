@@ -7,7 +7,7 @@ use unrar::Archive;
 const RAR4_SIGNATURE: &[u8] = b"Rar!\x1A\x07\x00";
 const RAR5_SIGNATURE: &[u8] = b"Rar!\x1A\x07\x01\x00";
 
-pub(crate) fn detect_rar_media_type(path: &Path) -> &'static str {
+pub fn detect_rar_media_type(path: &Path) -> &'static str {
     let mut header = [0; 8];
     let Ok(bytes_read) = fs::File::open(path).and_then(|mut file| file.read(&mut header)) else {
         return "application/x-rar-compressed";
@@ -24,19 +24,19 @@ pub(crate) fn detect_rar_media_type(path: &Path) -> &'static str {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub(crate) struct RarEntryRecord {
+pub struct RarEntryRecord {
     pub file_name: String,
     pub unpacked_size: u64,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub(crate) struct RarEntryBytesRecord {
+pub struct RarEntryBytesRecord {
     pub file_name: String,
     pub unpacked_size: u64,
     pub bytes: Vec<u8>,
 }
 
-pub(crate) fn list_rar_entries(path: &Path) -> anyhow::Result<Vec<RarEntryRecord>> {
+pub fn list_rar_entries(path: &Path) -> anyhow::Result<Vec<RarEntryRecord>> {
     let mut archive = Archive::new(path).open_for_listing().map_err(|error| {
         anyhow::anyhow!(error).context(format!("open rar for listing '{}': ", path.display()))
     })?;
@@ -59,7 +59,7 @@ pub(crate) fn list_rar_entries(path: &Path) -> anyhow::Result<Vec<RarEntryRecord
     Ok(entries)
 }
 
-pub(crate) fn read_rar_entries_bytes(path: &Path) -> anyhow::Result<Vec<RarEntryBytesRecord>> {
+pub fn read_rar_entries_bytes(path: &Path) -> anyhow::Result<Vec<RarEntryBytesRecord>> {
     let mut archive = Archive::new(path).open_for_processing().map_err(|error| {
         anyhow::anyhow!(error).context(format!("open rar for processing '{}': ", path.display()))
     })?;
@@ -103,7 +103,7 @@ pub(crate) fn read_rar_entries_bytes(path: &Path) -> anyhow::Result<Vec<RarEntry
     Ok(entries)
 }
 
-pub(crate) fn read_rar_entry_bytes(
+pub fn read_rar_entry_bytes(
     path: &Path,
     entry_name: &str,
 ) -> anyhow::Result<Option<Vec<u8>>> {

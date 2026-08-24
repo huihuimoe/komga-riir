@@ -1,7 +1,7 @@
 use std::path::Path;
 
-use crate::media::content::epub_resources as epub;
-use crate::media::content::page_rendering as page_content;
+use crate::content::epub_resources as epub;
+use crate::content::page_rendering as page_content;
 use komga_epub::{normalize_epub_resource_href, parse_epub_fixed_layout};
 
 use komga_application::media_assets::{
