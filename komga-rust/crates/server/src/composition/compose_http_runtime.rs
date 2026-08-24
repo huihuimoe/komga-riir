@@ -21,24 +21,25 @@ use komga_config::profile::RuntimeProfile as ConfigRuntimeProfile;
 use komga_config::writer_ownership::WriterKind;
 use komga_infrastructure::operational::ServerSettingsStore;
 use komga_infrastructure::{
-    discovery::{
-        DiscoveryDetailAccess, DiscoveryQuerySupportAccess, LibraryCatalogAccess,
-        SqliteDiscoveryBrowseService,
-    },
     identity::{ClaimAccess, IdentityAccess},
-    media::{
-        ContentResolver, FilesystemBookImport, MediaReader, ProgressWriter, SqliteBookMetadataPort,
-        SseBookEventEmitter, ThumbnailWriter, TransientBookAccess, ZipArchiveBuilder,
-    },
     opds::{OpdsCatalogAccess, OpdsPersistedAccess},
     operational::{
         ActuatorSnapshotAccess, AnnouncementAccess, ClientSettingsAccess, FilesystemBrowseAccess,
         FontAccess, HistoryAccess, OperationalMetricsAccess, PageHashAccess, RemoteFeedAccess,
         SyncpointAccess, load_remember_me_runtime_settings,
     },
-    search::SearchSyncAdapter,
     tasks::TaskEnqueueAdapter,
 };
+use komga_infrastructure_discovery::{
+    DiscoveryDetailAccess, DiscoveryQuerySupportAccess, LibraryCatalogAccess,
+    SqliteDiscoveryBrowseService,
+};
+use komga_infrastructure_search::SearchSyncAdapter;
+use komga_infrastructure_media_access::{
+    FilesystemBookImport, MediaReader, ProgressWriter, SseBookEventEmitter, TransientBookAccess,
+};
+use komga_infrastructure_media_core::{ContentResolver, ZipArchiveBuilder};
+use komga_infrastructure_media_metadata::{SqliteBookMetadataPort, ThumbnailWriter};
 use komga_interfaces::state::{
     AuthDatabaseState, DiscoveryAuthState, HttpAppState, HttpServices, IdentityState,
     OAuth2ClientConfig, OperationalBuildMetadata, OperationalState, ReadProgressState,

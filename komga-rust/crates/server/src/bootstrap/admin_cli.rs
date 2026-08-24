@@ -2,6 +2,7 @@ use bcrypt::{DEFAULT_COST, hash};
 use komga_infrastructure::identity::{
     list_persisted_user_emails, load_persisted_user_by_email, update_persisted_user_passwords,
 };
+use komga_infrastructure_base::connect_write_pool;
 use sqlx::SqlitePool;
 use std::fmt;
 use std::path::Path;
@@ -192,7 +193,7 @@ pub(super) async fn run_admin_cli_commands(
     database_file: &Path,
     commands: &AdminCliCommands,
 ) -> Result<(), AdminCliActionError> {
-    let pool = komga_infrastructure::persistence::connect_write_pool(database_file)
+    let pool = connect_write_pool(database_file)
         .await
         .map_err(|error| AdminCliActionError::new(format!("failed to open database: {error}")))?;
 

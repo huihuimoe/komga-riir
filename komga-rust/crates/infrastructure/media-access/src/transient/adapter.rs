@@ -8,7 +8,7 @@ use komga_application::operational::{
     TransientBookScanEntry, TransientBookSeriesInference,
 };
 
-use crate::media::transient::{self as transient_books, TransientBookPage};
+use crate::transient::{self as transient_books, TransientBookPage};
 use komga_infrastructure_base::DatabaseHandle;
 
 #[derive(Clone)]

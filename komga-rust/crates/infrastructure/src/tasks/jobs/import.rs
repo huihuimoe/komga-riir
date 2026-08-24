@@ -1,4 +1,4 @@
-use crate::media::FilesystemBookImport;
+use komga_infrastructure_media_access::FilesystemBookImport;
 use crate::tasks::JobRuntime;
 use komga_application::media_assets::BookImportService;
 use komga_application::task_processing::{

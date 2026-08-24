@@ -1,8 +1,8 @@
 mod events;
 mod import;
-pub(crate) mod progress;
+mod progress;
 mod reader;
-pub(crate) mod transient;
+mod transient;
 
 pub use events::SseBookEventEmitter;
 pub use import::FilesystemBookImport;

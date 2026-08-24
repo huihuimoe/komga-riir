@@ -2769,6 +2769,7 @@ dependencies = [
  "komga-epub",
  "komga-infrastructure-base",
  "komga-infrastructure-discovery",
+ "komga-infrastructure-media-access",
  "komga-infrastructure-media-core",
  "komga-infrastructure-media-library",
  "komga-infrastructure-media-metadata",
@@ -2830,6 +2831,31 @@ dependencies = [
  "time",
  "tokio",
  "unicode-normalization",
+]
+
+[[package]]
+name = "komga-infrastructure-media-access"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "image",
+ "komga-application",
+ "komga-domain",
+ "komga-epub",
+ "komga-infrastructure-base",
+ "komga-infrastructure-media-core",
+ "komga-infrastructure-media-library",
+ "komga-infrastructure-media-metadata",
+ "komga-infrastructure-test-support",
+ "lopdf",
+ "pdfium-render",
+ "quick-xml",
+ "serde_json",
+ "sqlx",
+ "tokio",
+ "unrar",
+ "zip 9.0.0-pre3",
 ]
 
 [[package]]
@@ -3008,7 +3034,10 @@ dependencies = [
  "komga-domain",
  "komga-infrastructure",
  "komga-infrastructure-base",
+ "komga-infrastructure-media-access",
  "komga-infrastructure-media-core",
+ "komga-infrastructure-media-library",
+ "komga-infrastructure-media-metadata",
  "komga-infrastructure-search",
  "komga-interfaces",
  "komga-server",
@@ -3050,6 +3079,12 @@ dependencies = [
  "komga-config",
  "komga-domain",
  "komga-infrastructure",
+ "komga-infrastructure-base",
+ "komga-infrastructure-discovery",
+ "komga-infrastructure-media-access",
+ "komga-infrastructure-media-core",
+ "komga-infrastructure-media-metadata",
+ "komga-infrastructure-search",
  "komga-interfaces",
  "komga-kepubify",
  "lopdf",

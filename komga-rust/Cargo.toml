@@ -12,6 +12,7 @@ members = [
   "crates/infrastructure/discovery",
   "crates/infrastructure/media-library",
   "crates/infrastructure/media-metadata",
+  "crates/infrastructure/media-access",
   "crates/infrastructure/test-support",
   "crates/interfaces",
   "crates/config",
@@ -138,3 +139,6 @@ chrono.workspace = true
 komga-interfaces = { path = "crates/interfaces", features = ["allow-missing-webui-dist"] }
 komga-infrastructure-base = { path = "crates/infrastructure/base" }
 komga-infrastructure-search = { path = "crates/infrastructure/search" }
+komga-infrastructure-media-access = { path = "crates/infrastructure/media-access" }
+komga-infrastructure-media-library = { path = "crates/infrastructure/media-library" }
+komga-infrastructure-media-metadata = { path = "crates/infrastructure/media-metadata" }
