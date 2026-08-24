@@ -9,10 +9,8 @@ use komga_config::cli_args::RuntimeCli;
 use komga_config::env_config::{RuntimeConfig, RuntimeDatabaseSettings};
 use komga_config::profile::{RuntimeMode, RuntimeProfile};
 use komga_config::writer_ownership::{WriterDecision, WriterKind};
-use komga_infrastructure::{
-    operational::ServerSettingsStore,
-};
 use komga_infrastructure_base::{bootstrap_pool, bootstrap_tasks_pool};
+use komga_infrastructure_operational::ServerSettingsStore;
 use std::sync::Arc;
 
 mod admin_cli;

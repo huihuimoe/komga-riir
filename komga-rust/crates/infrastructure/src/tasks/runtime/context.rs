@@ -7,7 +7,7 @@ use komga_application::runtime_sse::{RuntimeSseEventSink, RuntimeSseEventStore};
 use komga_application::task_processing::{CleanupEmptySetsPolicy, ThumbnailRegenerationPolicy};
 use sqlx::SqlitePool;
 
-use crate::operational::ServerSettingsStore;
+use komga_infrastructure_operational::ServerSettingsStore;
 use komga_infrastructure_base::{DatabaseHandle, SqlitePersistenceContext};
 use komga_infrastructure_search::engine::SearchIndexEngine;
 use komga_infrastructure_media_library::MediaLibraryJobContext;
