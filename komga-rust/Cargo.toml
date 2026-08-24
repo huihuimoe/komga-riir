@@ -15,6 +15,7 @@ members = [
   "crates/infrastructure/media-access",
   "crates/infrastructure/identity",
   "crates/infrastructure/operational",
+  "crates/infrastructure/opds",
   "crates/infrastructure/test-support",
   "crates/interfaces",
   "crates/config",
@@ -142,6 +143,7 @@ komga-interfaces = { path = "crates/interfaces", features = ["allow-missing-webu
 komga-infrastructure-base = { path = "crates/infrastructure/base" }
 komga-infrastructure-identity = { path = "crates/infrastructure/identity" }
 komga-infrastructure-operational = { path = "crates/infrastructure/operational" }
+komga-infrastructure-opds = { path = "crates/infrastructure/opds" }
 komga-infrastructure-search = { path = "crates/infrastructure/search" }
 komga-infrastructure-media-access = { path = "crates/infrastructure/media-access" }
 komga-infrastructure-media-library = { path = "crates/infrastructure/media-library" }

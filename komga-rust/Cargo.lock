@@ -2774,6 +2774,7 @@ dependencies = [
  "komga-infrastructure-media-core",
  "komga-infrastructure-media-library",
  "komga-infrastructure-media-metadata",
+ "komga-infrastructure-opds",
  "komga-infrastructure-operational",
  "komga-infrastructure-search",
  "komga-infrastructure-test-support",
@@ -2951,6 +2952,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "komga-infrastructure-opds"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "icu",
+ "komga-application",
+ "komga-domain",
+ "komga-infrastructure-base",
+ "komga-infrastructure-search",
+ "sqlx",
+ "tokio",
+ "unicode-normalization",
+]
+
+[[package]]
 name = "komga-infrastructure-operational"
 version = "0.1.0"
 dependencies = [
@@ -3082,6 +3099,7 @@ dependencies = [
  "komga-infrastructure-media-core",
  "komga-infrastructure-media-library",
  "komga-infrastructure-media-metadata",
+ "komga-infrastructure-opds",
  "komga-infrastructure-operational",
  "komga-infrastructure-search",
  "komga-interfaces",
@@ -3130,6 +3148,7 @@ dependencies = [
  "komga-infrastructure-media-access",
  "komga-infrastructure-media-core",
  "komga-infrastructure-media-metadata",
+ "komga-infrastructure-opds",
  "komga-infrastructure-operational",
  "komga-infrastructure-search",
  "komga-interfaces",

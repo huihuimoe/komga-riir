@@ -36,6 +36,7 @@ komga-application = { path = "../application" }
 komga-infrastructure = { path = "../infrastructure" }
 komga-infrastructure-identity = { path = "../infrastructure/identity" }
 komga-infrastructure-operational = { path = "../infrastructure/operational" }
+komga-infrastructure-opds = { path = "../infrastructure/opds" }
 komga-infrastructure-media-access = { path = "../infrastructure/media-access" }
 komga-infrastructure-media-metadata = { path = "../infrastructure/media-metadata" }
 komga-infrastructure-base = { path = "../infrastructure/base" }
