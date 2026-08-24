@@ -68,7 +68,7 @@ mod tests {
 
     fn archive_fixture_path(file_name: &str) -> std::path::PathBuf {
         std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("../../../komga/src/test/resources/archives")
+            .join("../../../../komga/src/test/resources/archives")
             .join(file_name)
     }
 

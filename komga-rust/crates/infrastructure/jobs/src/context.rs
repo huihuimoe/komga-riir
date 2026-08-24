@@ -25,6 +25,7 @@ pub struct TaskRuntimeContext {
     task_write_pool: SqlitePool,
     task_read_pool: SqlitePool,
     runtime_events: Arc<dyn RuntimeSseEventSink>,
+    media_library: MediaLibraryJobContext,
 }
 
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
@@ -70,6 +71,10 @@ impl TaskRuntimeContext {
         task_write_pool: SqlitePool,
         task_read_pool: SqlitePool,
     ) -> Self {
+        let runtime_events: Arc<dyn RuntimeSseEventSink> =
+            Arc::new(RuntimeSseEventStore::default());
+        let media_library =
+            MediaLibraryJobContext::new(main_db.clone(), true, true, runtime_events.clone());
         Self {
             main_db,
             tasks_db_file,
@@ -82,7 +87,8 @@ impl TaskRuntimeContext {
             task_pool_size,
             task_write_pool,
             task_read_pool,
-            runtime_events: Arc::new(RuntimeSseEventStore::default()),
+            runtime_events,
+            media_library,
         }
     }
 
@@ -99,6 +105,10 @@ impl TaskRuntimeContext {
         if let Some(value) = overrides.owns_search_index {
             self.owns_search_index = value;
         }
+        self.media_library = self
+            .media_library
+            .clone()
+            .with_ownership(self.owns_main_database, self.owns_filesystem_scan_output);
         self
     }
 
@@ -108,6 +118,10 @@ impl TaskRuntimeContext {
     }
 
     pub fn with_runtime_events(mut self, runtime_events: Arc<dyn RuntimeSseEventSink>) -> Self {
+        self.media_library = self
+            .media_library
+            .clone()
+            .with_runtime_events(runtime_events.clone());
         self.runtime_events = runtime_events;
         self
     }
@@ -137,12 +151,7 @@ impl WorkerRuntime<'_> {
 
 impl JobRuntime<'_> {
     pub(crate) fn media_library(&self) -> MediaLibraryJobContext {
-        MediaLibraryJobContext::new(
-            self.runtime.main_db.clone(),
-            self.runtime.owns_main_database,
-            self.runtime.owns_filesystem_scan_output,
-            self.runtime.runtime_events.clone(),
-        )
+        self.runtime.media_library.clone()
     }
 
     pub fn database(&self) -> DatabaseRuntime<'_> {

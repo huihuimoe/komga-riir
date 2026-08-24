@@ -168,7 +168,7 @@ mod tests {
 
     fn archive_fixture_path(file_name: &str) -> std::path::PathBuf {
         std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("../../../komga/src/test/resources/archives")
+            .join("../../../../komga/src/test/resources/archives")
             .join(file_name)
     }
 
@@ -873,8 +873,9 @@ mod tests {
             (false, true),
         );
 
-        let reflowable_path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("../../../komga/src/test/resources/epub/The Incomplete Theft - Ralph Burke.epub");
+        let reflowable_path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join(
+            "../../../../komga/src/test/resources/epub/The Incomplete Theft - Ralph Burke.epub",
+        );
         std::fs::copy(reflowable_path, &book_path)
             .expect("reflowable EPUB fixture should replace KEPUB fixture");
         super::execute_analyze_book(&runtime.job(), "book-1", 90)
@@ -921,8 +922,9 @@ mod tests {
             Some("ERR_1033 [missing.css]".to_string()),
         );
 
-        let reflowable_path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("../../../komga/src/test/resources/epub/The Incomplete Theft - Ralph Burke.epub");
+        let reflowable_path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join(
+            "../../../../komga/src/test/resources/epub/The Incomplete Theft - Ralph Burke.epub",
+        );
         std::fs::copy(reflowable_path, &book_path)
             .expect("clean reflowable EPUB fixture should replace the partial fixture");
         super::execute_analyze_book(&runtime.job(), "book-1", 90)

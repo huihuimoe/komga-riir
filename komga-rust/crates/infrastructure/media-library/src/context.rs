@@ -49,6 +49,21 @@ impl MediaLibraryJobContext {
         MediaLibraryDatabaseContext { context: self }
     }
 
+    pub fn with_ownership(
+        mut self,
+        owns_main_database: bool,
+        owns_filesystem_scan_output: bool,
+    ) -> Self {
+        self.owns_main_database = owns_main_database;
+        self.owns_filesystem_scan_output = owns_filesystem_scan_output;
+        self
+    }
+
+    pub fn with_runtime_events(mut self, runtime_events: Arc<dyn RuntimeSseEventSink>) -> Self {
+        self.runtime_events = runtime_events;
+        self
+    }
+
     pub fn filesystem(&self) -> MediaLibraryFilesystemContext<'_> {
         MediaLibraryFilesystemContext { context: self }
     }
