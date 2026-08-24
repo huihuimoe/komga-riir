@@ -56,6 +56,8 @@ pub(in crate::tasks) async fn execute_find_book_thumbnails_to_regenerate(
         let max_edge = i64::from(
             runtime
                 .thumbnail_regeneration_policy()
+                .await
+                .map_err(TaskProcessingError::runtime)?
                 .generated_thumbnail_max_edge,
         );
         load_books_with_undersized_generated_thumbnails(runtime.database().read_pool(), max_edge)
@@ -90,7 +92,6 @@ mod tests {
     use image::{ImageBuffer, Rgba};
     use komga_application::task_processing::{
         BookPayload, FindBookThumbnailsToRegeneratePayload, TaskKind, TaskRequest,
-        ThumbnailRegenerationPolicy,
     };
     use komga_domain::media_assets::ThumbnailType;
     use sqlx::{Row, SqlitePool};
@@ -667,6 +668,14 @@ mod tests {
             .await
             .expect("generated thumbnail row should be inserted");
         }
+        sqlx::query(
+            "INSERT INTO SERVER_SETTINGS(KEY, VALUE) VALUES(?, ?) ON CONFLICT(KEY) DO UPDATE SET VALUE = excluded.VALUE",
+        )
+        .bind("THUMBNAIL_SIZE")
+        .bind("MEDIUM")
+        .execute(&pool)
+        .await
+        .expect("thumbnail size setting should be seeded");
         pool.close().await;
 
         let task_write_pool = connect_task_write_pool(&database_file)
@@ -685,10 +694,7 @@ mod tests {
             1,
             task_write_pool,
             task_read_pool,
-        )
-        .with_thumbnail_regeneration_policy(ThumbnailRegenerationPolicy {
-            generated_thumbnail_max_edge: 600,
-        });
+        );
         let scheduler =
             TaskQueueScheduler::for_runtime(runtime.clone(), "thumbnail-finder-bigger-policy-test")
                 .await;
