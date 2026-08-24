@@ -883,7 +883,7 @@ async fn schedule_startup_library_scan_batch(
     let job = runtime.job();
     let media_runtime = job.media_library();
     let cleanup_policy = job.cleanup_empty_sets_policy().await?;
-    SqliteFilesystemLibraryScanPipeline::for_runtime(&media_runtime, cleanup_policy)
+    SqliteFilesystemLibraryScanPipeline::for_runtime(media_runtime, cleanup_policy)
         .await?
         .schedule(
             ScanSchedulingTrigger::Startup,
@@ -900,7 +900,7 @@ async fn schedule_periodic_library_scan_batch(
     let job = runtime.job();
     let media_runtime = job.media_library();
     let cleanup_policy = job.cleanup_empty_sets_policy().await?;
-    SqliteFilesystemLibraryScanPipeline::for_runtime(&media_runtime, cleanup_policy)
+    SqliteFilesystemLibraryScanPipeline::for_runtime(media_runtime, cleanup_policy)
         .await?
         .schedule(
             ScanSchedulingTrigger::Tick,
@@ -922,7 +922,7 @@ async fn sync_periodic_library_scan_state(
     let job = runtime.job();
     let media_runtime = job.media_library();
     let cleanup_policy = job.cleanup_empty_sets_policy().await?;
-    SqliteFilesystemLibraryScanPipeline::for_runtime(&media_runtime, cleanup_policy)
+    SqliteFilesystemLibraryScanPipeline::for_runtime(media_runtime, cleanup_policy)
         .await?
         .sync_periodic_library_scan_state(last_run_by_library)
         .await

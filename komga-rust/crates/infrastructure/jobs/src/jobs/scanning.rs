@@ -19,15 +19,10 @@ pub(crate) async fn execute_scan_library(
         .cleanup_empty_sets_policy()
         .await
         .map_err(TaskProcessingError::runtime)?;
-    let media_runtime = komga_infrastructure_media_library::MediaLibraryJobContext::new(
-        runtime.database().main_db().clone(),
-        runtime.database().owns_main_database(),
-        runtime.filesystem().owns_filesystem_scan_output(),
-        runtime.runtime_events_arc(),
-    );
-    let pipeline = SqliteFilesystemLibraryScanPipeline::for_runtime(&media_runtime, cleanup_policy)
-        .await
-        .map_err(TaskProcessingError::runtime)?;
+    let pipeline =
+        SqliteFilesystemLibraryScanPipeline::for_runtime(runtime.media_library(), cleanup_policy)
+            .await
+            .map_err(TaskProcessingError::runtime)?;
     let result = pipeline.execute_scan(request).await?;
     Ok(TaskExecutionOutcome::with_follow_up_tasks(
         result.follow_up_tasks,
@@ -43,7 +38,7 @@ pub(crate) async fn execute_hash_book_pages(
     }
 
     let media_runtime = runtime.media_library();
-    hash_book_pages(&media_runtime, book_id)
+    hash_book_pages(media_runtime, book_id)
         .await
         .map(|()| TaskExecutionOutcome::completed())
 }
@@ -54,7 +49,7 @@ pub(crate) async fn execute_hash_book(
     koreader: bool,
 ) -> Result<TaskExecutionOutcome, TaskProcessingError> {
     let media_runtime = runtime.media_library();
-    hash_book(&media_runtime, book_id, koreader).await?;
+    hash_book(media_runtime, book_id, koreader).await?;
 
     Ok(TaskExecutionOutcome::completed())
 }
@@ -69,7 +64,7 @@ pub(crate) async fn execute_find_books_with_missing_page_hash(
     }
 
     let media_runtime = runtime.media_library();
-    let hashing_flags = load_library_hashing_flags(&media_runtime, library_id).await?;
+    let hashing_flags = load_library_hashing_flags(media_runtime, library_id).await?;
     if !hashing_flags.hash_pages {
         return Ok(TaskExecutionOutcome::completed());
     }
@@ -100,7 +95,7 @@ pub(crate) async fn execute_find_duplicate_pages_to_delete(
     }
 
     let media_runtime = runtime.media_library();
-    let targets = find_duplicate_pages_to_delete(&media_runtime, library_id).await?;
+    let targets = find_duplicate_pages_to_delete(media_runtime, library_id).await?;
     let mut follow_up_tasks = Vec::new();
     for (book_id, pages) in targets {
         let priority = priority.saturating_add(1);
@@ -128,7 +123,7 @@ pub(crate) async fn execute_remove_hashed_pages(
 
     let book_id = book_id.to_string();
     let media_runtime = runtime.media_library();
-    let regenerate_thumbnail = remove_hashed_pages(&media_runtime, &book_id, pages).await?;
+    let regenerate_thumbnail = remove_hashed_pages(media_runtime, &book_id, pages).await?;
     let follow_up_tasks = if regenerate_thumbnail {
         vec![
             TaskRequest::new(TaskKind::GenerateBookThumbnail)

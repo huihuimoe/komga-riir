@@ -16,7 +16,7 @@ pub(crate) async fn execute_repair_extension(
     }
 
     let media_runtime = runtime.media_library();
-    repair_extension(&media_runtime, book_id).await?;
+    repair_extension(media_runtime, book_id).await?;
 
     Ok(TaskExecutionOutcome::completed())
 }
@@ -31,7 +31,7 @@ pub(crate) async fn execute_find_books_to_convert(
     }
 
     let media_runtime = runtime.media_library();
-    let books = find_books_to_convert(&media_runtime, library_id).await?;
+    let books = find_books_to_convert(media_runtime, library_id).await?;
 
     let follow_up_tasks = books
         .into_iter()
@@ -54,7 +54,7 @@ pub(crate) async fn execute_convert_book(
     }
 
     let media_runtime = runtime.media_library();
-    convert_book(&media_runtime, book_id).await?;
+    convert_book(media_runtime, book_id).await?;
     Ok(TaskExecutionOutcome::completed())
 }
 

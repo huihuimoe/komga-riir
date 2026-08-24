@@ -159,8 +159,8 @@ impl WorkerRuntime<'_> {
 }
 
 impl JobRuntime<'_> {
-    pub(crate) fn media_library(&self) -> MediaLibraryJobContext {
-        self.runtime.media_library.clone()
+    pub(crate) fn media_library(&self) -> &MediaLibraryJobContext {
+        &self.runtime.media_library
     }
 
     pub fn database(&self) -> DatabaseRuntime<'_> {

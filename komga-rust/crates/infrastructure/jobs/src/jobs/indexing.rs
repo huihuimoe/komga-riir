@@ -15,7 +15,7 @@ pub(crate) async fn execute_analyze_book(
 ) -> Result<TaskExecutionOutcome, TaskProcessingError> {
     let book_id = book_id.to_string();
     let media_runtime = runtime.media_library();
-    let outcome = analyze_book(&media_runtime, &book_id).await?;
+    let outcome = analyze_book(media_runtime, &book_id).await?;
 
     if outcome.media_status == Some(MediaStatus::Ready) && !outcome.series_id.is_empty() {
         let follow_up_priority = priority.saturating_add(1);
