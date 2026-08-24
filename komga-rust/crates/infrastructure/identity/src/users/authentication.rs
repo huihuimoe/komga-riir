@@ -282,7 +282,7 @@ pub(crate) async fn persisted_list_authentication_activity(
         .collect())
 }
 
-pub(crate) async fn persisted_cleanup_authentication_activity(
+pub async fn persisted_cleanup_authentication_activity(
     pool: &SqlitePool,
 ) -> anyhow::Result<u64> {
     let deleted = sqlx::query(

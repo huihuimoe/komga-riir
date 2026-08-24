@@ -3,7 +3,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 use komga_application::identity_access::AuthUserRole;
 use komga_config::env_config::RuntimeConfig;
-use komga_infrastructure::identity::{
+use komga_infrastructure_identity::{
     InitialBootstrapUserWriteModel, load_persisted_user_count, persist_initial_bootstrap_users,
 };
 use komga_infrastructure_base::{connect_read_pool, connect_write_pool};

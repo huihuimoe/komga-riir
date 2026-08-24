@@ -13,7 +13,7 @@ struct UserSharingLabels {
     exclude: Vec<String>,
 }
 
-pub(in crate::identity) async fn create_auth_user(
+pub(crate) async fn create_auth_user(
     pool: &SqlitePool,
     input: CreateAuthUserInput,
 ) -> Result<Option<AuthUser>, sqlx::Error> {
@@ -105,7 +105,7 @@ pub(in crate::identity) async fn create_auth_user(
         .map(Some)
 }
 
-pub(in crate::identity) async fn delete_auth_user(
+pub(crate) async fn delete_auth_user(
     pool: &SqlitePool,
     target_user_id: &str,
 ) -> Result<bool, sqlx::Error> {
@@ -171,7 +171,7 @@ pub(in crate::identity) async fn delete_auth_user(
     Ok(true)
 }
 
-pub(in crate::identity) async fn update_auth_user(
+pub(crate) async fn update_auth_user(
     pool: &SqlitePool,
     target_user_id: &str,
     patch: UpdateAuthUserInput,

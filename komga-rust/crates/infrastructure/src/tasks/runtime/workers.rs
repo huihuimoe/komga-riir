@@ -675,7 +675,7 @@ pub async fn cleanup_authentication_activity_once(
         return Err(anyhow::anyhow!(error_message));
     }
 
-    crate::identity::users::authentication::persisted_cleanup_authentication_activity(
+    komga_infrastructure_identity::persisted_cleanup_authentication_activity(
         runtime.job().database().main_db().write_pool(),
     )
     .await

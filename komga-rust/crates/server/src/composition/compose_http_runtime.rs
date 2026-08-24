@@ -20,8 +20,8 @@ use komga_config::env_config::RuntimeConfig;
 use komga_config::profile::RuntimeProfile as ConfigRuntimeProfile;
 use komga_config::writer_ownership::WriterKind;
 use komga_infrastructure::operational::ServerSettingsStore;
+use komga_infrastructure_identity::{ClaimAccess, IdentityAccess};
 use komga_infrastructure::{
-    identity::{ClaimAccess, IdentityAccess},
     opds::{OpdsCatalogAccess, OpdsPersistedAccess},
     operational::{
         ActuatorSnapshotAccess, AnnouncementAccess, ClientSettingsAccess, FilesystemBrowseAccess,

@@ -13,6 +13,7 @@ members = [
   "crates/infrastructure/media-library",
   "crates/infrastructure/media-metadata",
   "crates/infrastructure/media-access",
+  "crates/infrastructure/identity",
   "crates/infrastructure/test-support",
   "crates/interfaces",
   "crates/config",
@@ -138,6 +139,7 @@ openidconnect.workspace = true
 chrono.workspace = true
 komga-interfaces = { path = "crates/interfaces", features = ["allow-missing-webui-dist"] }
 komga-infrastructure-base = { path = "crates/infrastructure/base" }
+komga-infrastructure-identity = { path = "crates/infrastructure/identity" }
 komga-infrastructure-search = { path = "crates/infrastructure/search" }
 komga-infrastructure-media-access = { path = "crates/infrastructure/media-access" }
 komga-infrastructure-media-library = { path = "crates/infrastructure/media-library" }

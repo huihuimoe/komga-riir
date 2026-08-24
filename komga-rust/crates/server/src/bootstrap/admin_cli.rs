@@ -1,5 +1,5 @@
 use bcrypt::{DEFAULT_COST, hash};
-use komga_infrastructure::identity::{
+use komga_infrastructure_identity::{
     list_persisted_user_emails, load_persisted_user_by_email, update_persisted_user_passwords,
 };
 use komga_infrastructure_base::connect_write_pool;
@@ -253,7 +253,7 @@ pub(super) async fn run_admin_cli_commands(
         })?;
 
     for user in users {
-        komga_infrastructure::identity::invalidate_user_sessions(user.id.as_str());
+        komga_infrastructure_identity::invalidate_user_sessions(user.id.as_str());
         println!("Reset password for user: {}", user.email);
     }
 

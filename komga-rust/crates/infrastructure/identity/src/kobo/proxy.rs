@@ -2,7 +2,7 @@ use komga_application::identity_access::{KoboProxyHeader, KoboProxyRequest, Kobo
 use reqwest::header::{HeaderName, HeaderValue};
 use serde_json::Value;
 
-pub(in crate::identity) async fn execute_kobo_proxy_request(
+pub(crate) async fn execute_kobo_proxy_request(
     base_url: &str,
     request: KoboProxyRequest,
 ) -> anyhow::Result<KoboProxyResponse> {

@@ -5,7 +5,10 @@ mod session_store;
 pub(crate) mod users;
 
 pub use adapter::IdentityAccess;
-pub use users::authentication::{invalidate_user_sessions, persisted_update_password_by_user_id};
+pub use users::authentication::{
+    invalidate_user_sessions, persisted_cleanup_authentication_activity,
+    persisted_update_password_by_user_id,
+};
 pub use users::{
     ClaimAccess, InitialBootstrapUserWriteModel, PersistedBootstrapUser,
     list_persisted_user_emails, load_persisted_user_by_email, load_persisted_user_count,

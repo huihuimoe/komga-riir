@@ -2769,6 +2769,7 @@ dependencies = [
  "komga-epub",
  "komga-infrastructure-base",
  "komga-infrastructure-discovery",
+ "komga-infrastructure-identity",
  "komga-infrastructure-media-access",
  "komga-infrastructure-media-core",
  "komga-infrastructure-media-library",
@@ -2831,6 +2832,25 @@ dependencies = [
  "time",
  "tokio",
  "unicode-normalization",
+]
+
+[[package]]
+name = "komga-infrastructure-identity"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "base64 0.23.1",
+ "bcrypt",
+ "komga-application",
+ "komga-infrastructure-base",
+ "komga-infrastructure-test-support",
+ "reqwest 0.13.4",
+ "rusqlite",
+ "serde_json",
+ "sha2 0.11.0",
+ "sqlx",
+ "tokio",
 ]
 
 [[package]]
@@ -3034,6 +3054,7 @@ dependencies = [
  "komga-domain",
  "komga-infrastructure",
  "komga-infrastructure-base",
+ "komga-infrastructure-identity",
  "komga-infrastructure-media-access",
  "komga-infrastructure-media-core",
  "komga-infrastructure-media-library",
@@ -3081,6 +3102,7 @@ dependencies = [
  "komga-infrastructure",
  "komga-infrastructure-base",
  "komga-infrastructure-discovery",
+ "komga-infrastructure-identity",
  "komga-infrastructure-media-access",
  "komga-infrastructure-media-core",
  "komga-infrastructure-media-metadata",

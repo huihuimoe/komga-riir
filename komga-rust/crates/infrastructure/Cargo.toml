@@ -19,6 +19,7 @@ komga-infrastructure-discovery = { path = "discovery" }
 komga-infrastructure-media-library = { path = "media-library" }
 komga-infrastructure-media-metadata = { path = "media-metadata" }
 komga-infrastructure-media-access = { path = "media-access" }
+komga-infrastructure-identity = { path = "identity" }
 komga-infrastructure-search = { path = "search" }
 komga-epub = { path = "../epub" }
 komga-kepubify = { path = "../kepubify" }
