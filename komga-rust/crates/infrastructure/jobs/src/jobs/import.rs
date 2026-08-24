@@ -1,12 +1,12 @@
 use komga_infrastructure_media_access::FilesystemBookImport;
-use crate::tasks::JobRuntime;
+use crate::JobRuntime;
 use komga_application::media_assets::BookImportService;
 use komga_application::task_processing::{
     ImportBookPayload, TaskExecutionOutcome, TaskProcessingError,
 };
 use std::sync::Arc;
 
-pub(in crate::tasks) async fn execute_import_book(
+pub(in crate) async fn execute_import_book(
     runtime: &JobRuntime<'_>,
     payload: ImportBookPayload,
     priority: i32,

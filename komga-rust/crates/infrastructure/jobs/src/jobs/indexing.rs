@@ -3,12 +3,12 @@ use komga_infrastructure_media_library::maintenance::persistence::{
 };
 use komga_infrastructure_media_library::analysis::analyze_book;
 use komga_infrastructure_search::SearchEntityType;
-use crate::tasks::JobRuntime;
+use crate::JobRuntime;
 use komga_application::task_processing::{RefreshBookMetadataPayload, TaskKind, TaskRequest};
 use komga_application::task_processing::{TaskExecutionOutcome, TaskProcessingError};
 use komga_domain::discovery::MediaStatus;
 
-pub(in crate::tasks) async fn execute_analyze_book(
+pub(in crate) async fn execute_analyze_book(
     runtime: &JobRuntime<'_>,
     book_id: &str,
     priority: i32,
@@ -36,7 +36,7 @@ pub(in crate::tasks) async fn execute_analyze_book(
     Ok(TaskExecutionOutcome::completed())
 }
 
-pub(in crate::tasks) async fn execute_rebuild_index(
+pub(in crate) async fn execute_rebuild_index(
     runtime: &JobRuntime<'_>,
     entity_types: Option<&[SearchEntityType]>,
 ) -> Result<TaskExecutionOutcome, TaskProcessingError> {
@@ -49,7 +49,7 @@ pub(in crate::tasks) async fn execute_rebuild_index(
     Ok(TaskExecutionOutcome::completed())
 }
 
-pub(in crate::tasks) async fn execute_find_book_thumbnails_to_regenerate(
+pub(in crate) async fn execute_find_book_thumbnails_to_regenerate(
     runtime: &JobRuntime<'_>,
     for_bigger_result_only: bool,
     priority: i32,
@@ -90,8 +90,8 @@ mod tests {
         default_read_max_connections,
     };
     use komga_infrastructure_tasks::TaskQueueScheduler;
-    use crate::tasks::test_support::{RuntimeTestFixture, execute_and_enqueue};
-    use crate::tasks::{TaskRuntimeContext, TaskRuntimeOwnershipOverrides};
+    use crate::test_support::{RuntimeTestFixture, execute_and_enqueue};
+    use crate::{TaskRuntimeContext, TaskRuntimeOwnershipOverrides};
     use image::{ImageBuffer, Rgba};
     use komga_application::task_processing::{
         BookPayload, FindBookThumbnailsToRegeneratePayload, TaskKind, TaskRequest,

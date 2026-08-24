@@ -4,7 +4,7 @@ use komga_application::task_processing::TaskQueueAdmin;
 use komga_config::env_config::RuntimeConfig;
 use komga_config::profile::RuntimeProfile;
 use komga_config::writer_ownership::{WriterDecision, WriterKind};
-use komga_infrastructure::tasks::{
+use komga_infrastructure_jobs::{
     RuntimeBackgroundState, TaskRuntimeContext, prepare_task_queue, process_startup_library_scans,
 };
 use komga_infrastructure_base::DatabaseHandle;

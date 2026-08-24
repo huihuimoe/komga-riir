@@ -19,7 +19,7 @@ use komga_infrastructure_tasks::{
     BackgroundTaskExecutionLoop, RuntimeTaskEngine, SharedTaskQueue, TaskExecutionPoolHandle,
     TaskExecutor, TaskQueueConfig, TaskQueueScheduler, process_available_serial,
 };
-use crate::tasks::dispatch::TaskJobDispatcher;
+use crate::dispatch::TaskJobDispatcher;
 pub type TaskQueueWakeSignal = Arc<Notify>;
 
 fn task_queue_config(runtime: &TaskRuntimeContext) -> TaskQueueConfig {

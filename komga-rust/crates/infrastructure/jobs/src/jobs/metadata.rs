@@ -1,27 +1,23 @@
 use std::collections::BTreeSet;
 
 use komga_infrastructure_media_metadata::{
-    aggregate_series_metadata as metadata_aggregate_series_metadata,
-    generate_book_thumbnail as metadata_generate_book_thumbnail,
-    refresh_book_local_artwork as metadata_refresh_book_local_artwork,
-    refresh_book_metadata as metadata_refresh_book_metadata,
-    refresh_series_local_artwork as metadata_refresh_series_local_artwork,
-    refresh_series_metadata as metadata_refresh_series_metadata,
+    aggregate_series_metadata, generate_book_thumbnail, refresh_book_local_artwork,
+    refresh_book_metadata, refresh_series_local_artwork, refresh_series_metadata,
 };
 
 use komga_application::task_processing::{
     SeriesPayload, TaskExecutionOutcome, TaskKind, TaskProcessingError, TaskRequest,
 };
 
-use crate::tasks::JobRuntime;
+use crate::JobRuntime;
 
-pub(in crate::tasks) async fn execute_refresh_book_metadata(
+pub(in crate) async fn execute_refresh_book_metadata(
     runtime: &JobRuntime<'_>,
     book_id: &str,
     capabilities: &BTreeSet<String>,
     priority: i32,
 ) -> Result<TaskExecutionOutcome, TaskProcessingError> {
-    let series_id = refresh_book_metadata(runtime, book_id, capabilities).await?;
+    let series_id = run_refresh_book_metadata(runtime, book_id, capabilities).await?;
     let follow_up_tasks = series_id
         .into_iter()
         .map(|series_id| {
@@ -37,12 +33,12 @@ pub(in crate::tasks) async fn execute_refresh_book_metadata(
     Ok(TaskExecutionOutcome::with_follow_up_tasks(follow_up_tasks))
 }
 
-pub(in crate::tasks) async fn execute_refresh_series_metadata(
+pub(in crate) async fn execute_refresh_series_metadata(
     runtime: &JobRuntime<'_>,
     series_id: &str,
     priority: i32,
 ) -> Result<TaskExecutionOutcome, TaskProcessingError> {
-    refresh_series_metadata(runtime, series_id).await?;
+    run_refresh_series_metadata(runtime, series_id).await?;
     Ok(TaskExecutionOutcome::with_follow_up_tasks(vec![
         TaskRequest::with_payload(
             TaskKind::AggregateSeriesMetadata,
@@ -54,43 +50,43 @@ pub(in crate::tasks) async fn execute_refresh_series_metadata(
     ]))
 }
 
-pub(in crate::tasks) async fn execute_aggregate_series_metadata(
+pub(in crate) async fn execute_aggregate_series_metadata(
     runtime: &JobRuntime<'_>,
     series_id: &str,
 ) -> Result<TaskExecutionOutcome, TaskProcessingError> {
-    aggregate_series_metadata(runtime, series_id)
+    run_aggregate_series_metadata(runtime, series_id)
         .await
         .map(|()| TaskExecutionOutcome::completed())
 }
 
-pub(in crate::tasks) async fn execute_refresh_book_local_artwork(
+pub(in crate) async fn execute_refresh_book_local_artwork(
     runtime: &JobRuntime<'_>,
     book_id: &str,
 ) -> Result<TaskExecutionOutcome, TaskProcessingError> {
-    refresh_book_local_artwork(runtime, book_id)
+    run_refresh_book_local_artwork(runtime, book_id)
         .await
         .map(|()| TaskExecutionOutcome::completed())
 }
 
-pub(in crate::tasks) async fn execute_generate_book_thumbnail(
+pub(in crate) async fn execute_generate_book_thumbnail(
     runtime: &JobRuntime<'_>,
     book_id: &str,
 ) -> Result<TaskExecutionOutcome, TaskProcessingError> {
-    generate_book_thumbnail(runtime, book_id)
+    run_generate_book_thumbnail(runtime, book_id)
         .await
         .map(|()| TaskExecutionOutcome::completed())
 }
 
-pub(in crate::tasks) async fn execute_refresh_series_local_artwork(
+pub(in crate) async fn execute_refresh_series_local_artwork(
     runtime: &JobRuntime<'_>,
     series_id: &str,
 ) -> Result<TaskExecutionOutcome, TaskProcessingError> {
-    refresh_series_local_artwork(runtime, series_id)
+    run_refresh_series_local_artwork(runtime, series_id)
         .await
         .map(|()| TaskExecutionOutcome::completed())
 }
 
-async fn refresh_book_metadata(
+async fn run_refresh_book_metadata(
     runtime: &JobRuntime<'_>,
     book_id: &str,
     capabilities: &BTreeSet<String>,
@@ -99,7 +95,7 @@ async fn refresh_book_metadata(
         return Ok(None);
     }
 
-    let outcome = metadata_refresh_book_metadata(
+    let outcome = refresh_book_metadata(
         runtime.database().write_pool(),
         runtime.runtime_events(),
         book_id,
@@ -123,7 +119,7 @@ async fn refresh_book_metadata(
     Ok(outcome.series_id)
 }
 
-async fn refresh_series_metadata(
+async fn run_refresh_series_metadata(
     runtime: &JobRuntime<'_>,
     series_id: &str,
 ) -> Result<(), TaskProcessingError> {
@@ -131,7 +127,7 @@ async fn refresh_series_metadata(
         return Ok(());
     }
 
-    metadata_refresh_series_metadata(
+    refresh_series_metadata(
         runtime.database().write_pool(),
         runtime.runtime_events(),
         series_id,
@@ -146,7 +142,7 @@ async fn refresh_series_metadata(
         .map_err(TaskProcessingError::runtime)
 }
 
-async fn aggregate_series_metadata(
+async fn run_aggregate_series_metadata(
     runtime: &JobRuntime<'_>,
     series_id: &str,
 ) -> Result<(), TaskProcessingError> {
@@ -154,7 +150,7 @@ async fn aggregate_series_metadata(
         return Ok(());
     }
 
-    metadata_aggregate_series_metadata(
+    aggregate_series_metadata(
         runtime.database().write_pool(),
         runtime.runtime_events(),
         series_id,
@@ -171,7 +167,7 @@ async fn aggregate_series_metadata(
     Ok(())
 }
 
-async fn refresh_book_local_artwork(
+async fn run_refresh_book_local_artwork(
     runtime: &JobRuntime<'_>,
     book_id: &str,
 ) -> Result<(), TaskProcessingError> {
@@ -179,7 +175,7 @@ async fn refresh_book_local_artwork(
         return Ok(());
     }
 
-    metadata_refresh_book_local_artwork(
+    refresh_book_local_artwork(
         runtime.database().write_pool(),
         runtime.runtime_events(),
         book_id,
@@ -188,7 +184,7 @@ async fn refresh_book_local_artwork(
     .map_err(TaskProcessingError::runtime)
 }
 
-async fn generate_book_thumbnail(
+async fn run_generate_book_thumbnail(
     runtime: &JobRuntime<'_>,
     book_id: &str,
 ) -> Result<(), TaskProcessingError> {
@@ -196,7 +192,7 @@ async fn generate_book_thumbnail(
         return Ok(());
     }
 
-    metadata_generate_book_thumbnail(
+    generate_book_thumbnail(
         runtime.database().write_pool(),
         runtime.runtime_events(),
         book_id,
@@ -209,7 +205,7 @@ async fn generate_book_thumbnail(
     .map_err(TaskProcessingError::runtime)
 }
 
-async fn refresh_series_local_artwork(
+async fn run_refresh_series_local_artwork(
     runtime: &JobRuntime<'_>,
     series_id: &str,
 ) -> Result<(), TaskProcessingError> {
@@ -217,7 +213,7 @@ async fn refresh_series_local_artwork(
         return Ok(());
     }
 
-    metadata_refresh_series_local_artwork(
+    refresh_series_local_artwork(
         runtime.database().write_pool(),
         runtime.runtime_events(),
         series_id,

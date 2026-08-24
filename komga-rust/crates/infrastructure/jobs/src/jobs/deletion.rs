@@ -1,8 +1,8 @@
 use komga_application::task_processing::{TaskExecutionOutcome, TaskProcessingError};
 
-use crate::tasks::JobRuntime;
+use crate::JobRuntime;
 
-pub(in crate::tasks) async fn execute_empty_trash(
+pub(in crate) async fn execute_empty_trash(
     runtime: &JobRuntime<'_>,
     library_id: &str,
 ) -> Result<TaskExecutionOutcome, TaskProcessingError> {
@@ -27,20 +27,20 @@ pub(in crate::tasks) async fn execute_empty_trash(
     Ok(TaskExecutionOutcome::completed())
 }
 
-pub(in crate::tasks) async fn execute_delete_book(
+pub(in crate) async fn execute_delete_book(
     runtime: &JobRuntime<'_>,
     book_id: &str,
 ) -> Result<TaskExecutionOutcome, TaskProcessingError> {
-    crate::discovery::deletion::delete_book_task(runtime, book_id)
+    crate::book_deletion::delete_book_task(runtime, book_id)
         .await
         .map(|()| TaskExecutionOutcome::completed())
 }
 
-pub(in crate::tasks) async fn execute_delete_series(
+pub(in crate) async fn execute_delete_series(
     runtime: &JobRuntime<'_>,
     series_id: &str,
 ) -> Result<TaskExecutionOutcome, TaskProcessingError> {
-    crate::discovery::deletion::delete_series(runtime, series_id)
+    crate::book_deletion::delete_series(runtime, series_id)
         .await
         .map(|()| TaskExecutionOutcome::completed())
 }

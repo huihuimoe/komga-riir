@@ -1,16 +1,40 @@
 use komga_application::task_processing::{
-    BookPayload, RemoveHashedPagesPayload, TaskExecutionOutcome, TaskKind, TaskProcessingError,
-    TaskRequest,
+    BookPayload, RemoveHashedPagesPayload, ScanOneLibrary, TaskExecutionOutcome, TaskKind,
+    TaskProcessingError, TaskRequest,
 };
 
+use komga_infrastructure_media_library::library_scan::SqliteFilesystemLibraryScanPipeline;
 use komga_infrastructure_media_library::maintenance::persistence::load_books_with_missing_page_hash;
 use komga_infrastructure_media_library::maintenance::{
     HashedPageToDelete, find_duplicate_pages_to_delete, hash_book, hash_book_pages,
     load_library_hashing_flags, remove_hashed_pages,
 };
-use crate::tasks::JobRuntime;
+use crate::JobRuntime;
 
-pub(in crate::tasks) async fn execute_hash_book_pages(
+pub(in crate) async fn execute_scan_library(
+    runtime: &JobRuntime<'_>,
+    request: ScanOneLibrary,
+) -> Result<TaskExecutionOutcome, TaskProcessingError> {
+    let cleanup_policy = runtime
+        .cleanup_empty_sets_policy()
+        .await
+        .map_err(TaskProcessingError::runtime)?;
+    let media_runtime = komga_infrastructure_media_library::MediaLibraryJobContext::new(
+        runtime.database().main_db().clone(),
+        runtime.database().owns_main_database(),
+        runtime.filesystem().owns_filesystem_scan_output(),
+        runtime.runtime_events_arc(),
+    );
+    let pipeline = SqliteFilesystemLibraryScanPipeline::for_runtime(&media_runtime, cleanup_policy)
+        .await
+        .map_err(TaskProcessingError::runtime)?;
+    let result = pipeline.execute_scan(request).await?;
+    Ok(TaskExecutionOutcome::with_follow_up_tasks(
+        result.follow_up_tasks,
+    ))
+}
+
+pub(in crate) async fn execute_hash_book_pages(
     runtime: &JobRuntime<'_>,
     book_id: &str,
 ) -> Result<TaskExecutionOutcome, TaskProcessingError> {
@@ -24,7 +48,7 @@ pub(in crate::tasks) async fn execute_hash_book_pages(
         .map(|()| TaskExecutionOutcome::completed())
 }
 
-pub(in crate::tasks) async fn execute_hash_book(
+pub(in crate) async fn execute_hash_book(
     runtime: &JobRuntime<'_>,
     book_id: &str,
     koreader: bool,
@@ -35,7 +59,7 @@ pub(in crate::tasks) async fn execute_hash_book(
     Ok(TaskExecutionOutcome::completed())
 }
 
-pub(in crate::tasks) async fn execute_find_books_with_missing_page_hash(
+pub(in crate) async fn execute_find_books_with_missing_page_hash(
     runtime: &JobRuntime<'_>,
     library_id: &str,
     priority: i32,
@@ -66,7 +90,7 @@ pub(in crate::tasks) async fn execute_find_books_with_missing_page_hash(
     Ok(TaskExecutionOutcome::with_follow_up_tasks(follow_up_tasks))
 }
 
-pub(in crate::tasks) async fn execute_find_duplicate_pages_to_delete(
+pub(in crate) async fn execute_find_duplicate_pages_to_delete(
     runtime: &JobRuntime<'_>,
     library_id: &str,
     priority: i32,
@@ -92,7 +116,7 @@ pub(in crate::tasks) async fn execute_find_duplicate_pages_to_delete(
     Ok(TaskExecutionOutcome::with_follow_up_tasks(follow_up_tasks))
 }
 
-pub(in crate::tasks) async fn execute_remove_hashed_pages(
+pub(in crate) async fn execute_remove_hashed_pages(
     runtime: &JobRuntime<'_>,
     book_id: &str,
     pages: &[HashedPageToDelete],
@@ -120,9 +144,9 @@ pub(in crate::tasks) async fn execute_remove_hashed_pages(
 #[cfg(test)]
 mod tests {
     use komga_infrastructure_base::sqlite::connect_test_pool;
-    use crate::tasks::TaskRuntimeContext;
+    use crate::TaskRuntimeContext;
     use komga_infrastructure_tasks::TaskQueueScheduler;
-    use crate::tasks::test_support::{RuntimeTestFixture, execute_and_enqueue};
+    use crate::test_support::{RuntimeTestFixture, execute_and_enqueue};
     use image::{ImageBuffer, Rgba};
     use komga_application::task_processing::{
         RemoveHashedPagesPayload, TaskKind, TaskQueueRecord, TaskRequest,

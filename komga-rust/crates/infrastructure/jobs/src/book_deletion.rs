@@ -8,7 +8,7 @@ use komga_domain::media_assets::ThumbnailType;
 use sqlx::{Row, SqlitePool};
 use tokio::fs;
 
-use crate::tasks::JobRuntime;
+use crate::JobRuntime;
 use komga_infrastructure_base::{
     resolve_library_item_path, resolve_optional_library_item_path,
 };

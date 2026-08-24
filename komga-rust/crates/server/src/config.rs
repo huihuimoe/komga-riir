@@ -3,10 +3,10 @@ use std::sync::Arc;
 use komga_application::runtime_sse::RuntimeSseEventSink;
 use komga_config::env_config::RuntimeConfig;
 use komga_config::writer_ownership::{WriterDecision, WriterKind};
-use komga_infrastructure::tasks::{TaskRuntimeContext, TaskRuntimeOwnershipOverrides};
 use komga_infrastructure_base::{
     DatabaseHandle, connect_task_pool, connect_task_write_pool, default_read_max_connections,
 };
+use komga_infrastructure_jobs::{TaskRuntimeContext, TaskRuntimeOwnershipOverrides};
 
 pub(crate) async fn task_runtime_context(
     config: &RuntimeConfig,

@@ -198,7 +198,7 @@ impl JobRuntime<'_> {
         })
     }
 
-    pub(in crate::tasks) async fn thumbnail_regeneration_policy(
+    pub(in crate) async fn thumbnail_regeneration_policy(
         &self,
     ) -> anyhow::Result<ThumbnailRegenerationPolicy> {
         let settings = self
