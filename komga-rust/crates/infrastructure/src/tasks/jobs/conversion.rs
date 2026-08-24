@@ -55,7 +55,7 @@ pub(in crate::tasks) async fn execute_convert_book(
 
 #[cfg(test)]
 mod tests {
-    use komga_infrastructure_base::persistence::sqlite::connect_test_pool;
+    use komga_infrastructure_base::sqlite::connect_test_pool;
     use crate::tasks::queue::TaskQueueScheduler;
     use crate::tasks::test_support::{RuntimeTestFixture, execute_and_enqueue};
     use komga_application::task_processing::{BookPayload, TaskKind, TaskRequest};

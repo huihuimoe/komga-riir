@@ -2,8 +2,8 @@ use std::collections::HashSet;
 
 use sqlx::{Row, SqlitePool};
 
-use komga_infrastructure_base::persistence::DatabaseHandle;
-use komga_infrastructure_base::persistence::sqlite::codecs::clamp_kotlin_int_u32;
+use komga_infrastructure_base::DatabaseHandle;
+use komga_infrastructure_base::sqlite::codecs::clamp_kotlin_int_u32;
 use komga_application::opds::{
     BrowsePublisherEntry, BrowseSeriesNavigationEntry, BrowseSeriesNavigationPage,
     OpdsBookAuthorEntry, OpdsBookFeedEntry, OpdsBookFeedKind, OpdsBookFeedQuery,

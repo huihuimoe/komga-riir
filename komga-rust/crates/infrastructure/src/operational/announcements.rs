@@ -1,6 +1,6 @@
 use komga_application::operational::AnnouncementPort;
 
-use komga_infrastructure_base::persistence::DatabaseHandle;
+use komga_infrastructure_base::DatabaseHandle;
 
 use super::announcements_persistence;
 

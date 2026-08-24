@@ -45,7 +45,7 @@ pub(crate) async fn save_announcements_read(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use komga_infrastructure_base::persistence::sqlite::{connect_test_pool, schema};
+    use komga_infrastructure_base::sqlite::{connect_test_pool, schema};
     use std::fs;
     use std::path::PathBuf;
     use std::time::{SystemTime, UNIX_EPOCH};

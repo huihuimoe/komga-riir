@@ -9,7 +9,7 @@ use sqlx::{Row, SqlitePool};
 use tokio::fs;
 
 use crate::tasks::JobRuntime;
-use komga_infrastructure_base::persistence::{
+use komga_infrastructure_base::{
     resolve_library_item_path, resolve_optional_library_item_path,
 };
 

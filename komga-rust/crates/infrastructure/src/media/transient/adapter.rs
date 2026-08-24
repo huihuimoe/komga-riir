@@ -9,7 +9,7 @@ use komga_application::operational::{
 };
 
 use crate::media::transient::{self as transient_books, TransientBookPage};
-use komga_infrastructure_base::persistence::DatabaseHandle;
+use komga_infrastructure_base::DatabaseHandle;
 
 #[derive(Clone)]
 pub struct TransientBookAccess {

@@ -4,7 +4,7 @@ use super::persistence::{
 };
 use crate::media::analysis::analyze_book_media_file;
 use crate::media::maintenance::updates::adjust_analyzed_book_read_progress;
-use komga_infrastructure_base::persistence::resolve_library_item_path;
+use komga_infrastructure_base::resolve_library_item_path;
 use crate::tasks::JobRuntime;
 use komga_application::task_processing::TaskProcessingError;
 use komga_domain::discovery::MediaStatus;

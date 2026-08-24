@@ -18,7 +18,7 @@ use crate::media::analysis::{
     AnalyzedMediaPage, MediaAnalysisProfile, MediaFileAnalysis, MediaFileAnalyzer,
 };
 use crate::media::formats::rar::read_rar_entry_bytes;
-use komga_infrastructure_base::persistence::resolve_stored_path;
+use komga_infrastructure_base::resolve_stored_path;
 
 pub use adapter::TransientBookAccess;
 use detection::is_recognized_transient_book_file;

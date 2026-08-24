@@ -7,8 +7,8 @@ use sqlx::SqlitePool;
 use sqlx::sqlite::{SqliteConnectOptions, SqliteJournalMode, SqlitePoolOptions};
 
 use crate::file_io::remove_file_after_release;
-use crate::persistence::SqlitePersistenceContext;
-use crate::persistence::sqlite::schema;
+use crate::sqlite::schema;
+use crate::unit_of_work::SqlitePersistenceContext;
 
 pub const DEFAULT_MAX_CONNECTIONS: u32 = 4;
 pub const WRITE_MAX_CONNECTIONS: u32 = 1;
@@ -351,7 +351,7 @@ fn deterministic_temp_db_path(case_id: &str) -> PathBuf {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::persistence::sqlite::schema;
+    use crate::sqlite::schema;
 
     #[tokio::test]
     async fn sqlite_temp_pool_cleanup_removes_wal_sidecars() {

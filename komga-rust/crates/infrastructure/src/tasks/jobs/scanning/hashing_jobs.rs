@@ -114,7 +114,7 @@ pub(in crate::tasks) async fn execute_remove_hashed_pages(
 
 #[cfg(test)]
 mod tests {
-    use komga_infrastructure_base::persistence::sqlite::connect_test_pool;
+    use komga_infrastructure_base::sqlite::connect_test_pool;
     use crate::tasks::TaskRuntimeContext;
     use crate::tasks::queue::TaskQueueScheduler;
     use crate::tasks::test_support::{RuntimeTestFixture, execute_and_enqueue};

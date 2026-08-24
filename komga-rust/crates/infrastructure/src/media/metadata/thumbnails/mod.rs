@@ -3,7 +3,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 use komga_application::runtime_sse::{RuntimeSseEvent, RuntimeSseEventSink};
 
-use komga_infrastructure_base::persistence::resolve_optional_library_item_path;
+use komga_infrastructure_base::resolve_optional_library_item_path;
 
 mod books;
 mod collections;

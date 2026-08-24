@@ -1,7 +1,7 @@
 use crate::media::maintenance::persistence::{
     load_books_with_undersized_generated_thumbnails, load_non_deleted_book_ids,
 };
-use crate::search::SearchEntityType;
+use komga_infrastructure_search::SearchEntityType;
 use crate::tasks::JobRuntime;
 use komga_application::task_processing::{RefreshBookMetadataPayload, TaskKind, TaskRequest};
 use komga_application::task_processing::{TaskExecutionOutcome, TaskProcessingError};
@@ -81,8 +81,8 @@ pub(in crate::tasks) async fn execute_find_book_thumbnails_to_regenerate(
 
 #[cfg(test)]
 mod tests {
-    use komga_infrastructure_base::persistence::DatabaseHandle;
-    use komga_infrastructure_base::persistence::sqlite::{
+    use komga_infrastructure_base::DatabaseHandle;
+    use komga_infrastructure_base::sqlite::{
         connect_main_write_context, connect_task_pool, connect_task_write_pool, connect_test_pool,
         default_read_max_connections,
     };

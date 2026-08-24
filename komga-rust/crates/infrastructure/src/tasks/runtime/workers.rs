@@ -1080,8 +1080,8 @@ mod tests {
     use std::time::Duration;
     use tokio::sync::{Barrier, Mutex as AsyncMutex, watch};
 
-    use komga_infrastructure_base::persistence::DatabaseHandle;
-    use komga_infrastructure_base::persistence::sqlite::{
+    use komga_infrastructure_base::DatabaseHandle;
+    use komga_infrastructure_base::sqlite::{
         connect_task_pool, connect_task_write_pool, default_read_max_connections,
     };
 

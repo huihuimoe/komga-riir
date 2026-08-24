@@ -589,7 +589,7 @@ mod tests {
     use std::path::PathBuf;
 
     use super::*;
-    use komga_infrastructure_base::persistence::sqlite::connect_test_pool;
+    use komga_infrastructure_base::sqlite::connect_test_pool;
     use komga_infrastructure_test_support::BootstrappedBookFixture;
     use sqlx::SqlitePool;
 

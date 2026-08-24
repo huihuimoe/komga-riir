@@ -6,8 +6,8 @@ use sqlx::{Row, Sqlite, SqlitePool, Transaction};
 
 use crate::discovery::visibility::DELETE_LIBRARY_DEPENDENCY_SQL;
 use crate::media::analysis::expected_extension_for_media_type;
-use komga_infrastructure_base::persistence::stored_paths::resolve_stored_path;
-use komga_infrastructure_base::persistence::resolve_library_item_path;
+use komga_infrastructure_base::stored_paths::resolve_stored_path;
+use komga_infrastructure_base::resolve_library_item_path;
 
 #[derive(Clone, Debug)]
 pub(crate) struct PersistedLibraryWriteModel {

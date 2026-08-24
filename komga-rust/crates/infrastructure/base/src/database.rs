@@ -2,7 +2,7 @@ use std::path::{Path, PathBuf};
 
 use sqlx::SqlitePool;
 
-use crate::persistence::sqlite::{connect_read_pool, connect_write_pool};
+use crate::sqlite::{connect_read_pool, connect_write_pool};
 
 #[derive(Clone, Debug)]
 pub struct DatabaseHandle {

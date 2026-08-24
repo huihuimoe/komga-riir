@@ -8,7 +8,7 @@ use sqlx::{Row, SqlitePool};
 
 use crate::media::content::epub_resources::load_epub_package_document;
 use crate::media::metadata::{load_comicinfo_bytes_for_media, parse_comicinfo_xml};
-use komga_infrastructure_base::persistence::resolve_rooted_path;
+use komga_infrastructure_base::resolve_rooted_path;
 
 use super::SeriesMetadataImportPatch;
 use super::epub::extract_epub_series_patch;

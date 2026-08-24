@@ -9,7 +9,7 @@ use tokio::fs;
 
 use crate::media::formats::pdfium::load_pdfium;
 use crate::codec_compat::parse_thumbnail_type;
-use komga_infrastructure_base::persistence::resolve_rooted_path;
+use komga_infrastructure_base::resolve_rooted_path;
 
 pub(super) struct RenderedThumbnail {
     pub(super) bytes: Vec<u8>,

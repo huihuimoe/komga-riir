@@ -8,8 +8,8 @@ use komga_application::task_processing::{CleanupEmptySetsPolicy, ThumbnailRegene
 use sqlx::SqlitePool;
 
 use crate::operational::ServerSettingsStore;
-use komga_infrastructure_base::persistence::{DatabaseHandle, SqlitePersistenceContext};
-use crate::search::engine::SearchIndexEngine;
+use komga_infrastructure_base::{DatabaseHandle, SqlitePersistenceContext};
+use komga_infrastructure_search::engine::SearchIndexEngine;
 
 #[derive(Clone)]
 pub struct TaskRuntimeContext {

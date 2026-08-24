@@ -12,8 +12,7 @@ use komga_domain::media_assets::ThumbnailType;
 use sqlx::{Row, SqlitePool};
 
 use komga_infrastructure_base::{
-    persistence::{resolve_library_item_path, resolve_rooted_path, resolve_stored_path},
-    random_hex_token,
+    random_hex_token, resolve_library_item_path, resolve_rooted_path, resolve_stored_path,
 };
 
 #[derive(Clone, Debug)]

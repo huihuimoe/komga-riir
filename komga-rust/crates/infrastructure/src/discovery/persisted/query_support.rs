@@ -6,9 +6,9 @@ use komga_application::discovery::{
     ScoredSearchHit,
 };
 
-use komga_infrastructure_base::persistence::DatabaseHandle;
-use crate::search::SearchEntityType;
-use crate::search::engine::SearchIndexEngine;
+use komga_infrastructure_base::DatabaseHandle;
+use komga_infrastructure_search::SearchEntityType;
+use komga_infrastructure_search::engine::SearchIndexEngine;
 
 use super::{authors, library_mappings, runtime_queries};
 use crate::discovery::records as models;

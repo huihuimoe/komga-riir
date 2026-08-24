@@ -5,7 +5,7 @@ use std::io::ErrorKind;
 
 use sqlx::{Row, SqlitePool};
 
-use komga_infrastructure_base::persistence::stored_paths::resolve_stored_path;
+use komga_infrastructure_base::stored_paths::resolve_stored_path;
 
 use super::scan_discovery::{
     build_sidecars, collect_series_directories, is_hidden_path, is_supported_book_file,

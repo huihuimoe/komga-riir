@@ -7,8 +7,8 @@ use komga_application::task_processing::{
 };
 use sqlx::SqlitePool;
 
-use komga_infrastructure_base::persistence::DatabaseHandle;
-use komga_infrastructure_base::persistence::sqlite::{
+use komga_infrastructure_base::DatabaseHandle;
+use komga_infrastructure_base::sqlite::{
     connect_main_write_context, connect_task_pool, connect_task_write_pool, connect_write_pool,
     default_read_max_connections, evict_shared_pools_for_paths, schema,
 };

@@ -8,7 +8,7 @@ use komga_application::discovery::{
 };
 use komga_domain::discovery::SeriesStatus;
 
-use komga_infrastructure_base::persistence::sqlite::codecs::clamp_kotlin_int_u32;
+use komga_infrastructure_base::sqlite::codecs::clamp_kotlin_int_u32;
 
 pub(in crate::discovery) async fn load_persisted_series_resource(
     pool: &SqlitePool,

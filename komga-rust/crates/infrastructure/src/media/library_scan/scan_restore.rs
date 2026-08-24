@@ -9,7 +9,7 @@ use sqlx::{Row, SqlitePool};
 use komga_domain::media_assets::ThumbnailType;
 
 use crate::discovery::deletion::sql::DELETE_BOOK_DEPENDENCY_SQL;
-use komga_infrastructure_base::persistence::stored_paths::resolve_rooted_path;
+use komga_infrastructure_base::stored_paths::resolve_rooted_path;
 
 use super::scan_models::{
     BookMetadataRefreshRequest, InsertedBookCandidate, InsertedSeriesCandidate,

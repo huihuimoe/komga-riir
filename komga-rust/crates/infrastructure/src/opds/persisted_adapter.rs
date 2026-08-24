@@ -15,9 +15,9 @@ use komga_domain::discovery::MediaStatus;
 use sqlx::sqlite::SqliteRow;
 use sqlx::{Row, SqlitePool};
 
-use komga_infrastructure_base::persistence::DatabaseHandle;
-use crate::search::SearchEntityType;
-use crate::search::engine::SearchIndexEngine;
+use komga_infrastructure_base::DatabaseHandle;
+use komga_infrastructure_search::SearchEntityType;
+use komga_infrastructure_search::engine::SearchIndexEngine;
 
 use super::collections::unicode_collation_sort_key;
 use super::collections::{
@@ -1156,7 +1156,7 @@ mod tests {
     use std::path::PathBuf;
 
     use super::*;
-    use komga_infrastructure_base::persistence::sqlite::{connect_test_pool, schema};
+    use komga_infrastructure_base::sqlite::{connect_test_pool, schema};
 
     fn temp_db_path(case_id: &str) -> PathBuf {
         let nanos = std::time::SystemTime::now()

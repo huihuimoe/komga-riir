@@ -23,9 +23,9 @@ use komga_application::runtime_sse::RuntimeSseEventSink;
 use komga_domain::discovery::{DiscoveryQueryContext, PageEnvelope};
 
 use crate::discovery::persisted::runtime_queries;
-use komga_infrastructure_base::persistence::DatabaseHandle;
-use crate::search::SearchEntityType;
-use crate::search::engine::SearchIndexEngine;
+use komga_infrastructure_base::DatabaseHandle;
+use komga_infrastructure_search::SearchEntityType;
+use komga_infrastructure_search::engine::SearchIndexEngine;
 
 use super::books;
 use super::collections;
