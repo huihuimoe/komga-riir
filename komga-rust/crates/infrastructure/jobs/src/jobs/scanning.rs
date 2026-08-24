@@ -11,6 +11,8 @@ use komga_infrastructure_media_library::maintenance::{
     load_library_hashing_flags, remove_hashed_pages,
 };
 
+use super::indexing::upsert_book_search;
+
 pub(crate) async fn execute_scan_library(
     runtime: &JobRuntime<'_>,
     request: ScanOneLibrary,
@@ -120,6 +122,7 @@ pub(crate) async fn execute_remove_hashed_pages(
     let book_id = book_id.to_string();
     let regenerate_thumbnail =
         remove_hashed_pages(runtime.media_library(), &book_id, pages).await?;
+    upsert_book_search(runtime, &book_id).await?;
     let follow_up_tasks = if regenerate_thumbnail {
         vec![
             TaskRequest::new(TaskKind::GenerateBookThumbnail)
@@ -141,6 +144,7 @@ mod tests {
         RemoveHashedPagesPayload, TaskKind, TaskQueueRecord, TaskRequest,
     };
     use komga_infrastructure_base::sqlite::connect_test_pool;
+    use komga_infrastructure_search::SearchEntityType;
     use komga_infrastructure_tasks::TaskQueueScheduler;
     use sqlx::{Row, SqlitePool};
     use std::io::Write;
@@ -574,7 +578,7 @@ mod tests {
             .expect("remove-hashed-pages second page hash row should be inserted");
         pool.close().await;
 
-        let runtime = fixture.runtime_context(false, false).await;
+        let runtime = fixture.runtime_context(false, true).await;
         let scheduler =
             TaskQueueScheduler::for_runtime(runtime.clone(), "remove-hashed-pages-test").await;
         let task = TaskRequest::with_payload(
@@ -669,6 +673,15 @@ mod tests {
         );
         assert_eq!(props.get("page media type"), Some(&"image/png".to_string()));
         verify_pool.close().await;
+        assert_eq!(
+            runtime
+                .job()
+                .search_engine()
+                .search_ids("status:READY", SearchEntityType::Book, 10)
+                .expect("rewritten book media status should be searchable"),
+            vec![book_id],
+            "remove-hashed-pages should index the reanalyzed book",
+        );
 
         fixture.cleanup().await;
     }

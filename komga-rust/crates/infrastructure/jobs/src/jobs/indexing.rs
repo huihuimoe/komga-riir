@@ -8,6 +8,18 @@ use komga_infrastructure_media_library::maintenance::persistence::{
 };
 use komga_infrastructure_search::SearchEntityType;
 
+pub(super) async fn upsert_book_search(
+    runtime: &JobRuntime<'_>,
+    book_id: &str,
+) -> Result<(), TaskProcessingError> {
+    runtime
+        .search_engine()
+        .upsert_book(book_id)
+        .await
+        .map(|_| ())
+        .map_err(TaskProcessingError::runtime)
+}
+
 pub(crate) async fn execute_analyze_book(
     runtime: &JobRuntime<'_>,
     book_id: &str,
@@ -15,11 +27,7 @@ pub(crate) async fn execute_analyze_book(
 ) -> Result<TaskExecutionOutcome, TaskProcessingError> {
     let book_id = book_id.to_string();
     let outcome = analyze_book(runtime.media_library(), &book_id).await?;
-    runtime
-        .search_engine()
-        .upsert_book(&book_id)
-        .await
-        .map_err(TaskProcessingError::runtime)?;
+    upsert_book_search(runtime, &book_id).await?;
 
     if outcome.media_status == Some(MediaStatus::Ready) && !outcome.series_id.is_empty() {
         let follow_up_priority = priority.saturating_add(1);

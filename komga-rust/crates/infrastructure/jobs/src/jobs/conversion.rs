@@ -7,6 +7,8 @@ use komga_infrastructure_media_library::maintenance::{
     convert_book, find_books_to_convert, repair_extension,
 };
 
+use super::indexing::upsert_book_search;
+
 pub(crate) async fn execute_repair_extension(
     runtime: &JobRuntime<'_>,
     book_id: &str,
@@ -52,6 +54,7 @@ pub(crate) async fn execute_convert_book(
     }
 
     convert_book(runtime.media_library(), book_id).await?;
+    upsert_book_search(runtime, book_id).await?;
     Ok(TaskExecutionOutcome::completed())
 }
 
@@ -60,6 +63,7 @@ mod tests {
     use crate::test_support::{RuntimeTestFixture, execute_and_enqueue};
     use komga_application::task_processing::{BookPayload, TaskKind, TaskRequest};
     use komga_infrastructure_base::sqlite::connect_test_pool;
+    use komga_infrastructure_search::SearchEntityType;
     use komga_infrastructure_tasks::TaskQueueScheduler;
     use sqlx::{Row, SqlitePool};
 
@@ -639,7 +643,7 @@ mod tests {
         .expect("convert-book success source page hash should be inserted");
         pool.close().await;
 
-        let runtime = fixture.runtime_context(false, false).await;
+        let runtime = fixture.runtime_context(false, true).await;
         let scheduler = TaskQueueScheduler::for_runtime(runtime.clone(), "rust-main").await;
         let task = TaskRequest::with_payload(TaskKind::ConvertBook, BookPayload::new(book_id))
             .priority(900)
@@ -763,6 +767,15 @@ mod tests {
         );
 
         verify_pool.close().await;
+        assert_eq!(
+            runtime
+                .job()
+                .search_engine()
+                .search_ids("status:READY", SearchEntityType::Book, 10)
+                .expect("converted book media status should be searchable"),
+            vec![book_id],
+            "convert-book should index the reanalyzed book",
+        );
 
         fixture.cleanup().await;
     }
