@@ -264,7 +264,7 @@ async fn migrate_legacy_main_schema_to_latest_inventory() {
         &ctx.paths().main_db,
         Path::new(env!("CARGO_MANIFEST_DIR"))
             .join(
-                "crates/infrastructure/sqlx-migrations/main/V20200706141854__initial_migration.sql",
+                "crates/infrastructure/base/sqlx-migrations/main/V20200706141854__initial_migration.sql",
             )
             .as_path(),
     )
@@ -306,7 +306,7 @@ async fn migrate_legacy_main_schema_without_flyway_history_to_latest_inventory()
         &ctx.paths().main_db,
         Path::new(env!("CARGO_MANIFEST_DIR"))
             .join(
-                "crates/infrastructure/sqlx-migrations/main/V20200706141854__initial_migration.sql",
+                "crates/infrastructure/base/sqlx-migrations/main/V20200706141854__initial_migration.sql",
             )
             .as_path(),
     )
