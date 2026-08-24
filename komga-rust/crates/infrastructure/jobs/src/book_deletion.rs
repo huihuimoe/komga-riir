@@ -19,7 +19,7 @@ pub(crate) async fn delete_book_task(
         return Ok(());
     }
 
-    let Some(target) = load_book_delete_decision(runtime.database().read_pool(), book_id)
+    let Some(target) = load_book_delete_decision(runtime.database().task_read_pool(), book_id)
         .await
         .map_err(TaskProcessingError::runtime)?
     else {
@@ -58,13 +58,13 @@ fn emit_series_changed_after_file_delete(
 }
 
 async fn delete_book(runtime: &JobRuntime<'_>, book_id: &str) -> Result<(), TaskProcessingError> {
-    let Some(context) = load_book_delete_sse_context(runtime.database().read_pool(), book_id)
+    let Some(context) = load_book_delete_sse_context(runtime.database().task_read_pool(), book_id)
         .await
         .map_err(TaskProcessingError::runtime)?
     else {
         return Ok(());
     };
-    let Some(work) = load_book_delete_work(runtime.database().read_pool(), book_id)
+    let Some(work) = load_book_delete_work(runtime.database().task_read_pool(), book_id)
         .await
         .map_err(TaskProcessingError::runtime)?
     else {
@@ -85,9 +85,13 @@ async fn delete_book(runtime: &JobRuntime<'_>, book_id: &str) -> Result<(), Task
     remove_sidecar_thumbnail_files(&sidecar_thumbnail_paths).await?;
     remove_empty_parent_directory(&book_path).await?;
 
-    soft_delete_book_rows(runtime.database().write_pool(), book_id, &work.series_id)
-        .await
-        .map_err(TaskProcessingError::runtime)?;
+    soft_delete_book_rows(
+        runtime.database().task_write_pool(),
+        book_id,
+        &work.series_id,
+    )
+    .await
+    .map_err(TaskProcessingError::runtime)?;
 
     runtime
         .search_engine()
@@ -268,13 +272,14 @@ pub(crate) async fn delete_series(
         return Ok(());
     }
 
-    let Some(context) = load_series_delete_sse_context(runtime.database().read_pool(), series_id)
-        .await
-        .map_err(TaskProcessingError::runtime)?
+    let Some(context) =
+        load_series_delete_sse_context(runtime.database().task_read_pool(), series_id)
+            .await
+            .map_err(TaskProcessingError::runtime)?
     else {
         return Ok(());
     };
-    let work = load_series_delete_work(runtime.database().read_pool(), series_id)
+    let work = load_series_delete_work(runtime.database().task_read_pool(), series_id)
         .await
         .map_err(TaskProcessingError::runtime)?;
 
@@ -298,11 +303,11 @@ pub(crate) async fn delete_series(
     remove_sidecar_thumbnail_files(&sidecar_thumbnail_paths).await?;
     remove_empty_directory(&series_path).await?;
 
-    soft_delete_series_book_rows(runtime.database().write_pool(), series_id)
+    soft_delete_series_book_rows(runtime.database().task_write_pool(), series_id)
         .await
         .map_err(TaskProcessingError::runtime)?;
 
-    soft_delete_series_rows(runtime.database().write_pool(), series_id)
+    soft_delete_series_rows(runtime.database().task_write_pool(), series_id)
         .await
         .map_err(TaskProcessingError::runtime)?;
 

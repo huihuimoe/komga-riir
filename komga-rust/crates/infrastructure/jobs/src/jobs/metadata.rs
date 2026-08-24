@@ -96,7 +96,7 @@ async fn run_refresh_book_metadata(
     }
 
     let outcome = refresh_book_metadata(
-        runtime.database().write_pool(),
+        runtime.database().task_write_pool(),
         runtime.runtime_events(),
         book_id,
         capabilities,
@@ -128,7 +128,7 @@ async fn run_refresh_series_metadata(
     }
 
     refresh_series_metadata(
-        runtime.database().write_pool(),
+        runtime.database().task_write_pool(),
         runtime.runtime_events(),
         series_id,
     )
@@ -151,7 +151,7 @@ async fn run_aggregate_series_metadata(
     }
 
     aggregate_series_metadata(
-        runtime.database().write_pool(),
+        runtime.database().task_write_pool(),
         runtime.runtime_events(),
         series_id,
     )
@@ -176,7 +176,7 @@ async fn run_refresh_book_local_artwork(
     }
 
     refresh_book_local_artwork(
-        runtime.database().write_pool(),
+        runtime.database().task_write_pool(),
         runtime.runtime_events(),
         book_id,
     )
@@ -193,7 +193,7 @@ async fn run_generate_book_thumbnail(
     }
 
     generate_book_thumbnail(
-        runtime.database().write_pool(),
+        runtime.database().task_write_pool(),
         runtime.runtime_events(),
         book_id,
         runtime
@@ -214,7 +214,7 @@ async fn run_refresh_series_local_artwork(
     }
 
     refresh_series_local_artwork(
-        runtime.database().write_pool(),
+        runtime.database().task_write_pool(),
         runtime.runtime_events(),
         series_id,
     )

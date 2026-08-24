@@ -70,7 +70,7 @@ pub(crate) async fn execute_find_books_with_missing_page_hash(
     }
 
     let book_ids =
-        load_books_with_missing_page_hash(runtime.database().read_pool(), Some(library_id))
+        load_books_with_missing_page_hash(runtime.database().task_read_pool(), Some(library_id))
             .await
             .map_err(TaskProcessingError::runtime)?;
     let follow_up_tasks = book_ids

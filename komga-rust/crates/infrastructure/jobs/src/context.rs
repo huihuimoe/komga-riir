@@ -17,10 +17,7 @@ pub struct TaskRuntimeContext {
     tasks_db_file: PathBuf,
     lucene_data_directory: PathBuf,
     consumes_queue: bool,
-    owns_main_database: bool,
-    owns_filesystem_scan_output: bool,
-    owns_sidecar_output: bool,
-    owns_search_index: bool,
+    ownership: TaskRuntimeOwnership,
     task_pool_size: usize,
     task_write_pool: SqlitePool,
     task_read_pool: SqlitePool,
@@ -106,16 +103,10 @@ impl TaskRuntimeContext {
             task_read_pool,
             runtime_events,
         } = params;
-        let TaskRuntimeOwnership {
-            owns_main_database,
-            owns_filesystem_scan_output,
-            owns_sidecar_output,
-            owns_search_index,
-        } = ownership;
         let media_library = MediaLibraryJobContext::new(
             main_db.clone(),
-            owns_main_database,
-            owns_filesystem_scan_output,
+            ownership.owns_main_database,
+            ownership.owns_filesystem_scan_output,
             runtime_events.clone(),
         );
         Self {
@@ -123,10 +114,7 @@ impl TaskRuntimeContext {
             tasks_db_file,
             lucene_data_directory,
             consumes_queue,
-            owns_main_database,
-            owns_filesystem_scan_output,
-            owns_sidecar_output,
-            owns_search_index,
+            ownership,
             task_pool_size,
             task_write_pool,
             task_read_pool,
@@ -179,7 +167,7 @@ impl JobRuntime<'_> {
         SearchIndexEngine::new(
             self.runtime.task_read_pool.clone(),
             self.runtime.lucene_data_directory.clone(),
-            self.runtime.owns_search_index,
+            self.runtime.ownership.owns_search_index,
         )
     }
 
@@ -191,7 +179,7 @@ impl JobRuntime<'_> {
 
     fn server_settings(&self) -> ServerSettingsStore {
         ServerSettingsStore::from_context(SqlitePersistenceContext::new(
-            self.database().write_pool().clone(),
+            self.database().task_write_pool().clone(),
         ))
     }
 
@@ -236,13 +224,13 @@ impl std::fmt::Debug for TaskRuntimeContext {
             .field("tasks_db_file", &self.tasks_db_file)
             .field("lucene_data_directory", &self.lucene_data_directory)
             .field("consumes_queue", &self.consumes_queue)
-            .field("owns_main_database", &self.owns_main_database)
+            .field("owns_main_database", &self.ownership.owns_main_database)
             .field(
                 "owns_filesystem_scan_output",
-                &self.owns_filesystem_scan_output,
+                &self.ownership.owns_filesystem_scan_output,
             )
-            .field("owns_sidecar_output", &self.owns_sidecar_output)
-            .field("owns_search_index", &self.owns_search_index)
+            .field("owns_sidecar_output", &self.ownership.owns_sidecar_output)
+            .field("owns_search_index", &self.ownership.owns_search_index)
             .field("task_pool_size", &self.task_pool_size)
             .field("task_write_pool", &self.task_write_pool)
             .field("task_read_pool", &self.task_read_pool)
@@ -256,16 +244,16 @@ impl DatabaseRuntime<'_> {
         &self.runtime.main_db
     }
 
-    pub fn read_pool(&self) -> &SqlitePool {
+    pub fn task_read_pool(&self) -> &SqlitePool {
         &self.runtime.task_read_pool
     }
 
-    pub fn write_pool(&self) -> &SqlitePool {
+    pub fn task_write_pool(&self) -> &SqlitePool {
         &self.runtime.task_write_pool
     }
 
     pub fn owns_main_database(&self) -> bool {
-        self.runtime.owns_main_database
+        self.runtime.ownership.owns_main_database
     }
 }
 
@@ -275,17 +263,17 @@ impl SearchRuntime<'_> {
     }
 
     pub fn owns_search_index(&self) -> bool {
-        self.runtime.owns_search_index
+        self.runtime.ownership.owns_search_index
     }
 }
 
 impl FilesystemRuntime<'_> {
     pub fn owns_filesystem_scan_output(&self) -> bool {
-        self.runtime.owns_filesystem_scan_output
+        self.runtime.ownership.owns_filesystem_scan_output
     }
 
     pub fn owns_sidecar_output(&self) -> bool {
-        self.runtime.owns_sidecar_output
+        self.runtime.ownership.owns_sidecar_output
     }
 }
 

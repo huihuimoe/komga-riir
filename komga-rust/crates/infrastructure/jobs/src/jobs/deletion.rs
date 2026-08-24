@@ -8,7 +8,7 @@ pub(crate) async fn execute_empty_trash(
 ) -> Result<TaskExecutionOutcome, TaskProcessingError> {
     if runtime.database().owns_main_database() {
         komga_infrastructure_discovery::empty_trash_rows(
-            runtime.database().write_pool(),
+            runtime.database().task_write_pool(),
             library_id,
         )
         .await
@@ -18,7 +18,7 @@ pub(crate) async fn execute_empty_trash(
             .await
             .map_err(TaskProcessingError::runtime)?;
         komga_infrastructure_discovery::cleanup_empty_sets_rows(
-            runtime.database().write_pool(),
+            runtime.database().task_write_pool(),
             policy,
         )
         .await

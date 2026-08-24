@@ -62,11 +62,14 @@ pub(crate) async fn execute_find_book_thumbnails_to_regenerate(
                 .map_err(TaskProcessingError::runtime)?
                 .generated_thumbnail_max_edge,
         );
-        load_books_with_undersized_generated_thumbnails(runtime.database().read_pool(), max_edge)
-            .await
-            .map_err(TaskProcessingError::runtime)?
+        load_books_with_undersized_generated_thumbnails(
+            runtime.database().task_read_pool(),
+            max_edge,
+        )
+        .await
+        .map_err(TaskProcessingError::runtime)?
     } else {
-        load_non_deleted_book_ids(runtime.database().read_pool())
+        load_non_deleted_book_ids(runtime.database().task_read_pool())
             .await
             .map_err(TaskProcessingError::runtime)?
     };

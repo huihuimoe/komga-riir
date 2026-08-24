@@ -17,8 +17,8 @@ pub(crate) async fn execute_import_book(
 
     let service = BookImportService::new(
         Arc::new(FilesystemBookImport::new(
-            runtime.database().read_pool().clone(),
-            runtime.database().write_pool().clone(),
+            runtime.database().task_read_pool().clone(),
+            runtime.database().task_write_pool().clone(),
         )),
         runtime.runtime_events_arc(),
     );
