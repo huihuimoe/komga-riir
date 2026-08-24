@@ -18,6 +18,11 @@ struct NormalizedMigration {
 }
 
 pub fn configure_infrastructure_build(manifest_dir: &Path, out_dir: &Path) {
+    configure_sqlite_build(manifest_dir, out_dir);
+    configure_pdfium_build(manifest_dir);
+}
+
+pub fn configure_sqlite_build(manifest_dir: &Path, out_dir: &Path) {
     println!("cargo:rerun-if-changed=build.rs");
 
     let main_dir = manifest_dir.join("sqlx-migrations/main");
@@ -43,6 +48,10 @@ pub fn configure_infrastructure_build(manifest_dir: &Path, out_dir: &Path) {
         &tasks_dir,
         &target_root.join("tasks-prefix-schema-inventories.json"),
     );
+}
+
+pub fn configure_pdfium_build(manifest_dir: &Path) {
+    println!("cargo:rerun-if-changed=build.rs");
     prepare_pdfium_vendor(manifest_dir);
 }
 
