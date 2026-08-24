@@ -94,6 +94,7 @@ strip = true
 name = "komga-rust"
 version.workspace = true
 edition.workspace = true
+publish = false
 
 [features]
 image-nasm = ["komga-infrastructure-media-core/image-nasm"]
