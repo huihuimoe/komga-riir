@@ -1,12 +1,11 @@
 use super::*;
 use komga_application::runtime_sse::RuntimeSseEventSink;
 use komga_application::task_processing::TaskProcessingError;
-use komga_infrastructure::persistence::DatabaseHandle;
-use komga_infrastructure::tasks::TaskRuntimeOwnershipOverrides;
-use komga_infrastructure::{
-    persistence::connect_task_pool, persistence::connect_task_write_pool,
-    persistence::default_read_max_connections,
+use komga_infrastructure_base::DatabaseHandle;
+use komga_infrastructure_base::{
+    connect_task_pool, connect_task_write_pool, default_read_max_connections,
 };
+use komga_infrastructure_jobs::TaskRuntimeOwnershipOverrides;
 use std::sync::Arc;
 
 use super::super::support::fixture::TestDbFixture;
@@ -98,7 +97,7 @@ pub(super) async fn process_scan_library_task(
         .enqueue(scan_library_task(library_id, priority, deep_scan))
         .await
         .expect("task enqueue should succeed");
-    scheduler.process_available(&runtime.job()).await
+    komga_infrastructure_jobs::process_available(&scheduler, &runtime).await
 }
 
 pub(super) async fn runtime_task_context_from_config(config: &RuntimeConfig) -> TaskRuntimeContext {

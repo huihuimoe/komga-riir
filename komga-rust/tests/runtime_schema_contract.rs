@@ -1,7 +1,6 @@
-use komga_infrastructure::persistence::SqlitePersistenceContext;
-use komga_infrastructure::{
-    persistence::bootstrap_pool, persistence::bootstrap_tasks_pool,
-    persistence::connect_main_write_context, persistence::connect_write_pool,
+use komga_infrastructure_base::{
+    SqlitePersistenceContext, bootstrap_pool, bootstrap_tasks_pool, connect_main_write_context,
+    connect_write_pool,
 };
 use sqlx::Row;
 use std::path::Path;

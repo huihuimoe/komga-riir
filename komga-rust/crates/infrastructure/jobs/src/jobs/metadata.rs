@@ -11,7 +11,7 @@ use komga_application::task_processing::{
 
 use crate::JobRuntime;
 
-pub(in crate) async fn execute_refresh_book_metadata(
+pub(crate) async fn execute_refresh_book_metadata(
     runtime: &JobRuntime<'_>,
     book_id: &str,
     capabilities: &BTreeSet<String>,
@@ -33,7 +33,7 @@ pub(in crate) async fn execute_refresh_book_metadata(
     Ok(TaskExecutionOutcome::with_follow_up_tasks(follow_up_tasks))
 }
 
-pub(in crate) async fn execute_refresh_series_metadata(
+pub(crate) async fn execute_refresh_series_metadata(
     runtime: &JobRuntime<'_>,
     series_id: &str,
     priority: i32,
@@ -50,7 +50,7 @@ pub(in crate) async fn execute_refresh_series_metadata(
     ]))
 }
 
-pub(in crate) async fn execute_aggregate_series_metadata(
+pub(crate) async fn execute_aggregate_series_metadata(
     runtime: &JobRuntime<'_>,
     series_id: &str,
 ) -> Result<TaskExecutionOutcome, TaskProcessingError> {
@@ -59,7 +59,7 @@ pub(in crate) async fn execute_aggregate_series_metadata(
         .map(|()| TaskExecutionOutcome::completed())
 }
 
-pub(in crate) async fn execute_refresh_book_local_artwork(
+pub(crate) async fn execute_refresh_book_local_artwork(
     runtime: &JobRuntime<'_>,
     book_id: &str,
 ) -> Result<TaskExecutionOutcome, TaskProcessingError> {
@@ -68,7 +68,7 @@ pub(in crate) async fn execute_refresh_book_local_artwork(
         .map(|()| TaskExecutionOutcome::completed())
 }
 
-pub(in crate) async fn execute_generate_book_thumbnail(
+pub(crate) async fn execute_generate_book_thumbnail(
     runtime: &JobRuntime<'_>,
     book_id: &str,
 ) -> Result<TaskExecutionOutcome, TaskProcessingError> {
@@ -77,7 +77,7 @@ pub(in crate) async fn execute_generate_book_thumbnail(
         .map(|()| TaskExecutionOutcome::completed())
 }
 
-pub(in crate) async fn execute_refresh_series_local_artwork(
+pub(crate) async fn execute_refresh_series_local_artwork(
     runtime: &JobRuntime<'_>,
     series_id: &str,
 ) -> Result<TaskExecutionOutcome, TaskProcessingError> {

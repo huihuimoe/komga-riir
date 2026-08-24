@@ -5,7 +5,6 @@ members = [
   "crates/kepubify",
   "crates/domain",
   "crates/application",
-  "crates/infrastructure",
   "crates/infrastructure/base",
   "crates/infrastructure/search",
   "crates/infrastructure/media-core",
@@ -112,7 +111,6 @@ komga-config = { path = "crates/config" }
 komga-server = { path = "crates/server" }
 komga-domain = { path = "crates/domain" }
 komga-application = { path = "crates/application" }
-komga-infrastructure = { path = "crates/infrastructure" }
 komga-infrastructure-media-core = { path = "crates/infrastructure/media-core" }
 komga-interfaces = { path = "crates/interfaces" }
 mimalloc.workspace = true

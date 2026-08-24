@@ -2,10 +2,12 @@ use komga_application::task_processing::{
     BookPayload, TaskExecutionOutcome, TaskKind, TaskProcessingError, TaskRequest,
 };
 
-use komga_infrastructure_media_library::maintenance::{convert_book, find_books_to_convert, repair_extension};
 use crate::JobRuntime;
+use komga_infrastructure_media_library::maintenance::{
+    convert_book, find_books_to_convert, repair_extension,
+};
 
-pub(in crate) async fn execute_repair_extension(
+pub(crate) async fn execute_repair_extension(
     runtime: &JobRuntime<'_>,
     book_id: &str,
 ) -> Result<TaskExecutionOutcome, TaskProcessingError> {
@@ -19,7 +21,7 @@ pub(in crate) async fn execute_repair_extension(
     Ok(TaskExecutionOutcome::completed())
 }
 
-pub(in crate) async fn execute_find_books_to_convert(
+pub(crate) async fn execute_find_books_to_convert(
     runtime: &JobRuntime<'_>,
     library_id: &str,
     priority: i32,
@@ -43,7 +45,7 @@ pub(in crate) async fn execute_find_books_to_convert(
     Ok(TaskExecutionOutcome::with_follow_up_tasks(follow_up_tasks))
 }
 
-pub(in crate) async fn execute_convert_book(
+pub(crate) async fn execute_convert_book(
     runtime: &JobRuntime<'_>,
     book_id: &str,
 ) -> Result<TaskExecutionOutcome, TaskProcessingError> {
@@ -58,10 +60,10 @@ pub(in crate) async fn execute_convert_book(
 
 #[cfg(test)]
 mod tests {
-    use komga_infrastructure_base::sqlite::connect_test_pool;
-    use komga_infrastructure_tasks::TaskQueueScheduler;
     use crate::test_support::{RuntimeTestFixture, execute_and_enqueue};
     use komga_application::task_processing::{BookPayload, TaskKind, TaskRequest};
+    use komga_infrastructure_base::sqlite::connect_test_pool;
+    use komga_infrastructure_tasks::TaskQueueScheduler;
     use sqlx::{Row, SqlitePool};
 
     fn archive_fixture_path(file_name: &str) -> std::path::PathBuf {

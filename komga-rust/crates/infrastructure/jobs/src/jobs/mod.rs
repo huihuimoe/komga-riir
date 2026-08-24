@@ -8,9 +8,7 @@ mod scanning;
 pub(crate) use conversion::{
     execute_convert_book, execute_find_books_to_convert, execute_repair_extension,
 };
-pub(crate) use deletion::{
-    execute_delete_book, execute_delete_series, execute_empty_trash,
-};
+pub(crate) use deletion::{execute_delete_book, execute_delete_series, execute_empty_trash};
 pub(crate) use import::execute_import_book;
 pub(crate) use indexing::{
     execute_analyze_book, execute_find_book_thumbnails_to_regenerate, execute_rebuild_index,

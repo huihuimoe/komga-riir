@@ -6,20 +6,21 @@ use std::time::Duration;
 use super::{TaskRuntimeConfig, TaskRuntimeContext};
 use komga_application::task_processing::{
     LibraryScanPipeline, LibraryScanScheduleState, ScanSchedulingTrigger,
-    ScheduledLibraryScanBatch, TaskExecutionResult, TaskKind, TaskQueueAdmin, TaskQueueRecord,
-    TaskRequest,
+    ScheduledLibraryScanBatch, TaskExecutionResult, TaskKind, TaskProcessingError, TaskQueueAdmin,
+    TaskQueueRecord, TaskRequest,
 };
 use tokio::runtime::Handle;
 use tokio::sync::{Notify, mpsc, watch};
 use tokio::time::interval;
 use tracing::{Instrument, Span, error, info};
 
+use crate::dispatch::TaskJobDispatcher;
 use komga_infrastructure_media_library::library_scan::SqliteFilesystemLibraryScanPipeline;
 use komga_infrastructure_tasks::{
     BackgroundTaskExecutionLoop, RuntimeTaskEngine, SharedTaskQueue, TaskExecutionPoolHandle,
     TaskExecutor, TaskQueueConfig, TaskQueueScheduler, process_available_serial,
+    recover_and_process as recover_and_process_tasks,
 };
-use crate::dispatch::TaskJobDispatcher;
 pub type TaskQueueWakeSignal = Arc<Notify>;
 
 fn task_queue_config(runtime: &TaskRuntimeContext) -> TaskQueueConfig {
@@ -39,6 +40,22 @@ fn task_executor(runtime: &TaskRuntimeContext) -> TaskExecutor {
                 .await
         })
     })
+}
+
+pub async fn process_available(
+    scheduler: &TaskQueueScheduler,
+    runtime: &TaskRuntimeContext,
+) -> Result<usize, TaskProcessingError> {
+    let executor = task_executor(runtime);
+    process_available_serial(scheduler, &executor).await
+}
+
+pub async fn recover_and_process(
+    scheduler: &TaskQueueScheduler,
+    runtime: &TaskRuntimeContext,
+) -> Result<usize, TaskProcessingError> {
+    let executor = task_executor(runtime);
+    recover_and_process_tasks(scheduler, &executor).await
 }
 
 pub struct RuntimeBackgroundState {
@@ -496,10 +513,8 @@ pub async fn run_background_task_iteration(
     task_queue: SharedTaskQueue,
     runtime: TaskRuntimeContext,
 ) -> anyhow::Result<usize> {
-    let task_execution_pool = TaskExecutionPoolHandle::new(
-        runtime.worker().task_pool_size(),
-        task_executor(&runtime),
-    );
+    let task_execution_pool =
+        TaskExecutionPoolHandle::new(runtime.worker().task_pool_size(), task_executor(&runtime));
     let mut result_rx = task_execution_pool
         .take_result_receiver()
         .expect("one-shot background task iteration should own the result receiver");
@@ -539,28 +554,25 @@ async fn run_background_task_iteration_with_pool(
         RuntimeLifecycleFields::default().with_queued_tasks(queued_tasks),
     );
 
-    let processed = match BackgroundTaskExecutionLoop::new(
-        &task_queue,
-        task_execution_pool,
-        result_rx,
-    )
-    .drain()
-    .await
-    {
-        Ok(processed) => processed,
-        Err(error) => {
-            let error_message = error.to_string();
-            log_worker_event(
-                BACKGROUND_TASK_WORKER,
-                "failed",
-                &runtime,
-                RuntimeLifecycleFields::default()
-                    .with_queued_tasks(queued_tasks)
-                    .with_error(&error_message),
-            );
-            return Err(anyhow::anyhow!(error_message));
-        }
-    };
+    let processed =
+        match BackgroundTaskExecutionLoop::new(&task_queue, task_execution_pool, result_rx)
+            .drain()
+            .await
+        {
+            Ok(processed) => processed,
+            Err(error) => {
+                let error_message = error.to_string();
+                log_worker_event(
+                    BACKGROUND_TASK_WORKER,
+                    "failed",
+                    &runtime,
+                    RuntimeLifecycleFields::default()
+                        .with_queued_tasks(queued_tasks)
+                        .with_error(&error_message),
+                );
+                return Err(anyhow::anyhow!(error_message));
+            }
+        };
 
     log_worker_event(
         BACKGROUND_TASK_WORKER,
@@ -1160,39 +1172,37 @@ mod tests {
                 let started = started.clone();
                 let worker_threads = worker_threads.clone();
                 move |_task| {
-                let started = started.clone();
-                let mut release_rx = release_rx.clone();
-                let worker_threads = worker_threads.clone();
-                Box::pin(async move {
-                    worker_threads.lock().await.push(
-                        std::thread::current()
-                            .name()
-                            .unwrap_or("<unnamed>")
-                            .to_string(),
-                    );
-                    started.wait().await;
-                    loop {
-                        if *release_rx.borrow() {
-                            break;
+                    let started = started.clone();
+                    let mut release_rx = release_rx.clone();
+                    let worker_threads = worker_threads.clone();
+                    Box::pin(async move {
+                        worker_threads.lock().await.push(
+                            std::thread::current()
+                                .name()
+                                .unwrap_or("<unnamed>")
+                                .to_string(),
+                        );
+                        started.wait().await;
+                        loop {
+                            if *release_rx.borrow() {
+                                break;
+                            }
+                            release_rx
+                                .changed()
+                                .await
+                                .expect("fake task release signal should remain open");
                         }
-                        release_rx
-                            .changed()
-                            .await
-                            .expect("fake task release signal should remain open");
-                    }
-                    Ok(komga_application::task_processing::TaskExecutionOutcome::completed())
-                })
-            }
+                        Ok(komga_application::task_processing::TaskExecutionOutcome::completed())
+                    })
+                }
             }),
         );
         let mut result_rx = pool
             .take_result_receiver()
             .expect("task execution pool test should expose a single result receiver");
 
-        pool.submit(
-            TaskQueueRecord::new("TEST_TASK:1", 0, None),
-        )
-        .expect("first fake task should be submitted");
+        pool.submit(TaskQueueRecord::new("TEST_TASK:1", 0, None))
+            .expect("first fake task should be submitted");
         tokio::time::sleep(Duration::from_millis(25)).await;
 
         pool.resize(2);

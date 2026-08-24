@@ -1,8 +1,7 @@
 use super::*;
-use komga_infrastructure::persistence::DatabaseHandle;
-use komga_infrastructure::{
-    persistence::connect_task_pool, persistence::connect_task_write_pool,
-    persistence::default_read_max_connections,
+use komga_infrastructure_base::DatabaseHandle;
+use komga_infrastructure_base::{
+    connect_task_pool, connect_task_write_pool, default_read_max_connections,
 };
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -25,7 +24,7 @@ fn runtime_worker_spawns_log_started_and_shutdown_with_span_context() {
         let runtime = runtime.clone();
         async move {
             async move {
-                let background = komga_infrastructure::tasks::prepare_task_queue(
+                let background = komga_infrastructure_jobs::prepare_task_queue(
                     runtime_task_context_from_config(&config).await,
                     None,
                 )
@@ -83,7 +82,7 @@ fn runtime_workers_observe_shutdown_signal_before_runtime_teardown() {
         let runtime = runtime.clone();
         async move {
             async move {
-                let background = komga_infrastructure::tasks::prepare_task_queue(
+                let background = komga_infrastructure_jobs::prepare_task_queue(
                     runtime_task_context_from_config(&config).await,
                     None,
                 )
@@ -212,7 +211,7 @@ fn periodic_scan_iteration_logs_completion_only_when_due_and_stays_silent_when_i
         let task_queue = task_queue.clone();
         async move {
             let mut last_run = HashMap::new();
-            komga_infrastructure::tasks::run_periodic_library_scan_iteration(
+            komga_infrastructure_jobs::run_periodic_library_scan_iteration(
                 task_queue,
                 None,
                 runtime,
@@ -244,7 +243,7 @@ fn periodic_scan_iteration_logs_completion_only_when_due_and_stays_silent_when_i
             tokio::time::resume();
             let mut last_run = HashMap::from([("library-1".to_string(), last_run_at)]);
             let wakeup = task_wakeup.notified();
-            komga_infrastructure::tasks::run_periodic_library_scan_iteration(
+            komga_infrastructure_jobs::run_periodic_library_scan_iteration(
                 task_queue,
                 Some(task_wakeup.clone()),
                 runtime,
@@ -291,7 +290,7 @@ fn periodic_scan_iteration_logs_completion_only_when_due_and_stays_silent_when_i
                 .expect("periodic scan failure interval should be updated");
             pool.close().await;
 
-            komga_infrastructure::tasks::run_periodic_library_scan_iteration(
+            komga_infrastructure_jobs::run_periodic_library_scan_iteration(
                 task_queue,
                 None,
                 runtime,
@@ -393,7 +392,7 @@ fn periodic_scan_iteration_drains_each_due_library_separately_and_cleans_stale_s
                 ("library-2".to_string(), last_run_at),
                 ("stale-library".to_string(), last_run_at),
             ]);
-            let enqueued = komga_infrastructure::tasks::run_periodic_library_scan_iteration(
+            let enqueued = komga_infrastructure_jobs::run_periodic_library_scan_iteration(
                 task_queue,
                 None,
                 runtime,
@@ -438,7 +437,7 @@ fn background_task_iteration_logs_completion_and_failure_without_empty_poll_nois
         let runtime = runtime.clone();
         let idle_queue = idle_queue.clone();
         async move {
-            komga_infrastructure::tasks::run_background_task_iteration(idle_queue, runtime)
+            komga_infrastructure_jobs::run_background_task_iteration(idle_queue, runtime)
                 .await
                 .expect("idle background task iteration should succeed");
         }
@@ -467,7 +466,7 @@ fn background_task_iteration_logs_completion_and_failure_without_empty_poll_nois
         let runtime = runtime.clone();
         let success_queue = success_queue.clone();
         async move {
-            komga_infrastructure::tasks::run_background_task_iteration(success_queue, runtime)
+            komga_infrastructure_jobs::run_background_task_iteration(success_queue, runtime)
                 .await
                 .expect("background task iteration should process queued task");
         }
@@ -499,7 +498,7 @@ fn background_task_iteration_logs_completion_and_failure_without_empty_poll_nois
         let runtime = runtime.clone();
         let failure_queue = failure_queue.clone();
         async move {
-            komga_infrastructure::tasks::run_background_task_iteration(failure_queue, runtime)
+            komga_infrastructure_jobs::run_background_task_iteration(failure_queue, runtime)
                 .await
                 .expect_err("unsupported task should fail background worker iteration")
                 .to_string()
@@ -531,7 +530,7 @@ fn authentication_cleanup_logs_skip_complete_and_failure_boundaries() {
     let complete_logs = capture_router_logs_async_result(&log_config, {
         let config = config.clone();
         async move {
-            komga_infrastructure::tasks::cleanup_authentication_activity_once(&config)
+            komga_infrastructure_jobs::cleanup_authentication_activity_once(&config)
                 .await
                 .expect("auth cleanup should complete when main db is owned");
         }
@@ -564,7 +563,7 @@ fn authentication_cleanup_logs_skip_complete_and_failure_boundaries() {
             ..TaskRuntimeOwnershipOverrides::default()
         });
     let skip_logs = capture_router_logs_async_result(&log_config, async move {
-        komga_infrastructure::tasks::cleanup_authentication_activity_once(&skip_runtime)
+        komga_infrastructure_jobs::cleanup_authentication_activity_once(&skip_runtime)
             .await
             .expect("auth cleanup skip path should return ok");
     })
@@ -617,7 +616,7 @@ fn authentication_cleanup_logs_skip_complete_and_failure_boundaries() {
         })
     });
     let failure_logs = capture_router_logs_async_result(&log_config, async move {
-        komga_infrastructure::tasks::cleanup_authentication_activity_once(&failure_runtime)
+        komga_infrastructure_jobs::cleanup_authentication_activity_once(&failure_runtime)
             .await
             .expect_err("auth cleanup should fail when db has no schema")
             .to_string()

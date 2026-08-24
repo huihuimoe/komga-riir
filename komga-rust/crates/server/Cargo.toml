@@ -33,7 +33,6 @@ tracing-subscriber.workspace = true
 komga-config = { path = "../config" }
 komga-domain = { path = "../domain" }
 komga-application = { path = "../application" }
-komga-infrastructure = { path = "../infrastructure" }
 komga-infrastructure-identity = { path = "../infrastructure/identity" }
 komga-infrastructure-jobs = { path = "../infrastructure/jobs" }
 komga-infrastructure-operational = { path = "../infrastructure/operational" }

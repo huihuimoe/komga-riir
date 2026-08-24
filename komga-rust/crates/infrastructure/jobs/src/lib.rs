@@ -13,6 +13,6 @@ pub use context::{
 };
 pub use workers::{
     RuntimeBackgroundState, TaskQueueWakeSignal, cleanup_authentication_activity_once,
-    prepare_task_queue, process_startup_library_scans, run_background_task_iteration,
-    run_periodic_library_scan_iteration,
+    prepare_task_queue, process_available, process_startup_library_scans, recover_and_process,
+    run_background_task_iteration, run_periodic_library_scan_iteration,
 };

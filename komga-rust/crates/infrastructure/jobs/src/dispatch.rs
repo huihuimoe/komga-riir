@@ -1,8 +1,8 @@
-use komga_infrastructure_search::SearchEntityType;
 use komga_application::task_processing::{
     RebuildIndexEntity, RuntimeTaskRequest, TaskExecutionOutcome, TaskProcessingError,
     TaskQueueRecord,
 };
+use komga_infrastructure_search::SearchEntityType;
 
 use super::JobRuntime;
 

@@ -4,10 +4,10 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use sqlx::SqlitePool;
 
 use super::SearchIndexEngine;
-use komga_infrastructure_base::persistence::sqlite::connect_main_write_context;
 use crate::lifecycle::{
     SearchDocument, SearchEntityType, SearchField, SearchFieldEntry, SearchIndexLifecycle,
 };
+use komga_infrastructure_base::sqlite::connect_main_write_context;
 
 struct SearchIndexEngineFixture {
     database_file: PathBuf,

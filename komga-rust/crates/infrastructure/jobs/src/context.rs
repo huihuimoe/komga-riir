@@ -1,16 +1,15 @@
-use std::collections::HashSet;
 use std::path::PathBuf;
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 
 use komga_application::operational::ServerSettingsPort;
 use komga_application::runtime_sse::{RuntimeSseEventSink, RuntimeSseEventStore};
 use komga_application::task_processing::{CleanupEmptySetsPolicy, ThumbnailRegenerationPolicy};
 use sqlx::SqlitePool;
 
-use komga_infrastructure_operational::ServerSettingsStore;
 use komga_infrastructure_base::{DatabaseHandle, SqlitePersistenceContext};
-use komga_infrastructure_search::engine::SearchIndexEngine;
 use komga_infrastructure_media_library::MediaLibraryJobContext;
+use komga_infrastructure_operational::ServerSettingsStore;
+use komga_infrastructure_search::engine::SearchIndexEngine;
 
 #[derive(Clone)]
 pub struct TaskRuntimeContext {
@@ -26,13 +25,6 @@ pub struct TaskRuntimeContext {
     task_write_pool: SqlitePool,
     task_read_pool: SqlitePool,
     runtime_events: Arc<dyn RuntimeSseEventSink>,
-    runtime_state: Arc<TaskRuntimeState>,
-}
-
-#[derive(Default)]
-struct TaskRuntimeState {
-    failed_book_conversions: Mutex<HashSet<String>>,
-    skipped_extension_repairs: Mutex<HashSet<String>>,
 }
 
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
@@ -91,7 +83,6 @@ impl TaskRuntimeContext {
             task_write_pool,
             task_read_pool,
             runtime_events: Arc::new(RuntimeSseEventStore::default()),
-            runtime_state: Arc::new(TaskRuntimeState::default()),
         }
     }
 
@@ -198,7 +189,7 @@ impl JobRuntime<'_> {
         })
     }
 
-    pub(in crate) async fn thumbnail_regeneration_policy(
+    pub(crate) async fn thumbnail_regeneration_policy(
         &self,
     ) -> anyhow::Result<ThumbnailRegenerationPolicy> {
         let settings = self
@@ -217,42 +208,6 @@ impl JobRuntime<'_> {
 
     pub(crate) fn runtime_events_arc(&self) -> Arc<dyn RuntimeSseEventSink> {
         self.runtime.runtime_events.clone()
-    }
-
-    pub(crate) fn book_conversion_failed_before(&self, book_id: &str) -> bool {
-        self.runtime
-            .runtime_state
-            .failed_book_conversions
-            .lock()
-            .expect("failed book conversion state lock should not be poisoned")
-            .contains(book_id)
-    }
-
-    pub(crate) fn mark_book_conversion_failed(&self, book_id: &str) {
-        self.runtime
-            .runtime_state
-            .failed_book_conversions
-            .lock()
-            .expect("failed book conversion state lock should not be poisoned")
-            .insert(book_id.to_string());
-    }
-
-    pub(crate) fn extension_repair_was_skipped(&self, book_id: &str) -> bool {
-        self.runtime
-            .runtime_state
-            .skipped_extension_repairs
-            .lock()
-            .expect("skipped extension repair state lock should not be poisoned")
-            .contains(book_id)
-    }
-
-    pub(crate) fn mark_extension_repair_skipped(&self, book_id: &str) {
-        self.runtime
-            .runtime_state
-            .skipped_extension_repairs
-            .lock()
-            .expect("skipped extension repair state lock should not be poisoned")
-            .insert(book_id.to_string());
     }
 }
 
@@ -274,7 +229,6 @@ impl std::fmt::Debug for TaskRuntimeContext {
             .field("task_write_pool", &self.task_write_pool)
             .field("task_read_pool", &self.task_read_pool)
             .field("runtime_events", &"<runtime event sink>")
-            .field("runtime_state", &"<runtime state>")
             .finish()
     }
 }

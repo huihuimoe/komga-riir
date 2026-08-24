@@ -28,8 +28,7 @@ async fn runtime_blocks_book_thumbnail_generation_when_main_database_is_external
         ))
         .await
         .expect("task enqueue should succeed");
-    scheduler
-        .process_available(&runtime.job())
+    komga_infrastructure_jobs::process_available(&scheduler, &runtime)
         .await
         .expect("blocked main-database thumbnail generation should still drain cleanly");
 
@@ -69,8 +68,7 @@ async fn runtime_generate_book_thumbnail_replaces_invalid_selected_thumbnail_wit
         )
         .await
         .expect("task enqueue should succeed");
-    scheduler
-        .process_available(&runtime.job())
+    komga_infrastructure_jobs::process_available(&scheduler, &runtime)
         .await
         .expect("generate-book-thumbnail task should replace invalid selected thumbnail cleanly");
 

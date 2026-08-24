@@ -75,8 +75,7 @@ async fn runtime_refresh_series_metadata_applies_epub_from_book_provider_patch()
         )
         .await
         .expect("task enqueue should succeed");
-    scheduler
-        .process_available(&runtime.job())
+    komga_infrastructure_jobs::process_available(&scheduler, &runtime)
         .await
         .expect("EPUB series metadata refresh task should process successfully");
 
@@ -190,8 +189,7 @@ async fn runtime_refresh_series_metadata_ignores_non_iso_language_tags_from_book
         )
         .await
         .expect("task enqueue should succeed");
-    scheduler
-        .process_available(&runtime.job())
+    komga_infrastructure_jobs::process_available(&scheduler, &runtime)
         .await
         .expect("invalid language series metadata refresh task should process successfully");
 
@@ -293,8 +291,7 @@ async fn runtime_refresh_series_metadata_ignores_generic_series_xml_sidecar_with
         )
         .await
         .expect("task enqueue should succeed");
-    scheduler
-        .process_available(&runtime.job())
+    komga_infrastructure_jobs::process_available(&scheduler, &runtime)
         .await
         .expect("generic series sidecar refresh task should process successfully");
 
@@ -415,8 +412,7 @@ async fn runtime_refresh_series_metadata_applies_comicinfo_from_book_provider_an
         )
         .await
         .expect("task enqueue should succeed");
-    scheduler
-        .process_available(&runtime.job())
+    komga_infrastructure_jobs::process_available(&scheduler, &runtime)
         .await
         .expect("ComicInfo series metadata refresh task should process successfully");
 
@@ -610,8 +606,7 @@ async fn runtime_refresh_series_metadata_ignores_deleted_books_from_book_provide
         )
         .await
         .expect("task enqueue should succeed");
-    scheduler
-        .process_available(&runtime.job())
+    komga_infrastructure_jobs::process_available(&scheduler, &runtime)
         .await
         .expect("deleted-book series metadata refresh task should process successfully");
 
@@ -713,8 +708,7 @@ async fn runtime_refresh_series_metadata_applies_mylar_series_provider() {
         )
         .await
         .expect("task enqueue should succeed");
-    scheduler
-        .process_available(&runtime.job())
+    komga_infrastructure_jobs::process_available(&scheduler, &runtime)
         .await
         .expect("Mylar series metadata refresh task should process successfully");
 
@@ -809,8 +803,7 @@ async fn runtime_refresh_series_metadata_ignores_mylar_series_json_when_library_
         )
         .await
         .expect("task enqueue should succeed");
-    scheduler
-        .process_available(&runtime.job())
+    komga_infrastructure_jobs::process_available(&scheduler, &runtime)
         .await
         .expect("disabled Mylar series metadata refresh task should process successfully");
 

@@ -2,7 +2,7 @@ use komga_application::task_processing::{TaskExecutionOutcome, TaskProcessingErr
 
 use crate::JobRuntime;
 
-pub(in crate) async fn execute_empty_trash(
+pub(crate) async fn execute_empty_trash(
     runtime: &JobRuntime<'_>,
     library_id: &str,
 ) -> Result<TaskExecutionOutcome, TaskProcessingError> {
@@ -27,7 +27,7 @@ pub(in crate) async fn execute_empty_trash(
     Ok(TaskExecutionOutcome::completed())
 }
 
-pub(in crate) async fn execute_delete_book(
+pub(crate) async fn execute_delete_book(
     runtime: &JobRuntime<'_>,
     book_id: &str,
 ) -> Result<TaskExecutionOutcome, TaskProcessingError> {
@@ -36,7 +36,7 @@ pub(in crate) async fn execute_delete_book(
         .map(|()| TaskExecutionOutcome::completed())
 }
 
-pub(in crate) async fn execute_delete_series(
+pub(crate) async fn execute_delete_series(
     runtime: &JobRuntime<'_>,
     series_id: &str,
 ) -> Result<TaskExecutionOutcome, TaskProcessingError> {

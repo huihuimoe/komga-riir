@@ -18,7 +18,7 @@ pub(super) async fn connect_test_pool(
 ) -> Result<sqlx::SqlitePool, sqlx::Error> {
     sqlx::sqlite::SqlitePoolOptions::new()
         .max_connections(max_connections)
-        .connect_with(komga_infrastructure::persistence::file_backed_connect_options(path))
+        .connect_with(komga_infrastructure_base::file_backed_connect_options(path))
         .await
 }
 

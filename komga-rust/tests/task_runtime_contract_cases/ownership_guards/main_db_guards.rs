@@ -47,8 +47,7 @@ async fn runtime_blocks_import_book_when_main_database_is_external_owned() {
         )
         .await
         .expect("task enqueue should succeed");
-    scheduler
-        .process_available(&runtime.job())
+    komga_infrastructure_jobs::process_available(&scheduler, &runtime)
         .await
         .expect("blocked main-database import should still drain cleanly");
 
@@ -167,8 +166,7 @@ async fn runtime_blocks_extension_repair_when_main_database_is_external_owned() 
         )
         .await
         .expect("task enqueue should succeed");
-    scheduler
-        .process_available(&runtime.job())
+    komga_infrastructure_jobs::process_available(&scheduler, &runtime)
         .await
         .expect("blocked main-database extension repair should still drain cleanly");
 
@@ -258,8 +256,7 @@ async fn runtime_blocks_find_books_to_convert_when_main_database_is_external_own
         )
         .await
         .expect("task enqueue should succeed");
-    let processed = scheduler
-        .process_available(&runtime.job())
+    let processed = komga_infrastructure_jobs::process_available(&scheduler, &runtime)
         .await
         .expect("blocked main-database find-books-to-convert should still drain cleanly");
 

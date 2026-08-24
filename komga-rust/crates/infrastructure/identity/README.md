@@ -1,6 +1,6 @@
 # Identity infrastructure
 
-This subtree owns the concrete runtime-facing identity backend inside `komga-infrastructure`.
+This crate owns the concrete runtime-facing identity backend for the Rust application.
 It adapts auth persistence, session storage, Kobo, and KOReader persistence to the
 `komga-application::identity_access` ports used by HTTP state composition.
 

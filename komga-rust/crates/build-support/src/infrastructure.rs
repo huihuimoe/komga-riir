@@ -17,11 +17,6 @@ struct NormalizedMigration {
     sql: String,
 }
 
-pub fn configure_infrastructure_build(manifest_dir: &Path, out_dir: &Path) {
-    configure_sqlite_build(manifest_dir, out_dir);
-    configure_pdfium_build(manifest_dir);
-}
-
 pub fn configure_sqlite_build(manifest_dir: &Path, out_dir: &Path) {
     println!("cargo:rerun-if-changed=build.rs");
 
