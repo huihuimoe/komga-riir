@@ -7,8 +7,10 @@ use komga_domain::discovery::MediaStatus;
 use sqlx::sqlite::SqliteRow;
 use sqlx::{Row, SqlitePool};
 
-use komga_infrastructure_base::sqlite::codecs::{clamp_kotlin_int_u32, parse_sqlite_group_concat_values};
 use komga_infrastructure_base::resolve_library_item_path;
+use komga_infrastructure_base::sqlite::codecs::{
+    clamp_kotlin_int_u32, parse_sqlite_group_concat_values,
+};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct PersistedMediaFileRow {
@@ -112,10 +114,7 @@ pub async fn load_persisted_media_file_records(
     })
 }
 
-pub async fn book_media_is_ready_status(
-    pool: &SqlitePool,
-    book_id: &str,
-) -> anyhow::Result<bool> {
+pub async fn book_media_is_ready_status(pool: &SqlitePool, book_id: &str) -> anyhow::Result<bool> {
     let row = sqlx::query("SELECT STATUS FROM MEDIA WHERE BOOK_ID = ? LIMIT 1")
         .bind(book_id)
         .fetch_optional(pool)
@@ -166,10 +165,7 @@ pub async fn load_persisted_book_page_row(
     Ok(row.map(map_persisted_book_page_row))
 }
 
-pub async fn persisted_book_exists(
-    pool: &SqlitePool,
-    book_id: &str,
-) -> anyhow::Result<bool> {
+pub async fn persisted_book_exists(pool: &SqlitePool, book_id: &str) -> anyhow::Result<bool> {
     Ok(
         sqlx::query("SELECT 1 AS FOUND FROM BOOK WHERE ID = ? LIMIT 1")
             .bind(book_id)
@@ -180,10 +176,7 @@ pub async fn persisted_book_exists(
     )
 }
 
-pub async fn persisted_series_exists(
-    pool: &SqlitePool,
-    series_id: &str,
-) -> anyhow::Result<bool> {
+pub async fn persisted_series_exists(pool: &SqlitePool, series_id: &str) -> anyhow::Result<bool> {
     Ok(
         sqlx::query("SELECT 1 AS FOUND FROM SERIES WHERE ID = ? LIMIT 1")
             .bind(series_id)

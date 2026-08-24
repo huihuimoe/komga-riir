@@ -7,9 +7,9 @@ use komga_application::media_assets::{
 };
 use sqlx::SqlitePool;
 
+use crate::progress::persistence as media_read_progress;
 use komga_infrastructure_media_core::content::persistence as db_queries;
 use komga_infrastructure_media_metadata as metadata;
-use crate::progress::persistence as media_read_progress;
 
 /// Direct read access to media assets backed by SQLite.
 /// No trait indirection — SqlitePool is Arc internally, so this is Clone and cheap.

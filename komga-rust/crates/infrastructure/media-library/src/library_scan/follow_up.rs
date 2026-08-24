@@ -211,8 +211,8 @@ impl ScanFollowUpPlanner {
 mod tests {
     use std::path::PathBuf;
 
-    use komga_infrastructure_base::sqlite::{connect_test_pool, schema};
     use komga_application::task_processing::RefreshBookMetadataPayload;
+    use komga_infrastructure_base::sqlite::{connect_test_pool, schema};
 
     use super::ScanFollowUpPlanner;
     use crate::library_scan::{

@@ -7,9 +7,9 @@ use pdfium_render::prelude::*;
 use sqlx::{Row, Sqlite, SqlitePool, Transaction};
 use tokio::fs;
 
-use komga_infrastructure_media_core::formats::pdfium::load_pdfium;
 use crate::codecs::parse_thumbnail_type;
 use komga_infrastructure_base::resolve_rooted_path;
+use komga_infrastructure_media_core::formats::pdfium::load_pdfium;
 
 pub(super) struct RenderedThumbnail {
     pub(super) bytes: Vec<u8>,

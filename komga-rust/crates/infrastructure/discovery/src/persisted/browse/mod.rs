@@ -657,7 +657,9 @@ mod tests {
     use sqlx::SqlitePool;
 
     use super::*;
-    use komga_infrastructure_base::sqlite::{connect_main_write_context, evict_shared_pools_for_paths};
+    use komga_infrastructure_base::sqlite::{
+        connect_main_write_context, evict_shared_pools_for_paths,
+    };
 
     struct BrowseFixture {
         service: SqliteDiscoveryBrowseService,

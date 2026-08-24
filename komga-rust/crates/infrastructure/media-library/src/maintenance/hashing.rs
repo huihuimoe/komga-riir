@@ -11,8 +11,8 @@ use super::persistence::{
     load_duplicate_pages_to_delete as load_persisted_duplicate_pages_to_delete,
 };
 use super::updates::persist_book_hash;
-use crate::maintenance::page_hashing::persist_book_page_hashes_from_media_content;
 use crate::MediaLibraryJobContext;
+use crate::maintenance::page_hashing::persist_book_page_hashes_from_media_content;
 
 pub async fn hash_book_pages(
     runtime: &MediaLibraryJobContext,

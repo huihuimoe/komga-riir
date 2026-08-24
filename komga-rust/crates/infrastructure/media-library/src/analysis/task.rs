@@ -2,12 +2,12 @@ use super::persistence::{
     AnalyzedBookMedia, AnalyzedBookMediaFile, AnalyzedBookPage, analyze_book_input,
     persist_book_analysis,
 };
+use crate::MediaLibraryJobContext;
 use crate::analysis::analyze_book_media_file;
 use crate::maintenance::updates::adjust_analyzed_book_read_progress;
-use komga_infrastructure_base::resolve_library_item_path;
-use crate::MediaLibraryJobContext;
 use komga_application::task_processing::TaskProcessingError;
 use komga_domain::discovery::MediaStatus;
+use komga_infrastructure_base::resolve_library_item_path;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct AnalyzeBookOutcome {

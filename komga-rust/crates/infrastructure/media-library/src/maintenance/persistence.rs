@@ -6,8 +6,8 @@ use komga_domain::discovery::MediaStatus;
 use komga_domain::media_assets::ThumbnailType;
 use sqlx::{Row, SqlitePool};
 
-use komga_infrastructure_media_core::expected_extension_for_media_type;
 use komga_infrastructure_base::resolve_library_item_path;
+use komga_infrastructure_media_core::expected_extension_for_media_type;
 
 #[derive(Clone, Debug)]
 pub(crate) struct PersistedLibraryHashingFlags {

@@ -17,12 +17,14 @@ use super::persistence::{
     load_page_hash_thumbnail as load_page_hash_thumbnail_model,
     load_unknown_page_hash_match_target, load_unknown_page_hash_source,
 };
+use komga_infrastructure_base::resolve_library_item_path;
 use komga_infrastructure_media_core::content::page_rendering::{
     load_archive_page_row, load_pdf_page_row, render_book_page_thumbnail, resolve_book_page_bytes,
 };
-use komga_infrastructure_media_core::content::persistence::{load_persisted_book_media, load_persisted_book_page_row};
+use komga_infrastructure_media_core::content::persistence::{
+    load_persisted_book_media, load_persisted_book_page_row,
+};
 use komga_infrastructure_media_core::formats::rar::read_rar_entry_bytes;
-use komga_infrastructure_base::resolve_library_item_path;
 use std::path::Path;
 
 const KOTLIN_PDF_MIN_EDGE: u32 = 3200;

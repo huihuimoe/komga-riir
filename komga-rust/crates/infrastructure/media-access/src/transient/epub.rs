@@ -16,7 +16,9 @@ use super::{
     EPUB_DIVINA_LETTER_COUNT_THRESHOLD, TransientBookAnalysis, TransientBookPage,
     TransientEpubManifestItem,
 };
-use komga_infrastructure_media_library::analysis::{ImageDimensions, image_dimensions_from_bytes_u32};
+use komga_infrastructure_media_library::analysis::{
+    ImageDimensions, image_dimensions_from_bytes_u32,
+};
 
 pub(super) fn analyze_transient_epub(path: &str) -> Result<TransientBookAnalysis, &'static str> {
     let file = std::fs::File::open(path).map_err(|_| "ERR_1032")?;

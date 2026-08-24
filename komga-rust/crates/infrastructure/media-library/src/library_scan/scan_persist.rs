@@ -5,10 +5,8 @@ use komga_application::runtime_sse::RuntimeSseEventSink;
 use komga_domain::discovery::compare_book_names;
 use sqlx::{Row, SqlitePool};
 
-use komga_infrastructure_discovery::{
-    delete_book_dependency_rows, delete_series_dependency_rows,
-};
 use komga_infrastructure_base::stored_paths::resolve_stored_path;
+use komga_infrastructure_discovery::{delete_book_dependency_rows, delete_series_dependency_rows};
 
 use super::scan_models::{
     BookMetadataRefreshRequest, InsertedBookCandidate, InsertedSeriesCandidate,

@@ -2,9 +2,9 @@ use std::collections::BTreeMap;
 use std::sync::Arc;
 
 use komga_application::task_processing::{
-    LibraryTaskBatch, QueueStatus, SubmitUrgency, TaskExecutionFinalizationPort,
-    TaskKind, TaskProcessingError, TaskQueue, TaskQueueAdmin,
-    TaskQueueOrchestrator, TaskQueueRecord, TaskRequest,
+    LibraryTaskBatch, QueueStatus, SubmitUrgency, TaskExecutionFinalizationPort, TaskKind,
+    TaskProcessingError, TaskQueue, TaskQueueAdmin, TaskQueueOrchestrator, TaskQueueRecord,
+    TaskRequest,
 };
 use tokio::sync::{Mutex, Notify};
 use tracing::{error, info};
@@ -29,10 +29,7 @@ pub struct TaskQueueScheduler {
 }
 
 impl TaskQueueScheduler {
-    pub async fn for_config(
-        config: TaskQueueConfig,
-        consumer_owner: impl Into<String>,
-    ) -> Self {
+    pub async fn for_config(config: TaskQueueConfig, consumer_owner: impl Into<String>) -> Self {
         Self::for_config_with_wakeup(config, consumer_owner, Arc::new(Notify::new())).await
     }
 

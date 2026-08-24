@@ -1,6 +1,8 @@
 use sqlx::Row;
 
-use komga_infrastructure_base::sqlite::codecs::{clamp_kotlin_int_u32, parse_sqlite_group_concat_values};
+use komga_infrastructure_base::sqlite::codecs::{
+    clamp_kotlin_int_u32, parse_sqlite_group_concat_values,
+};
 
 use komga_application::opds::OpdsPersistedBookAuthorRecord;
 

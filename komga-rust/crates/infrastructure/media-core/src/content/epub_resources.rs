@@ -80,9 +80,7 @@ async fn read_epub_resource_from_archive_path(
     })?
 }
 
-pub fn decode_epub_navigation_extension(
-    blob: &[u8],
-) -> anyhow::Result<EpubNavigationExtension> {
+pub fn decode_epub_navigation_extension(blob: &[u8]) -> anyhow::Result<EpubNavigationExtension> {
     let extension = komga_epub::decode_epub_navigation_extension(blob)?;
     let positions = extension
         .positions

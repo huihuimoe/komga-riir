@@ -6,11 +6,11 @@ use zip::ZipArchive;
 use zip::result::ZipError;
 
 use super::{TransientMetadataInference, epub};
+use detection::transient_book_media_type;
 use komga_infrastructure_media_metadata::{
     infer_transient_comicinfo_provider_metadata, infer_transient_epub_provider_metadata,
     load_comicinfo_bytes_from_path,
 };
-use detection::transient_book_media_type;
 
 use super::detection;
 

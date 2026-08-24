@@ -5,9 +5,9 @@ use std::io::ErrorKind;
 use sqlx::{Row, Sqlite, SqlitePool, Transaction};
 
 use crate::visibility::DELETE_LIBRARY_DEPENDENCY_SQL;
-use komga_infrastructure_media_core::expected_extension_for_media_type;
-use komga_infrastructure_base::stored_paths::resolve_stored_path;
 use komga_infrastructure_base::resolve_library_item_path;
+use komga_infrastructure_base::stored_paths::resolve_stored_path;
+use komga_infrastructure_media_core::expected_extension_for_media_type;
 
 #[derive(Clone, Debug)]
 pub(crate) struct PersistedLibraryWriteModel {

@@ -282,9 +282,7 @@ pub(crate) async fn persisted_list_authentication_activity(
         .collect())
 }
 
-pub async fn persisted_cleanup_authentication_activity(
-    pool: &SqlitePool,
-) -> anyhow::Result<u64> {
+pub async fn persisted_cleanup_authentication_activity(pool: &SqlitePool) -> anyhow::Result<u64> {
     let deleted = sqlx::query(
         "DELETE FROM AUTHENTICATION_ACTIVITY WHERE datetime(DATE_TIME) < datetime('now', '-1 month')",
     )

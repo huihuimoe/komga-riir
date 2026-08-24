@@ -7,12 +7,11 @@ mod queue;
 
 pub use enqueue_adapter::TaskEnqueueAdapter;
 pub use execution_loop::{
-    BackgroundTaskExecutionLoop, SharedTaskQueue, process_available_serial,
-    recover_and_process,
+    BackgroundTaskExecutionLoop, SharedTaskQueue, process_available_serial, recover_and_process,
 };
 pub use execution_pool::{TaskExecutionPoolHandle, TaskExecutor};
-pub use queue::TaskQueueScheduler;
 pub use queue::RuntimeTaskEngine;
+pub use queue::TaskQueueScheduler;
 
 #[derive(Clone, Debug)]
 pub struct TaskQueueConfig {

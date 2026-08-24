@@ -13,8 +13,8 @@ use super::persistence::{
     load_book_hashed_pages as load_persisted_book_hashed_pages,
 };
 use super::updates::{persist_duplicate_page_deleted_events, persist_removed_hashed_pages};
-use crate::analysis::{is_supported_page_image_file_name, media_type_from_entry_name};
 use crate::MediaLibraryJobContext;
+use crate::analysis::{is_supported_page_image_file_name, media_type_from_entry_name};
 
 pub type HashedPageToDelete = HashedPageToDeletePayload;
 

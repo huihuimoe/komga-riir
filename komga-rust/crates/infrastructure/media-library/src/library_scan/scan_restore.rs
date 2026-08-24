@@ -8,8 +8,8 @@ use sqlx::{Row, SqlitePool};
 
 use komga_domain::media_assets::ThumbnailType;
 
-use komga_infrastructure_discovery::delete_book_dependency_rows;
 use komga_infrastructure_base::stored_paths::resolve_rooted_path;
+use komga_infrastructure_discovery::delete_book_dependency_rows;
 
 use super::scan_models::{
     BookMetadataRefreshRequest, InsertedBookCandidate, InsertedSeriesCandidate,

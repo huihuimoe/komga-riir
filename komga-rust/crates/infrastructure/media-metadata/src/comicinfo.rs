@@ -281,9 +281,7 @@ fn decode_xml_general_ref(event: &BytesRef<'_>) -> anyhow::Result<String> {
         .ok_or_else(|| anyhow::anyhow!("unknown ComicInfo.xml entity '&{};'", name))
 }
 
-pub fn load_comicinfo_bytes_for_media(
-    media: &BookMediaRecord,
-) -> anyhow::Result<Option<Vec<u8>>> {
+pub fn load_comicinfo_bytes_for_media(media: &BookMediaRecord) -> anyhow::Result<Option<Vec<u8>>> {
     if book_media_is_zip_archive(media) || book_media_is_rar_archive(media) {
         return load_comicinfo_bytes_from_path(&media.file_path, &media.media_type);
     }

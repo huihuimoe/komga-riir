@@ -38,11 +38,11 @@ use syncpoints::{delete_syncpoints_by_user, delete_syncpoints_by_user_and_key_id
 #[cfg(test)]
 mod tests {
     use super::*;
-    use komga_infrastructure_base::sqlite::connect_test_pool;
     use komga_application::operational::{
         ClientGlobalSetting, ClientUserSetting, HistorySort, HistorySortDirection,
         HistorySortProperty, HistorySortSelection,
     };
+    use komga_infrastructure_base::sqlite::connect_test_pool;
     use sqlx::Row;
     use std::collections::BTreeMap;
     use std::fs;

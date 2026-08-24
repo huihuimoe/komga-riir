@@ -137,10 +137,7 @@ impl SearchIndexEngine {
         recover_search_index(&self.pool, self.index_dir.as_path()).await
     }
 
-    pub async fn rebuild_entities(
-        &self,
-        entity_types: &[SearchEntityType],
-    ) -> anyhow::Result<()> {
+    pub async fn rebuild_entities(&self, entity_types: &[SearchEntityType]) -> anyhow::Result<()> {
         if !self.owns_search_index || entity_types.is_empty() {
             return Ok(());
         }

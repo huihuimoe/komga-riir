@@ -366,10 +366,7 @@ pub async fn load_book_read_progress_completed(
     Ok(row.map(|row| row.get::<bool, _>("COMPLETED")))
 }
 
-pub async fn load_book_page_count(
-    pool: &SqlitePool,
-    book_id: &str,
-) -> anyhow::Result<Option<u64>> {
+pub async fn load_book_page_count(pool: &SqlitePool, book_id: &str) -> anyhow::Result<Option<u64>> {
     let row = sqlx::query("SELECT PAGE_COUNT FROM MEDIA WHERE BOOK_ID = ? LIMIT 1")
         .bind(book_id)
         .fetch_optional(pool)

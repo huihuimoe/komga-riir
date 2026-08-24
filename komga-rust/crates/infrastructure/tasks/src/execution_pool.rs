@@ -97,7 +97,9 @@ impl TaskExecutionPoolHandle {
     pub fn submit(&self, task: TaskQueueRecord) -> anyhow::Result<()> {
         self.inner
             .job_tx
-            .send(TaskExecutionCommand::Run(Box::new(TaskExecutionJob { task })))
+            .send(TaskExecutionCommand::Run(Box::new(TaskExecutionJob {
+                task,
+            })))
             .map_err(|_| anyhow::anyhow!("task execution pool job channel closed"))
     }
 

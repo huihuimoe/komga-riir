@@ -14,11 +14,11 @@ use komga_epub::{MOBI_MEDIA_TYPE, MobiError, normalize_mobi};
 use sqlx::{Row, SqlitePool};
 use zip::ZipArchive;
 
+use komga_infrastructure_base::resolve_stored_path;
+use komga_infrastructure_media_core::formats::rar::read_rar_entry_bytes;
 use komga_infrastructure_media_library::analysis::{
     AnalyzedMediaPage, MediaAnalysisProfile, MediaFileAnalysis, MediaFileAnalyzer,
 };
-use komga_infrastructure_media_core::formats::rar::read_rar_entry_bytes;
-use komga_infrastructure_base::resolve_stored_path;
 
 pub use adapter::TransientBookAccess;
 use detection::is_recognized_transient_book_file;
@@ -685,8 +685,8 @@ fn collect_transient_book_entries(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use komga_infrastructure_test_support::BootstrappedBookFixture;
     use image::{ImageBuffer, Rgba};
+    use komga_infrastructure_test_support::BootstrappedBookFixture;
     use lopdf::{Document as PdfDocument, Object, Stream, dictionary};
     use std::fs::File;
     use std::io::Write;

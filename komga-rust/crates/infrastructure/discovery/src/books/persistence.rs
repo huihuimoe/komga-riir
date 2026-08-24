@@ -6,11 +6,11 @@ use sqlx::{Error, QueryBuilder, Row, Sqlite, SqlitePool};
 
 use komga_domain::discovery::{MediaStatus, ReadStatus};
 
+use crate::codecs::parse_thumbnail_type;
 use crate::query_values;
 use crate::records::{
     AuthorEntry, BookPosterSummary, BookSummary, ReadProgressSummary, WebLinkEntry,
 };
-use crate::codecs::parse_thumbnail_type;
 
 pub(crate) async fn load_book_poster_summaries(
     pool: &SqlitePool,
@@ -237,9 +237,7 @@ fn book_summary_select_sql(include_read_progress: bool) -> &'static str {
     }
 }
 
-pub(crate) async fn load_persisted_book_count(
-    pool: &SqlitePool,
-) -> anyhow::Result<usize> {
+pub(crate) async fn load_persisted_book_count(pool: &SqlitePool) -> anyhow::Result<usize> {
     let row = sqlx::query(r#"SELECT COUNT(*) AS COUNT FROM BOOK"#)
         .fetch_one(pool)
         .await

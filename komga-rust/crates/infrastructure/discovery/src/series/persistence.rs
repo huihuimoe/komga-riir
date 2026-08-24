@@ -155,9 +155,7 @@ pub(crate) async fn load_persisted_series_read_models(
         .map(|summaries| summaries.into_iter().map(series_read_model).collect())
 }
 
-pub(crate) async fn load_persisted_series_count(
-    pool: &SqlitePool,
-) -> anyhow::Result<usize> {
+pub(crate) async fn load_persisted_series_count(pool: &SqlitePool) -> anyhow::Result<usize> {
     let row = sqlx::query("SELECT COUNT(*) AS COUNT FROM SERIES")
         .fetch_one(pool)
         .await

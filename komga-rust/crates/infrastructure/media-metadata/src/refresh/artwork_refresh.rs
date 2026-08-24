@@ -8,11 +8,13 @@ use komga_application::task_processing::ThumbnailRegenerationPolicy;
 use komga_domain::media_assets::ThumbnailType;
 use sqlx::{Row, SqlitePool};
 
-use komga_infrastructure_media_core::content::epub_resources::load_epub_cover_bytes;
-use komga_infrastructure_media_core::content::page_rendering::{load_archive_page_rows, resolve_book_page_bytes};
-use crate::thumbnails::{emit_thumbnail_book_event, emit_thumbnail_series_event};
 use crate::codecs::parse_thumbnail_type;
+use crate::thumbnails::{emit_thumbnail_book_event, emit_thumbnail_series_event};
 use komga_infrastructure_base::{resolve_library_item_path, resolve_stored_path};
+use komga_infrastructure_media_core::content::epub_resources::load_epub_cover_bytes;
+use komga_infrastructure_media_core::content::page_rendering::{
+    load_archive_page_rows, resolve_book_page_bytes,
+};
 
 use super::artwork_support::{
     MarkSelectedPreference, book_thumbnail_housekeeping, import_book_local_artwork_thumbnail,

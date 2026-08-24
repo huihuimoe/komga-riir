@@ -7,9 +7,7 @@ use komga_application::discovery::{
     PersistedCollectionAccessRecord, PersistedSeriesRestrictionRecord,
 };
 
-pub(crate) async fn persisted_collections_exist(
-    pool: &SqlitePool,
-) -> anyhow::Result<bool> {
+pub(crate) async fn persisted_collections_exist(pool: &SqlitePool) -> anyhow::Result<bool> {
     set_persistence::table_has_rows(pool, "COLLECTION", "persisted collections").await
 }
 

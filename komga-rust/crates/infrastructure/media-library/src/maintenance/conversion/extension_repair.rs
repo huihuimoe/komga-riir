@@ -6,9 +6,9 @@ use super::super::archive::{metadata_updated_unix_seconds, normalize_library_rel
 use super::super::library_flags::load_library_maintenance_flags;
 use super::super::persistence::load_book_for_extension_repair;
 use super::super::updates::persist_book_extension_repair;
-use komga_infrastructure_media_core::expected_extension_for_media_type;
 use crate::MediaLibraryJobContext;
 use komga_infrastructure_base::{resolve_library_item_path, resolve_stored_path};
+use komga_infrastructure_media_core::expected_extension_for_media_type;
 
 pub async fn repair_extension(
     runtime: &MediaLibraryJobContext,
@@ -133,12 +133,12 @@ mod tests {
     use std::path::PathBuf;
     use std::sync::Arc;
 
+    use crate::MediaLibraryJobContext;
     use komga_application::runtime_sse::RuntimeSseEventStore;
     use komga_infrastructure_base::DatabaseHandle;
     use komga_infrastructure_base::sqlite::{
         connect_main_write_context, connect_test_pool, evict_shared_pools_for_paths,
     };
-    use crate::MediaLibraryJobContext;
     use sqlx::Row;
 
     use super::repair_extension;

@@ -1,8 +1,8 @@
 use bcrypt::{DEFAULT_COST, hash};
+use komga_infrastructure_base::connect_write_pool;
 use komga_infrastructure_identity::{
     list_persisted_user_emails, load_persisted_user_by_email, update_persisted_user_passwords,
 };
-use komga_infrastructure_base::connect_write_pool;
 use sqlx::SqlitePool;
 use std::fmt;
 use std::path::Path;

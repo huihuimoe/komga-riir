@@ -103,10 +103,7 @@ pub fn read_rar_entries_bytes(path: &Path) -> anyhow::Result<Vec<RarEntryBytesRe
     Ok(entries)
 }
 
-pub fn read_rar_entry_bytes(
-    path: &Path,
-    entry_name: &str,
-) -> anyhow::Result<Option<Vec<u8>>> {
+pub fn read_rar_entry_bytes(path: &Path, entry_name: &str) -> anyhow::Result<Option<Vec<u8>>> {
     let matched_bytes = {
         let mut archive = Archive::new(path).open_for_processing().map_err(|error| {
             anyhow::anyhow!(error)

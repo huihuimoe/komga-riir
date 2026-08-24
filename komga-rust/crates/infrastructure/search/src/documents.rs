@@ -1,8 +1,8 @@
 use anyhow::Context;
 use sqlx::Row;
 
-use komga_infrastructure_base::sqlite::codecs::parse_sqlite_group_concat_values;
 use crate::lifecycle::{SearchDocument, SearchEntityType, SearchField, SearchFieldEntry};
+use komga_infrastructure_base::sqlite::codecs::parse_sqlite_group_concat_values;
 
 const AUTHOR_ROLE_DELIMITER: &str = "::";
 

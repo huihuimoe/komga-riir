@@ -263,14 +263,10 @@ mod tests {
             .take_result_receiver()
             .expect("execution loop test should own the result receiver");
 
-        let error = BackgroundTaskExecutionLoop::new(
-            &task_queue,
-            &execution_pool,
-            &mut result_rx,
-        )
-        .drain()
-        .await
-        .expect_err("failed task should fail the drain boundary");
+        let error = BackgroundTaskExecutionLoop::new(&task_queue, &execution_pool, &mut result_rx)
+            .drain()
+            .await
+            .expect_err("failed task should fail the drain boundary");
 
         assert!(
             error

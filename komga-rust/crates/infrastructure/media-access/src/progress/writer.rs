@@ -4,8 +4,8 @@ use serde_json::Value;
 use sqlx::SqlitePool;
 use std::sync::Arc;
 
-use komga_infrastructure_media_metadata as metadata;
 use crate::progress::persistence as media_read_progress;
+use komga_infrastructure_media_metadata as metadata;
 
 /// Write operations for read progress (book and series level).
 /// SSE events are emitted internally by the underlying free functions.

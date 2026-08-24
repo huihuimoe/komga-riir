@@ -277,8 +277,8 @@ mod tests {
     use std::time::Duration;
 
     use super::*;
-    use komga_infrastructure_base::sqlite::{connect_test_pool, schema};
     use komga_application::task_processing::RefreshBookMetadataPayload;
+    use komga_infrastructure_base::sqlite::{connect_test_pool, schema};
     use sha2::{Digest, Sha256};
 
     fn temp_db_path(case_id: &str) -> PathBuf {
