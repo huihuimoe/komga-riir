@@ -22,6 +22,7 @@ komga-infrastructure-media-access = { path = "media-access" }
 komga-infrastructure-identity = { path = "identity" }
 komga-infrastructure-operational = { path = "operational" }
 komga-infrastructure-opds = { path = "opds" }
+komga-infrastructure-tasks = { path = "tasks" }
 komga-infrastructure-search = { path = "search" }
 komga-epub = { path = "../epub" }
 komga-kepubify = { path = "../kepubify" }

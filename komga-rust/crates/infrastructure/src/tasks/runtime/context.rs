@@ -326,3 +326,12 @@ impl TaskRuntimeConfig for TaskRuntimeContext {
         self.clone()
     }
 }
+
+impl komga_infrastructure_tasks::TaskQueueConfigProvider for TaskRuntimeContext {
+    fn task_queue_config(&self) -> komga_infrastructure_tasks::TaskQueueConfig {
+        komga_infrastructure_tasks::TaskQueueConfig::new(
+            self.tasks_db_file.clone(),
+            self.consumes_queue,
+        )
+    }
+}

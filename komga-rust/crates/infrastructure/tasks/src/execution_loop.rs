@@ -1,39 +1,35 @@
 use std::sync::Arc;
 
 use komga_application::task_processing::{
-    TaskExecutionResult, TaskProcessingError, TaskQueueRecord,
+    TaskExecutionResult, TaskProcessingError, TaskQueueRecord, finalize_task_execution,
 };
 use tokio::sync::{Mutex as AsyncMutex, mpsc};
 
-use super::TaskRuntimeContext;
-use super::execution_pool::TaskExecutionPoolHandle;
-use crate::tasks::queue::TaskQueueScheduler;
+use super::execution_pool::{TaskExecutionPoolHandle, TaskExecutor};
+use super::queue::TaskQueueScheduler;
 
 pub type SharedTaskQueue = Arc<AsyncMutex<TaskQueueScheduler>>;
 
-pub(super) struct BackgroundTaskExecutionLoop<'a> {
+pub struct BackgroundTaskExecutionLoop<'a> {
     task_queue: &'a SharedTaskQueue,
     task_execution_pool: &'a TaskExecutionPoolHandle,
-    runtime: &'a TaskRuntimeContext,
     result_rx: &'a mut mpsc::UnboundedReceiver<TaskExecutionResult>,
 }
 
 impl<'a> BackgroundTaskExecutionLoop<'a> {
-    pub(super) fn new(
+    pub fn new(
         task_queue: &'a SharedTaskQueue,
         task_execution_pool: &'a TaskExecutionPoolHandle,
-        runtime: &'a TaskRuntimeContext,
         result_rx: &'a mut mpsc::UnboundedReceiver<TaskExecutionResult>,
     ) -> Self {
         Self {
             task_queue,
             task_execution_pool,
-            runtime,
             result_rx,
         }
     }
 
-    pub(super) async fn drain(&mut self) -> Result<usize, TaskProcessingError> {
+    pub async fn drain(&mut self) -> Result<usize, TaskProcessingError> {
         let mut state = BackgroundTaskExecutionState::default();
 
         loop {
@@ -83,10 +79,7 @@ impl<'a> BackgroundTaskExecutionLoop<'a> {
     }
 
     async fn submit_task(&self, task: TaskQueueRecord) -> Result<(), TaskProcessingError> {
-        if let Err(error_message) = self
-            .task_execution_pool
-            .submit(task.clone(), self.runtime.clone())
-        {
+        if let Err(error_message) = self.task_execution_pool.submit(task.clone()) {
             let task_queue = self.task_queue.lock().await;
             let error_message = error_message.to_string();
             task_queue.fail_claimed_task(&task, &error_message).await?;
@@ -119,12 +112,7 @@ impl<'a> BackgroundTaskExecutionLoop<'a> {
 
         let finalize_result = {
             let task_queue = self.task_queue.lock().await;
-            crate::tasks::queue::finalize_task_result(
-                &task_queue,
-                task_result,
-                &mut state.processed,
-            )
-            .await
+            finalize_task_result(&task_queue, task_result, &mut state.processed).await
         };
         if let Err(error) = finalize_result
             && state.first_error.is_none()
@@ -163,20 +151,79 @@ struct BackgroundTaskExecutionState {
     first_error: Option<TaskProcessingError>,
 }
 
+pub async fn process_available_serial(
+    scheduler: &TaskQueueScheduler,
+    executor: &TaskExecutor,
+) -> Result<usize, TaskProcessingError> {
+    if !scheduler.consumes_queue() {
+        return Ok(0);
+    }
+
+    let mut processed = 0usize;
+    let mut logged_start = false;
+    loop {
+        let Some(task) = scheduler.take_next().await? else {
+            if logged_start {
+                scheduler.log_process_available("completed", processed, None);
+            }
+            return Ok(processed);
+        };
+        if !logged_start {
+            scheduler.log_process_available("started", processed, None);
+            logged_start = true;
+        }
+
+        scheduler.log_task_start(&task);
+        let outcome = executor(task.clone()).await;
+        if let Err(error) = finalize_task_result(
+            scheduler,
+            TaskExecutionResult { task, outcome },
+            &mut processed,
+        )
+        .await
+        {
+            let error_message = error.to_string();
+            scheduler.log_process_available("failed", processed, Some(error_message.as_str()));
+            return Err(error);
+        }
+    }
+}
+
+pub async fn recover_and_process(
+    scheduler: &TaskQueueScheduler,
+    executor: &TaskExecutor,
+) -> Result<usize, TaskProcessingError> {
+    let recovered_tasks = scheduler.disown_all_and_collect_owned().await?;
+    for task in &recovered_tasks {
+        scheduler.log_task_event("task_recover", task, "recovered", None);
+    }
+    process_available_serial(scheduler, executor).await
+}
+
+pub async fn finalize_task_result(
+    scheduler: &TaskQueueScheduler,
+    task_result: TaskExecutionResult,
+    processed: &mut usize,
+) -> Result<(), TaskProcessingError> {
+    finalize_task_execution(scheduler, task_result).await?;
+    *processed += 1;
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::tasks::test_support::RuntimeTestFixture;
     use komga_application::task_processing::TaskExecutionOutcome;
+    use std::path::PathBuf;
+    use std::sync::Arc;
 
     #[tokio::test]
     async fn drain_finishes_in_flight_success_before_returning_first_error() {
-        let fixture = RuntimeTestFixture::new("execution-loop-concurrent-failure");
-        let runtime = fixture
-            .runtime_context(true, true)
-            .await
-            .with_task_pool_size(2);
-        let scheduler = TaskQueueScheduler::for_runtime(runtime.clone(), "rust-main").await;
+        let scheduler = TaskQueueScheduler::for_config(
+            super::super::TaskQueueConfig::new(PathBuf::from("tasks.sqlite"), true),
+            "rust-main",
+        )
+        .await;
         scheduler
             .enqueue(
                 TaskQueueRecord::new(
@@ -201,7 +248,7 @@ mod tests {
         let executed_tasks = Arc::new(AsyncMutex::new(Vec::new()));
         let execution_pool = TaskExecutionPoolHandle::new_for_test(2, {
             let executed_tasks = executed_tasks.clone();
-            move |_runtime, task| {
+            move |task| {
                 let executed_tasks = executed_tasks.clone();
                 async move {
                     executed_tasks.lock().await.push(task.id.clone());
@@ -219,7 +266,6 @@ mod tests {
         let error = BackgroundTaskExecutionLoop::new(
             &task_queue,
             &execution_pool,
-            &runtime,
             &mut result_rx,
         )
         .drain()
@@ -242,11 +288,6 @@ mod tests {
             .count_by_simple_type()
             .await
             .expect("execution-loop fixture queue counts should load");
-        assert!(
-            remaining_by_type.is_empty(),
-            "success and failed tasks should both be finalized: {remaining_by_type:?}",
-        );
-
-        fixture.cleanup().await;
+        assert!(remaining_by_type.is_empty());
     }
 }

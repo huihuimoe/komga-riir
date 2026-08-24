@@ -7,16 +7,16 @@ use komga_application::task_processing::{
 use tokio::sync::{Mutex, Notify};
 
 use super::scheduler::TaskQueueScheduler;
-use crate::tasks::runtime::TaskExecutionPoolHandle;
+use crate::execution_pool::TaskExecutionPoolHandle;
 
-pub(in crate::tasks) struct RuntimeTaskEngine {
+pub struct RuntimeTaskEngine {
     scheduler: Arc<Mutex<TaskQueueScheduler>>,
     execution_pool: TaskExecutionPoolHandle,
     wakeup: Arc<Notify>,
 }
 
 impl RuntimeTaskEngine {
-    pub(in crate::tasks) fn new(
+    pub fn new(
         scheduler: Arc<Mutex<TaskQueueScheduler>>,
         execution_pool: TaskExecutionPoolHandle,
         wakeup: Arc<Notify>,
@@ -86,13 +86,7 @@ impl TaskQueueAdmin for RuntimeTaskEngine {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use komga_infrastructure_base::DatabaseHandle;
-    use komga_infrastructure_base::sqlite::{
-        connect_task_pool, connect_task_write_pool, default_read_max_connections,
-    };
-    use crate::tasks::TaskRuntimeContext;
-    use crate::tasks::queue::TaskQueueScheduler;
-    use crate::tasks::runtime::TaskExecutionPoolHandle;
+    use crate::execution_pool::TaskExecutor;
     use komga_application::task_processing::{SubmitUrgency, TaskQueueAdmin};
     use std::path::PathBuf;
     use std::sync::Arc;
@@ -116,34 +110,25 @@ mod tests {
         root
     }
 
-    async fn test_task_runtime_context() -> TaskRuntimeContext {
+    fn test_task_config() -> crate::TaskQueueConfig {
         let root = test_temp_root();
-        test_task_runtime_context_with_tasks_db(root.join("tasks.sqlite"), root).await
+        crate::TaskQueueConfig::new(root.join("tasks.sqlite"), true)
     }
 
-    async fn test_task_runtime_context_with_tasks_db(
+    fn test_task_config_with_tasks_db(
         tasks_db_file: PathBuf,
         root: PathBuf,
-    ) -> TaskRuntimeContext {
-        let main_db = DatabaseHandle::file_backed(root.join("database.sqlite"))
-            .await
-            .expect("test db should open");
-        let task_write_pool = connect_task_write_pool(main_db.database_file())
-            .await
-            .expect("test task write pool should open");
-        let task_read_pool =
-            connect_task_pool(main_db.database_file(), default_read_max_connections())
-                .await
-                .expect("test task read pool should open");
-        TaskRuntimeContext::new(
-            main_db,
-            tasks_db_file,
-            root.join("lucene"),
-            true,
-            1,
-            task_write_pool,
-            task_read_pool,
-        )
+    ) -> crate::TaskQueueConfig {
+        let _ = root;
+        crate::TaskQueueConfig::new(tasks_db_file, true)
+    }
+
+    fn test_executor() -> TaskExecutor {
+        Arc::new(|_task| {
+            Box::pin(async {
+                Ok(komga_application::task_processing::TaskExecutionOutcome::completed())
+            })
+        })
     }
 
     fn scan_library_task() -> TaskQueueRecord {
@@ -162,11 +147,10 @@ mod tests {
             (SubmitUrgency::Immediate, 100_u64, true),
             (SubmitUrgency::Normal, 25_u64, false),
         ] {
-            let runtime = test_task_runtime_context().await;
-            let task_execution_pool =
-                TaskExecutionPoolHandle::new(runtime.worker().task_pool_size());
+            let config = test_task_config();
+            let task_execution_pool = TaskExecutionPoolHandle::new(1, test_executor());
             let task_queue = Arc::new(Mutex::new(
-                TaskQueueScheduler::for_runtime(runtime.clone(), "rust-main").await,
+                TaskQueueScheduler::for_config(config, "rust-main").await,
             ));
             let task_wakeup = Arc::new(tokio::sync::Notify::new());
             let engine: Box<dyn TaskQueueAdmin> = Box::new(RuntimeTaskEngine::new(
@@ -208,10 +192,10 @@ mod tests {
         let root = test_temp_root();
         let tasks_db_file = root.join("tasks.sqlite");
         std::fs::create_dir(&tasks_db_file).expect("directory at tasks db path should be created");
-        let runtime = test_task_runtime_context_with_tasks_db(tasks_db_file, root).await;
-        let task_execution_pool = TaskExecutionPoolHandle::new(runtime.worker().task_pool_size());
+        let config = test_task_config_with_tasks_db(tasks_db_file, root);
+        let task_execution_pool = TaskExecutionPoolHandle::new(1, test_executor());
         let task_queue = Arc::new(Mutex::new(
-            TaskQueueScheduler::for_runtime(runtime.clone(), "rust-main").await,
+            TaskQueueScheduler::for_config(config, "rust-main").await,
         ));
         let task_wakeup = Arc::new(tokio::sync::Notify::new());
         let engine: Box<dyn TaskQueueAdmin> = Box::new(RuntimeTaskEngine::new(
@@ -233,10 +217,10 @@ mod tests {
 
     #[tokio::test]
     async fn apply_pool_size_resizes_execution_pool_and_wakes_scheduler() {
-        let runtime = test_task_runtime_context().await;
-        let task_execution_pool = TaskExecutionPoolHandle::new(runtime.worker().task_pool_size());
+        let config = test_task_config();
+        let task_execution_pool = TaskExecutionPoolHandle::new(1, test_executor());
         let task_queue = Arc::new(Mutex::new(
-            TaskQueueScheduler::for_runtime(runtime.clone(), "rust-main").await,
+            TaskQueueScheduler::for_config(config, "rust-main").await,
         ));
         let task_wakeup = Arc::new(tokio::sync::Notify::new());
         let engine: Box<dyn TaskQueueAdmin> = Box::new(RuntimeTaskEngine::new(

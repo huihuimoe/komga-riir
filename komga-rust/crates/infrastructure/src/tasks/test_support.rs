@@ -124,7 +124,7 @@ fn unique_temp_path(prefix: &str) -> PathBuf {
 }
 
 pub(crate) async fn execute_and_enqueue(
-    scheduler: &super::queue::TaskQueueScheduler,
+    scheduler: &komga_infrastructure_tasks::TaskQueueScheduler,
     runtime: &TaskRuntimeContext,
     task: &TaskQueueRecord,
 ) -> Option<Result<(), TaskProcessingError>> {

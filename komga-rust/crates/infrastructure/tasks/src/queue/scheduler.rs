@@ -3,17 +3,17 @@ use std::sync::Arc;
 
 use komga_application::task_processing::{
     LibraryTaskBatch, QueueStatus, SubmitUrgency, TaskExecutionFinalizationPort,
-    TaskExecutionResult, TaskKind, TaskProcessingError, TaskQueue, TaskQueueAdmin,
+    TaskKind, TaskProcessingError, TaskQueue, TaskQueueAdmin,
     TaskQueueOrchestrator, TaskQueueRecord, TaskRequest,
 };
 use tokio::sync::{Mutex, Notify};
 use tracing::{error, info};
 
 use super::store::{PersistedTaskStoreRecord, SqliteTaskQueueStore};
-use crate::tasks::{JobRuntime, TaskRuntimeConfig};
+use crate::{TaskQueueConfig, TaskQueueConfigProvider};
 
 #[derive(Debug)]
-pub(in crate::tasks) struct SchedulerInner {
+pub(crate) struct SchedulerInner {
     pub(crate) admin: TaskQueueOrchestrator,
     admin_loaded: bool,
     persisted_store: Option<SqliteTaskQueueStore>,
@@ -29,23 +29,28 @@ pub struct TaskQueueScheduler {
 }
 
 impl TaskQueueScheduler {
-    pub async fn for_runtime(
-        config: impl TaskRuntimeConfig,
+    pub async fn for_config(
+        config: TaskQueueConfig,
         consumer_owner: impl Into<String>,
     ) -> Self {
-        Self::for_runtime_with_wakeup(config, consumer_owner, Arc::new(Notify::new())).await
+        Self::for_config_with_wakeup(config, consumer_owner, Arc::new(Notify::new())).await
     }
 
-    pub async fn for_runtime_with_wakeup(
-        config: impl TaskRuntimeConfig,
+    pub async fn for_runtime(
+        config: impl TaskQueueConfigProvider,
+        consumer_owner: impl Into<String>,
+    ) -> Self {
+        Self::for_config(config.task_queue_config(), consumer_owner).await
+    }
+
+    pub async fn for_config_with_wakeup(
+        config: TaskQueueConfig,
         consumer_owner: impl Into<String>,
         wakeup: Arc<Notify>,
     ) -> Self {
-        let runtime = config.task_runtime_context();
-        let worker = runtime.worker();
-        let consumes_queue = worker.consumes_queue();
+        let consumes_queue = config.consumes_queue();
         let (persisted_store, persisted_store_error) = if consumes_queue {
-            match SqliteTaskQueueStore::new(worker.tasks_db_file().to_path_buf()).await {
+            match SqliteTaskQueueStore::new(config.tasks_db_file().to_path_buf()).await {
                 Ok(store) => (store, None),
                 Err(error) => (None, Some(error)),
             }
@@ -67,6 +72,14 @@ impl TaskQueueScheduler {
             })),
             wakeup,
         }
+    }
+
+    pub async fn for_runtime_with_wakeup(
+        config: impl TaskQueueConfigProvider,
+        consumer_owner: impl Into<String>,
+        wakeup: Arc<Notify>,
+    ) -> Self {
+        Self::for_config_with_wakeup(config.task_queue_config(), consumer_owner, wakeup).await
     }
 
     pub async fn enqueue(&self, task: TaskQueueRecord) -> Result<(), TaskProcessingError> {
@@ -181,7 +194,7 @@ impl TaskQueueScheduler {
         Ok(disowned)
     }
 
-    pub(super) async fn disown_all_and_collect_owned(
+    pub(crate) async fn disown_all_and_collect_owned(
         &self,
     ) -> Result<Vec<TaskQueueRecord>, TaskProcessingError> {
         let mut inner = self.inner.lock().await;
@@ -232,29 +245,7 @@ impl TaskQueueScheduler {
         self.consumes_queue
     }
 
-    pub async fn process_available(
-        &self,
-        runtime: &JobRuntime<'_>,
-    ) -> Result<usize, TaskProcessingError> {
-        super::orchestration::process_available_serial(self, runtime).await
-    }
-
-    pub async fn recover_and_process(
-        &self,
-        runtime: &JobRuntime<'_>,
-    ) -> Result<usize, TaskProcessingError> {
-        super::orchestration::recover_and_process(self, runtime).await
-    }
-
-    pub async fn finalize_task_result(
-        &self,
-        task_result: TaskExecutionResult,
-        processed: &mut usize,
-    ) -> Result<(), TaskProcessingError> {
-        super::orchestration::finalize_task_result(self, task_result, processed).await
-    }
-
-    pub(in crate::tasks) async fn fail_claimed_task(
+    pub(crate) async fn fail_claimed_task(
         &self,
         task: &TaskQueueRecord,
         error_message: &str,
@@ -306,11 +297,8 @@ impl TaskQueueScheduler {
         Ok(())
     }
 
-    #[cfg(test)]
-    pub(in crate::tasks) async fn admin_for_test(
-        &self,
-    ) -> tokio::sync::MutexGuard<'_, SchedulerInner> {
-        self.inner.lock().await
+    pub async fn take_available_for_test(&self, owner: &str) -> Option<TaskQueueRecord> {
+        self.inner.lock().await.admin.take_available(owner)
     }
 
     fn current_task_from_inner(
@@ -336,11 +324,11 @@ impl TaskQueueScheduler {
             .collect()
     }
 
-    pub(in crate::tasks) fn log_task_start(&self, task: &TaskQueueRecord) {
+    pub(crate) fn log_task_start(&self, task: &TaskQueueRecord) {
         self.log_task_event("task_start", task, "started", None);
     }
 
-    pub(in crate::tasks) fn log_process_available(
+    pub(crate) fn log_process_available(
         &self,
         outcome: &str,
         processed: usize,
@@ -365,7 +353,7 @@ impl TaskQueueScheduler {
         }
     }
 
-    pub(super) fn log_task_event(
+    pub(crate) fn log_task_event(
         &self,
         event_name: &str,
         task: &TaskQueueRecord,

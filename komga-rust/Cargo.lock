@@ -2777,6 +2777,7 @@ dependencies = [
  "komga-infrastructure-opds",
  "komga-infrastructure-operational",
  "komga-infrastructure-search",
+ "komga-infrastructure-tasks",
  "komga-infrastructure-test-support",
  "komga-kepubify",
  "language-tags",
@@ -3003,6 +3004,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "komga-infrastructure-tasks"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "futures-util",
+ "komga-application",
+ "komga-infrastructure-base",
+ "sqlx",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
 name = "komga-infrastructure-test-support"
 version = "0.1.0"
 dependencies = [
@@ -3102,6 +3117,7 @@ dependencies = [
  "komga-infrastructure-opds",
  "komga-infrastructure-operational",
  "komga-infrastructure-search",
+ "komga-infrastructure-tasks",
  "komga-interfaces",
  "komga-server",
  "lopdf",

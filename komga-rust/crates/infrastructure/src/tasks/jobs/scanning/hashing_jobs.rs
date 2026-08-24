@@ -121,7 +121,7 @@ pub(in crate::tasks) async fn execute_remove_hashed_pages(
 mod tests {
     use komga_infrastructure_base::sqlite::connect_test_pool;
     use crate::tasks::TaskRuntimeContext;
-    use crate::tasks::queue::TaskQueueScheduler;
+    use komga_infrastructure_tasks::TaskQueueScheduler;
     use crate::tasks::test_support::{RuntimeTestFixture, execute_and_enqueue};
     use image::{ImageBuffer, Rgba};
     use komga_application::task_processing::{
@@ -347,10 +347,8 @@ mod tests {
         assert!(matches!(result, Some(Ok(()))));
 
         let generated = scheduler
-            .admin_for_test()
+            .take_available_for_test("missing-page-hash-finder-assert")
             .await
-            .admin
-            .take_available("missing-page-hash-finder-assert")
             .expect("finder should enqueue one hash book pages task");
 
         assert_eq!(generated.id, "HashBookPages_book-1");
@@ -424,10 +422,8 @@ mod tests {
         assert!(matches!(result, Some(Ok(()))));
         assert!(
             scheduler
-                .admin_for_test()
+                .take_available_for_test("missing-page-hash-disabled-assert")
                 .await
-                .admin
-                .take_available("missing-page-hash-disabled-assert")
                 .is_none(),
             "finder must not enqueue HashBookPages tasks when library.hashPages is disabled at execution time",
         );
@@ -586,10 +582,8 @@ mod tests {
         assert!(matches!(result, Some(Ok(()))));
 
         let generated = scheduler
-            .admin_for_test()
+            .take_available_for_test("remove-hashed-pages-thumbnail-assert")
             .await
-            .admin
-            .take_available("remove-hashed-pages-thumbnail-assert")
             .expect(
                 "remove-hashed-pages should enqueue generate thumbnail when first page is removed",
             );

@@ -1,13 +1,10 @@
-mod dispatch;
-mod enqueue_adapter;
+pub(crate) mod dispatch;
 mod jobs;
-pub(crate) mod queue;
 mod runtime;
 #[cfg(test)]
 pub(crate) mod test_support;
 
-pub use enqueue_adapter::TaskEnqueueAdapter;
-pub use queue::TaskQueueScheduler;
+pub use komga_infrastructure_tasks::{TaskEnqueueAdapter, TaskQueueScheduler};
 pub use runtime::{
     DatabaseRuntime, FilesystemRuntime, JobRuntime, RuntimeBackgroundState, SearchRuntime,
     SharedTaskQueue, TaskQueueWakeSignal, TaskRuntimeConfig, TaskRuntimeContext,

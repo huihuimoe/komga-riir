@@ -14,12 +14,32 @@ use tokio::sync::{Notify, mpsc, watch};
 use tokio::time::interval;
 use tracing::{Instrument, Span, error, info};
 
-use super::execution_loop::BackgroundTaskExecutionLoop;
-use super::execution_loop::SharedTaskQueue;
-use super::execution_pool::TaskExecutionPoolHandle;
 use komga_infrastructure_media_library::library_scan::SqliteFilesystemLibraryScanPipeline;
-use crate::tasks::queue::{RuntimeTaskEngine, TaskQueueScheduler, process_available_serial};
+use komga_infrastructure_tasks::{
+    BackgroundTaskExecutionLoop, RuntimeTaskEngine, SharedTaskQueue, TaskExecutionPoolHandle,
+    TaskExecutor, TaskQueueConfig, TaskQueueScheduler, process_available_serial,
+};
+use crate::tasks::dispatch::TaskJobDispatcher;
 pub type TaskQueueWakeSignal = Arc<Notify>;
+
+fn task_queue_config(runtime: &TaskRuntimeContext) -> TaskQueueConfig {
+    TaskQueueConfig::new(
+        runtime.worker().tasks_db_file().to_path_buf(),
+        runtime.worker().consumes_queue(),
+    )
+}
+
+fn task_executor(runtime: &TaskRuntimeContext) -> TaskExecutor {
+    let runtime = runtime.clone();
+    Arc::new(move |task| {
+        let runtime = runtime.clone();
+        Box::pin(async move {
+            TaskJobDispatcher::new(runtime.job())
+                .execute_record(&task)
+                .await
+        })
+    })
+}
 
 pub struct RuntimeBackgroundState {
     task_queue: SharedTaskQueue,
@@ -94,8 +114,8 @@ pub async fn prepare_task_queue(
     let runtime = config.task_runtime_context();
     let startup_task = startup_search_task.unwrap_or("");
     let wakeup = std::sync::Arc::new(Notify::new());
-    let task_queue = TaskQueueScheduler::for_runtime_with_wakeup(
-        runtime.clone(),
+    let task_queue = TaskQueueScheduler::for_config_with_wakeup(
+        task_queue_config(&runtime),
         "rust-runtime-http",
         wakeup.clone(),
     )
@@ -208,7 +228,10 @@ pub async fn prepare_task_queue(
     RuntimeBackgroundState {
         task_queue: Arc::new(tokio::sync::Mutex::new(task_queue)),
         task_wakeup: wakeup,
-        task_execution_pool: TaskExecutionPoolHandle::new(runtime.worker().task_pool_size()),
+        task_execution_pool: TaskExecutionPoolHandle::new(
+            runtime.worker().task_pool_size(),
+            task_executor(&runtime),
+        ),
     }
 }
 
@@ -292,13 +315,14 @@ async fn process_startup_library_scans_inner(
         return Ok(0);
     }
 
-    let task_queue = TaskQueueScheduler::for_runtime(runtime.clone(), "rust-main").await;
+    let task_queue = TaskQueueScheduler::for_config(task_queue_config(runtime), "rust-main").await;
     let startup_scan_task_count = startup_scan_batch.len();
     task_queue
         .enqueue_batch(startup_scan_batch.into_task_batch())
         .await
         .map_err(anyhow::Error::from)?;
-    process_available_serial(&task_queue, &runtime.job())
+    let executor = task_executor(runtime);
+    process_available_serial(&task_queue, &executor)
         .await
         .map_err(anyhow::Error::from)?;
     Ok(startup_scan_task_count)
@@ -472,7 +496,10 @@ pub async fn run_background_task_iteration(
     task_queue: SharedTaskQueue,
     runtime: TaskRuntimeContext,
 ) -> anyhow::Result<usize> {
-    let task_execution_pool = TaskExecutionPoolHandle::new(runtime.worker().task_pool_size());
+    let task_execution_pool = TaskExecutionPoolHandle::new(
+        runtime.worker().task_pool_size(),
+        task_executor(&runtime),
+    );
     let mut result_rx = task_execution_pool
         .take_result_receiver()
         .expect("one-shot background task iteration should own the result receiver");
@@ -515,7 +542,6 @@ async fn run_background_task_iteration_with_pool(
     let processed = match BackgroundTaskExecutionLoop::new(
         &task_queue,
         task_execution_pool,
-        &runtime,
         result_rx,
     )
     .drain()
@@ -1083,7 +1109,6 @@ impl Drop for WorkerLifecycleGuard {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::tasks::runtime::TaskExecutionPoolHandle;
     use std::collections::BTreeSet;
     use std::sync::Arc;
     use std::time::Duration;
@@ -1125,18 +1150,20 @@ mod tests {
 
     #[tokio::test]
     async fn task_execution_pool_resize_allows_parallel_fake_tasks_without_restart() {
-        let runtime = runtime_context().await;
+        let _runtime = runtime_context().await;
         let started = Arc::new(Barrier::new(3));
         let (release_tx, release_rx) = watch::channel(false);
         let worker_threads = Arc::new(AsyncMutex::new(Vec::new()));
-        let pool = TaskExecutionPoolHandle::new_for_test(1, {
-            let started = started.clone();
-            let worker_threads = worker_threads.clone();
-            move |_runtime, _task| {
+        let pool = TaskExecutionPoolHandle::new(
+            1,
+            Arc::new({
+                let started = started.clone();
+                let worker_threads = worker_threads.clone();
+                move |_task| {
                 let started = started.clone();
                 let mut release_rx = release_rx.clone();
                 let worker_threads = worker_threads.clone();
-                async move {
+                Box::pin(async move {
                     worker_threads.lock().await.push(
                         std::thread::current()
                             .name()
@@ -1154,22 +1181,22 @@ mod tests {
                             .expect("fake task release signal should remain open");
                     }
                     Ok(komga_application::task_processing::TaskExecutionOutcome::completed())
-                }
+                })
             }
-        });
+            }),
+        );
         let mut result_rx = pool
             .take_result_receiver()
             .expect("task execution pool test should expose a single result receiver");
 
         pool.submit(
             TaskQueueRecord::new("TEST_TASK:1", 0, None),
-            runtime.clone(),
         )
         .expect("first fake task should be submitted");
         tokio::time::sleep(Duration::from_millis(25)).await;
 
         pool.resize(2);
-        pool.submit(TaskQueueRecord::new("TEST_TASK:2", 0, None), runtime)
+        pool.submit(TaskQueueRecord::new("TEST_TASK:2", 0, None))
             .expect("second fake task should be submitted after resize");
 
         tokio::time::timeout(Duration::from_secs(1), started.wait())

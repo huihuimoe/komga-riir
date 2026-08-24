@@ -89,7 +89,7 @@ mod tests {
         connect_main_write_context, connect_task_pool, connect_task_write_pool, connect_test_pool,
         default_read_max_connections,
     };
-    use crate::tasks::queue::TaskQueueScheduler;
+    use komga_infrastructure_tasks::TaskQueueScheduler;
     use crate::tasks::test_support::{RuntimeTestFixture, execute_and_enqueue};
     use crate::tasks::{TaskRuntimeContext, TaskRuntimeOwnershipOverrides};
     use image::{ImageBuffer, Rgba};
@@ -595,10 +595,8 @@ mod tests {
 
         let mut generated = Vec::new();
         while let Some(task) = scheduler
-            .admin_for_test()
+            .take_available_for_test("thumbnail-finder-all-books-assert")
             .await
-            .admin
-            .take_available("thumbnail-finder-all-books-assert")
         {
             generated.push(QueuedThumbnailTask {
                 id: task.id,
@@ -712,18 +710,14 @@ mod tests {
         assert!(matches!(result, Some(Ok(()))));
 
         let generated = scheduler
-            .admin_for_test()
+            .take_available_for_test("thumbnail-finder-bigger-policy-assert")
             .await
-            .admin
-            .take_available("thumbnail-finder-bigger-policy-assert")
             .expect("runtime policy should enqueue undersized generated thumbnail");
         assert_eq!(generated.id, "GenerateBookThumbnail_book-small");
         assert!(
             scheduler
-                .admin_for_test()
+                .take_available_for_test("thumbnail-finder-bigger-policy-assert")
                 .await
-                .admin
-                .take_available("thumbnail-finder-bigger-policy-assert")
                 .is_none(),
             "runtime policy should not enqueue thumbnails at or above the configured edge",
         );
@@ -799,10 +793,8 @@ mod tests {
 
         let mut queued = Vec::new();
         while let Some(task) = scheduler
-            .admin_for_test()
+            .take_available_for_test("analyze-book-follow-up-assert")
             .await
-            .admin
-            .take_available("analyze-book-follow-up-assert")
         {
             queued.push(QueuedFollowUpTask {
                 id: task.id,

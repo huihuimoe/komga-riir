@@ -20,15 +20,13 @@ use komga_config::env_config::RuntimeConfig;
 use komga_config::profile::RuntimeProfile as ConfigRuntimeProfile;
 use komga_config::writer_ownership::WriterKind;
 use komga_infrastructure_identity::{ClaimAccess, IdentityAccess};
-use komga_infrastructure::{
-    tasks::TaskEnqueueAdapter,
-};
 use komga_infrastructure_operational::{
     ActuatorSnapshotAccess, AnnouncementAccess, ClientSettingsAccess, FilesystemBrowseAccess,
     FontAccess, HistoryAccess, OperationalMetricsAccess, PageHashAccess, RemoteFeedAccess,
     ServerSettingsStore, SyncpointAccess, load_remember_me_runtime_settings,
 };
 use komga_infrastructure_opds::{OpdsCatalogAccess, OpdsPersistedAccess};
+use komga_infrastructure_tasks::TaskEnqueueAdapter;
 use komga_infrastructure_discovery::{
     DiscoveryDetailAccess, DiscoveryQuerySupportAccess, LibraryCatalogAccess,
     SqliteDiscoveryBrowseService,

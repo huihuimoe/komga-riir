@@ -1,4 +1,3 @@
-use super::TaskRuntimeContext;
 use futures_util::future::BoxFuture;
 use komga_application::task_processing::{
     TaskExecutionOutcome, TaskExecutionResult, TaskProcessingError, TaskQueueRecord,
@@ -12,11 +11,8 @@ use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::thread::JoinHandle;
 use tokio::sync::mpsc;
 
-type TaskExecutor = Arc<
-    dyn Fn(
-            TaskRuntimeContext,
-            TaskQueueRecord,
-        ) -> BoxFuture<'static, Result<TaskExecutionOutcome, TaskProcessingError>>
+pub type TaskExecutor = Arc<
+    dyn Fn(TaskQueueRecord) -> BoxFuture<'static, Result<TaskExecutionOutcome, TaskProcessingError>>
         + Send
         + Sync,
 >;
@@ -29,7 +25,6 @@ enum TaskExecutionCommand {
 
 struct TaskExecutionJob {
     task: TaskQueueRecord,
-    runtime: TaskRuntimeContext,
 }
 
 struct TaskExecutionPoolInner {
@@ -46,38 +41,12 @@ struct TaskExecutionPoolInner {
 }
 
 #[derive(Clone)]
-pub(in crate::tasks) struct TaskExecutionPoolHandle {
+pub struct TaskExecutionPoolHandle {
     inner: Arc<TaskExecutionPoolInner>,
 }
 
 impl TaskExecutionPoolHandle {
-    pub(in crate::tasks) fn new(task_pool_size: usize) -> Self {
-        Self::new_with_executor(
-            task_pool_size,
-            Arc::new(|runtime, task| {
-                Box::pin(async move {
-                    let job = runtime.job();
-                    crate::tasks::dispatch::TaskJobDispatcher::new(job)
-                        .execute_record(&task)
-                        .await
-                })
-            }),
-        )
-    }
-
-    #[cfg(test)]
-    pub(super) fn new_for_test<F, Fut>(task_pool_size: usize, execute_task: F) -> Self
-    where
-        F: Fn(TaskRuntimeContext, TaskQueueRecord) -> Fut + Send + Sync + 'static,
-        Fut: Future<Output = Result<TaskExecutionOutcome, TaskProcessingError>> + Send + 'static,
-    {
-        Self::new_with_executor(
-            task_pool_size,
-            Arc::new(move |runtime, task| Box::pin(execute_task(runtime, task))),
-        )
-    }
-
-    fn new_with_executor(task_pool_size: usize, executor: TaskExecutor) -> Self {
+    pub fn new(task_pool_size: usize, executor: TaskExecutor) -> Self {
         let (job_tx, job_rx) = mpsc::unbounded_channel();
         let (result_tx, result_rx) = mpsc::unbounded_channel();
         let inner = Arc::new(TaskExecutionPoolInner {
@@ -96,11 +65,23 @@ impl TaskExecutionPoolHandle {
         Self { inner }
     }
 
-    pub(in crate::tasks) fn desired_size(&self) -> usize {
+    #[cfg(test)]
+    pub(crate) fn new_for_test<F, Fut>(task_pool_size: usize, execute_task: F) -> Self
+    where
+        F: Fn(TaskQueueRecord) -> Fut + Send + Sync + 'static,
+        Fut: Future<Output = Result<TaskExecutionOutcome, TaskProcessingError>> + Send + 'static,
+    {
+        Self::new(
+            task_pool_size,
+            Arc::new(move |task| Box::pin(execute_task(task))),
+        )
+    }
+
+    pub fn desired_size(&self) -> usize {
         self.inner.desired_size.load(Ordering::SeqCst)
     }
 
-    pub(in crate::tasks) fn resize(&self, task_pool_size: usize) {
+    pub fn resize(&self, task_pool_size: usize) {
         let next_size = task_pool_size.max(1);
         let previous_size = self.inner.desired_size.swap(next_size, Ordering::SeqCst);
         if next_size > previous_size {
@@ -113,23 +94,14 @@ impl TaskExecutionPoolHandle {
         }
     }
 
-    pub(super) fn submit(
-        &self,
-        task: TaskQueueRecord,
-        runtime: TaskRuntimeContext,
-    ) -> anyhow::Result<()> {
+    pub fn submit(&self, task: TaskQueueRecord) -> anyhow::Result<()> {
         self.inner
             .job_tx
-            .send(TaskExecutionCommand::Run(Box::new(TaskExecutionJob {
-                task,
-                runtime,
-            })))
+            .send(TaskExecutionCommand::Run(Box::new(TaskExecutionJob { task })))
             .map_err(|_| anyhow::anyhow!("task execution pool job channel closed"))
     }
 
-    pub(super) fn take_result_receiver(
-        &self,
-    ) -> Option<mpsc::UnboundedReceiver<TaskExecutionResult>> {
+    pub fn take_result_receiver(&self) -> Option<mpsc::UnboundedReceiver<TaskExecutionResult>> {
         self.inner
             .result_rx
             .lock()
@@ -198,7 +170,7 @@ impl TaskExecutionPoolInner {
                 TaskExecutionCommand::Run(job) => {
                     let task = job.task.clone();
                     let outcome = catch_unwind(AssertUnwindSafe(|| {
-                        runtime.block_on((self.executor)(job.runtime, job.task))
+                        runtime.block_on((self.executor)(job.task))
                     }))
                     .unwrap_or_else(|panic_payload| {
                         Err(TaskProcessingError::runtime(format!(
@@ -209,8 +181,7 @@ impl TaskExecutionPoolInner {
                     });
                     let _ = self.result_tx.send(TaskExecutionResult { task, outcome });
                 }
-                TaskExecutionCommand::Retire => break,
-                TaskExecutionCommand::Shutdown => break,
+                TaskExecutionCommand::Retire | TaskExecutionCommand::Shutdown => break,
             }
         }
 
