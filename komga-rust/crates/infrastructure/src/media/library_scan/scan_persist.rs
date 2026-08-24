@@ -6,7 +6,7 @@ use komga_domain::discovery::compare_book_names;
 use sqlx::{Row, SqlitePool};
 
 use crate::discovery::deletion::sql::{DELETE_BOOK_DEPENDENCY_SQL, DELETE_SERIES_DEPENDENCY_SQL};
-use crate::persistence::stored_paths::resolve_stored_path;
+use komga_infrastructure_base::persistence::stored_paths::resolve_stored_path;
 
 use super::scan_models::{
     BookMetadataRefreshRequest, InsertedBookCandidate, InsertedSeriesCandidate,
@@ -891,7 +891,7 @@ mod tests {
     use komga_application::runtime_sse::RuntimeSseEventStore;
 
     use super::*;
-    use crate::persistence::sqlite::{connect_test_pool, schema};
+    use komga_infrastructure_base::persistence::sqlite::{connect_test_pool, schema};
 
     fn temp_db_path(case_id: &str) -> PathBuf {
         let nanos = std::time::SystemTime::now()

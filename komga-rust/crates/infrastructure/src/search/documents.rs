@@ -1,7 +1,7 @@
 use anyhow::Context;
 use sqlx::Row;
 
-use crate::persistence::sqlite::codecs::parse_sqlite_group_concat_values;
+use komga_infrastructure_base::persistence::sqlite::codecs::parse_sqlite_group_concat_values;
 use crate::search::lifecycle::{SearchDocument, SearchEntityType, SearchField, SearchFieldEntry};
 
 const AUTHOR_ROLE_DELIMITER: &str = "::";
@@ -655,7 +655,7 @@ mod tests {
     use sqlx::SqlitePool;
 
     use super::*;
-    use crate::persistence::sqlite::{connect_test_pool, schema};
+    use komga_infrastructure_base::persistence::sqlite::{connect_test_pool, schema};
 
     fn temp_db_path(case_id: &str) -> PathBuf {
         let nanos = std::time::SystemTime::now()

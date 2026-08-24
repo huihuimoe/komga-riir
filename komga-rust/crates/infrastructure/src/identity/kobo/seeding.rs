@@ -1,7 +1,7 @@
 use komga_application::identity_access::{AuthUser, KoboSyncAccessPolicy, now_sync_marker};
 use sqlx::{Row, Sqlite};
 
-use crate::persistence::sqlite::codecs::{clamp_kotlin_int_u32, parse_sqlite_group_concat_values};
+use komga_infrastructure_base::persistence::sqlite::codecs::{clamp_kotlin_int_u32, parse_sqlite_group_concat_values};
 
 #[derive(Clone)]
 struct SyncPointBookSeedRow {

@@ -6,7 +6,7 @@ use komga_application::runtime_sse::RuntimeSseEventSink;
 use sqlx::{Row, SqlitePool};
 
 use super::{emit_thumbnail_book_event, generated_thumbnail_id, load_thumbnail_bytes_or_sidecar};
-use crate::persistence::sqlite::codecs::parse_thumbnail_type;
+use crate::codec_compat::parse_thumbnail_type;
 
 pub(crate) async fn load_persisted_book_thumbnails(
     pool: &SqlitePool,

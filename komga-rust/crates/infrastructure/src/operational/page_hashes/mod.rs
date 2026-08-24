@@ -4,7 +4,7 @@ use komga_application::operational::{
     PageHashUnknownQuery, PageHashUpsertCommand,
 };
 
-use crate::persistence::DatabaseHandle;
+use komga_infrastructure_base::persistence::DatabaseHandle;
 use persistence::{
     load_page_hash_delete_targets, load_page_hash_matches_page, load_page_hashes_page,
     load_page_hashes_unknown_page,

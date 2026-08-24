@@ -4,7 +4,7 @@ use std::path::PathBuf;
 use crate::discovery::persisted::{facets, library_mappings, runtime_queries};
 use crate::discovery::records as persisted_models;
 use crate::discovery::{books::persistence as books, series::persistence as series};
-use crate::persistence::DatabaseHandle;
+use komga_infrastructure_base::persistence::DatabaseHandle;
 use crate::search::SearchEntityType;
 use crate::search::engine::SearchIndexEngine;
 
@@ -657,7 +657,7 @@ mod tests {
     use sqlx::SqlitePool;
 
     use super::*;
-    use crate::persistence::sqlite::{connect_main_write_context, evict_shared_pools_for_paths};
+    use komga_infrastructure_base::persistence::sqlite::{connect_main_write_context, evict_shared_pools_for_paths};
 
     struct BrowseFixture {
         service: SqliteDiscoveryBrowseService,

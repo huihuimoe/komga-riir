@@ -86,8 +86,8 @@ impl TaskQueueAdmin for RuntimeTaskEngine {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::persistence::DatabaseHandle;
-    use crate::persistence::sqlite::{
+    use komga_infrastructure_base::persistence::DatabaseHandle;
+    use komga_infrastructure_base::persistence::sqlite::{
         connect_task_pool, connect_task_write_pool, default_read_max_connections,
     };
     use crate::tasks::TaskRuntimeContext;

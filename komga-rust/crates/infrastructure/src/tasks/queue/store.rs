@@ -7,7 +7,7 @@ use komga_application::task_processing::{PersistedTaskRowShape, TaskQueueRecord}
 use sqlx::Row;
 use sqlx::SqlitePool;
 
-use crate::persistence::sqlite::{connect_shared_pool, default_read_max_connections};
+use komga_infrastructure_base::persistence::sqlite::{connect_shared_pool, default_read_max_connections};
 
 #[derive(Clone, Debug)]
 pub(super) struct PersistedTaskStoreRecord {
@@ -204,7 +204,7 @@ fn persisted_row_shape(row: sqlx::sqlite::SqliteRow) -> PersistedTaskRowShape {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::persistence::sqlite::{bootstrap_tasks_pool, connect_task_write_pool};
+    use komga_infrastructure_base::persistence::sqlite::{bootstrap_tasks_pool, connect_task_write_pool};
 
     #[test]
     fn known_persisted_row_uses_kotlin_class_name() {

@@ -6,8 +6,8 @@ use komga_application::operational::{
 };
 use sqlx::Row;
 
-use crate::persistence::SqlitePersistenceContext;
-use crate::persistence::sqlite::connect_main_write_context;
+use komga_infrastructure_base::persistence::SqlitePersistenceContext;
+use komga_infrastructure_base::persistence::sqlite::connect_main_write_context;
 
 #[derive(Clone)]
 pub struct ServerSettingsStore {

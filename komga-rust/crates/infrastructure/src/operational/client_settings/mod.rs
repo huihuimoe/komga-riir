@@ -6,7 +6,7 @@ use komga_application::operational::{
 };
 use sqlx::SqlitePool;
 
-use crate::persistence::DatabaseHandle;
+use komga_infrastructure_base::persistence::DatabaseHandle;
 use read::{load_persisted_client_settings_global, load_persisted_client_settings_user};
 pub(crate) use write::{
     delete_client_settings_global, delete_client_settings_user, upsert_client_settings_global,

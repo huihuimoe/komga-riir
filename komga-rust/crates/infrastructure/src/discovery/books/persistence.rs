@@ -10,7 +10,7 @@ use crate::discovery::query_values;
 use crate::discovery::records::{
     AuthorEntry, BookPosterSummary, BookSummary, ReadProgressSummary, WebLinkEntry,
 };
-use crate::persistence::sqlite::codecs::parse_thumbnail_type;
+use crate::codec_compat::parse_thumbnail_type;
 
 pub(in crate::discovery) async fn load_book_poster_summaries(
     pool: &SqlitePool,

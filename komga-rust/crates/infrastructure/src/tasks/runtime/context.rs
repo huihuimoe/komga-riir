@@ -8,7 +8,7 @@ use komga_application::task_processing::{CleanupEmptySetsPolicy, ThumbnailRegene
 use sqlx::SqlitePool;
 
 use crate::operational::ServerSettingsStore;
-use crate::persistence::{DatabaseHandle, SqlitePersistenceContext};
+use komga_infrastructure_base::persistence::{DatabaseHandle, SqlitePersistenceContext};
 use crate::search::engine::SearchIndexEngine;
 
 #[derive(Clone)]

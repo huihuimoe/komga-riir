@@ -5,7 +5,7 @@ use sqlx::{Row, SqlitePool};
 
 use crate::media::content::epub_resources::load_epub_package_document;
 use crate::media::metadata::{load_comicinfo_bytes_for_media, parse_comicinfo_xml};
-use crate::resolve_stored_path;
+use komga_infrastructure_base::persistence::resolve_stored_path;
 
 mod artwork_refresh;
 mod artwork_support;

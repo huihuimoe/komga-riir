@@ -6,6 +6,7 @@ members = [
   "crates/domain",
   "crates/application",
   "crates/infrastructure",
+  "crates/infrastructure/base",
   "crates/interfaces",
   "crates/config",
   "crates/oauth",

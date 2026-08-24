@@ -4,7 +4,7 @@ use komga_application::operational::{
 };
 use sqlx::{Row, SqlitePool};
 
-use crate::persistence::DatabaseHandle;
+use komga_infrastructure_base::persistence::DatabaseHandle;
 
 #[derive(Clone)]
 pub struct ClaimAccess {
@@ -100,7 +100,7 @@ async fn claim_initial_admin_user(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::persistence::sqlite::{connect_test_pool, schema};
+    use komga_infrastructure_base::persistence::sqlite::{connect_test_pool, schema};
     use std::fs;
     use std::path::PathBuf;
     use std::time::{SystemTime, UNIX_EPOCH};

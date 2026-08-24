@@ -16,7 +16,7 @@ use komga_application::identity_access::{
 };
 use komga_application::media_assets::EpubNavigationContentPort;
 
-use crate::persistence::DatabaseHandle;
+use komga_infrastructure_base::persistence::DatabaseHandle;
 
 use super::session_store::session_token_store;
 use super::users::{authentication as auth_identity, mutation as user_mutation};

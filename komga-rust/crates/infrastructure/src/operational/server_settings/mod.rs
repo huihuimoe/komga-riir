@@ -8,7 +8,7 @@ use komga_application::operational::{
 };
 use rusqlite::{Connection, params};
 
-use crate::random_hex_token;
+use komga_infrastructure_base::random_hex_token;
 
 mod store;
 
@@ -375,7 +375,7 @@ mod tests {
     }
 
     async fn cleanup_fixture(root: std::path::PathBuf, database_file: std::path::PathBuf) {
-        for pool in crate::persistence::evict_shared_pools_for_paths(&[database_file]) {
+        for pool in komga_infrastructure_base::persistence::evict_shared_pools_for_paths(&[database_file]) {
             pool.close().await;
         }
         std::fs::remove_dir_all(root).expect("fixture root should be removed");

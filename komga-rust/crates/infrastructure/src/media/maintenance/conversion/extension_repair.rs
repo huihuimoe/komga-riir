@@ -8,7 +8,7 @@ use super::super::persistence::load_book_for_extension_repair;
 use super::super::updates::persist_book_extension_repair;
 use crate::media::analysis::expected_extension_for_media_type;
 use crate::tasks::JobRuntime;
-use crate::{resolve_library_item_path, resolve_stored_path};
+use komga_infrastructure_base::persistence::{resolve_library_item_path, resolve_stored_path};
 
 pub(crate) async fn repair_extension(
     runtime: &JobRuntime<'_>,
@@ -130,7 +130,7 @@ pub(crate) async fn repair_extension(
 
 #[cfg(test)]
 mod tests {
-    use crate::persistence::sqlite::connect_test_pool;
+    use komga_infrastructure_base::persistence::sqlite::connect_test_pool;
     use crate::tasks::test_support::RuntimeTestFixture;
     use sqlx::Row;
 

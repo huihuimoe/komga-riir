@@ -18,10 +18,10 @@ use super::super::updates::{
     BookPageHashWrite, persist_book_conversion, persist_book_conversion_events,
     persist_book_page_hashes,
 };
-use crate::file_io::remove_file_after_release;
+use komga_infrastructure_base::file_io::remove_file_after_release;
 use crate::media::analysis::is_rar_media_type;
 use crate::tasks::JobRuntime;
-use crate::{resolve_library_item_path, resolve_stored_path};
+use komga_infrastructure_base::persistence::{resolve_library_item_path, resolve_stored_path};
 
 struct PreparedBookConversion {
     destination_path: PathBuf,

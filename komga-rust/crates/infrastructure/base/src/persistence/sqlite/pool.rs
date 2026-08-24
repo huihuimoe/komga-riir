@@ -153,8 +153,7 @@ pub async fn connect_task_write_pool(path: impl AsRef<Path>) -> Result<SqlitePoo
     connect_task_pool(path, WRITE_MAX_CONNECTIONS).await
 }
 
-#[cfg(test)]
-pub(crate) async fn connect_test_pool(
+pub async fn connect_test_pool(
     path: impl AsRef<Path>,
     max_connections: u32,
 ) -> Result<SqlitePool, sqlx::Error> {

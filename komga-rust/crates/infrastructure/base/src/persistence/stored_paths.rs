@@ -2,11 +2,11 @@ use std::path::{Path, PathBuf};
 
 use reqwest::Url;
 
-pub(crate) fn resolve_stored_path(value: &str) -> PathBuf {
+pub fn resolve_stored_path(value: &str) -> PathBuf {
     resolve_file_url_path(value).unwrap_or_else(|| PathBuf::from(value))
 }
 
-pub(crate) fn resolve_rooted_path(root: &Path, stored_path: &str) -> PathBuf {
+pub fn resolve_rooted_path(root: &Path, stored_path: &str) -> PathBuf {
     if let Some(path) = resolve_file_url_path(stored_path) {
         return path;
     }
@@ -19,12 +19,12 @@ pub(crate) fn resolve_rooted_path(root: &Path, stored_path: &str) -> PathBuf {
     }
 }
 
-pub(crate) fn resolve_library_item_path(library_root: &str, stored_path: &str) -> PathBuf {
+pub fn resolve_library_item_path(library_root: &str, stored_path: &str) -> PathBuf {
     let root = resolve_stored_path(library_root);
     resolve_rooted_path(root.as_path(), stored_path)
 }
 
-pub(crate) fn resolve_optional_library_item_path(
+pub fn resolve_optional_library_item_path(
     library_root: Option<&str>,
     stored_path: &str,
 ) -> Option<PathBuf> {

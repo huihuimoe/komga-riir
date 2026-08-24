@@ -81,8 +81,8 @@ pub(in crate::tasks) async fn execute_find_book_thumbnails_to_regenerate(
 
 #[cfg(test)]
 mod tests {
-    use crate::persistence::DatabaseHandle;
-    use crate::persistence::sqlite::{
+    use komga_infrastructure_base::persistence::DatabaseHandle;
+    use komga_infrastructure_base::persistence::sqlite::{
         connect_main_write_context, connect_task_pool, connect_task_write_pool, connect_test_pool,
         default_read_max_connections,
     };

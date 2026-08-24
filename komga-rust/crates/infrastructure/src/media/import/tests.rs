@@ -1,5 +1,5 @@
 use super::*;
-use crate::persistence::sqlite::connect_test_pool;
+use komga_infrastructure_base::persistence::sqlite::connect_test_pool;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 fn unique_temp_dir(case: &str) -> PathBuf {
@@ -25,7 +25,7 @@ async fn create_import_fixture(case: &str) -> ImportTestFixture {
     let pool = connect_test_pool(&db_path, 1)
         .await
         .expect("test db should open");
-    crate::persistence::sqlite::schema::bootstrap_pool(&pool)
+    komga_infrastructure_base::persistence::sqlite::schema::bootstrap_pool(&pool)
         .await
         .expect("test db should bootstrap main schema");
 

@@ -1,10 +1,9 @@
-pub(crate) mod codecs;
+pub mod codecs;
 mod pool;
-pub(crate) mod schema;
+pub mod schema;
 mod schema_definitions;
 
-#[cfg(test)]
-pub(crate) use pool::connect_test_pool;
+pub use pool::connect_test_pool;
 pub use pool::{
     DEFAULT_MAX_CONNECTIONS, SharedSqlitePoolSnapshot, SqliteTempPool, WRITE_MAX_CONNECTIONS,
     close_all_shared_pools, connect_main_write_context, connect_read_pool, connect_shared_pool,

@@ -1,6 +1,6 @@
 use sqlx::{Row, SqlitePool};
 
-use crate::resolve_optional_library_item_path;
+use komga_infrastructure_base::persistence::resolve_optional_library_item_path;
 
 use komga_application::identity_access::{
     DeviceThumbnailBinary, KoreaderBookLookupError, KoreaderBookTarget, PersistedReadProgressRecord,

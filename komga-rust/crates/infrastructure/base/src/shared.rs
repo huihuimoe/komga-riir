@@ -1,4 +1,4 @@
-pub(crate) fn random_hex_token(byte_len: usize) -> String {
+pub fn random_hex_token(byte_len: usize) -> String {
     let mut bytes = vec![0u8; byte_len];
     getrandom::fill(&mut bytes).expect("system random source should be available");
     bytes.iter().map(|byte| format!("{byte:02x}")).collect()

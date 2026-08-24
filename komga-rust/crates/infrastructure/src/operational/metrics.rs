@@ -6,8 +6,8 @@ use komga_application::operational::{
 };
 use sqlx::{Row, SqlitePool};
 
-use crate::persistence::DatabaseHandle;
-use crate::persistence::sqlite::shared_pool_snapshots_for_paths;
+use komga_infrastructure_base::persistence::DatabaseHandle;
+use komga_infrastructure_base::persistence::sqlite::shared_pool_snapshots_for_paths;
 
 #[derive(Clone)]
 pub struct OperationalMetricsAccess {

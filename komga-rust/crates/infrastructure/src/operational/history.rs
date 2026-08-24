@@ -7,7 +7,7 @@ use komga_application::operational::{
 };
 use sqlx::{Row, SqlitePool};
 
-use crate::persistence::DatabaseHandle;
+use komga_infrastructure_base::persistence::DatabaseHandle;
 
 #[derive(Clone)]
 pub struct HistoryAccess {

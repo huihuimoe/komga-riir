@@ -7,7 +7,7 @@ use komga_domain::media_assets::ThumbnailType;
 use sqlx::{Row, SqlitePool};
 
 use crate::media::analysis::expected_extension_for_media_type;
-use crate::resolve_library_item_path;
+use komga_infrastructure_base::persistence::resolve_library_item_path;
 
 #[derive(Clone, Debug)]
 pub(crate) struct PersistedLibraryHashingFlags {
@@ -718,7 +718,7 @@ mod tests {
     use std::path::PathBuf;
 
     use super::*;
-    use crate::persistence::sqlite::{connect_test_pool, schema};
+    use komga_infrastructure_base::persistence::sqlite::{connect_test_pool, schema};
 
     fn temp_db_path(case_id: &str) -> PathBuf {
         let nanos = std::time::SystemTime::now()

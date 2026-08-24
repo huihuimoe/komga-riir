@@ -2767,6 +2767,7 @@ dependencies = [
  "komga-build-support",
  "komga-domain",
  "komga-epub",
+ "komga-infrastructure-base",
  "komga-kepubify",
  "language-tags",
  "libc",
@@ -2790,6 +2791,20 @@ dependencies = [
  "url",
  "windows-sys 0.61.2",
  "zip 9.0.0-pre3",
+]
+
+[[package]]
+name = "komga-infrastructure-base"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "getrandom 0.4.3",
+ "komga-build-support",
+ "reqwest 0.13.4",
+ "serde",
+ "serde_json",
+ "sqlx",
+ "tokio",
 ]
 
 [[package]]

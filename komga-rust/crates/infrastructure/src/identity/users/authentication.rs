@@ -12,7 +12,7 @@ use sha2::{Digest, Sha512};
 use sqlx::{Row, SqlitePool};
 
 use super::super::session_store::session_token_store;
-use crate::random_hex_token;
+use komga_infrastructure_base::random_hex_token;
 
 pub fn invalidate_user_sessions(user_id: &str) {
     invalidate_all_user_sessions(session_token_store(), user_id)
@@ -589,7 +589,7 @@ mod tests {
     use std::path::PathBuf;
 
     use super::*;
-    use crate::persistence::sqlite::connect_test_pool;
+    use komga_infrastructure_base::persistence::sqlite::connect_test_pool;
     use crate::test_support::BootstrappedBookFixture;
     use sqlx::SqlitePool;
 

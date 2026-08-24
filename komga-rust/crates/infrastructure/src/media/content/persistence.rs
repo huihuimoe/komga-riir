@@ -7,8 +7,8 @@ use komga_domain::discovery::MediaStatus;
 use sqlx::sqlite::SqliteRow;
 use sqlx::{Row, SqlitePool};
 
-use crate::persistence::sqlite::codecs::{clamp_kotlin_int_u32, parse_sqlite_group_concat_values};
-use crate::resolve_library_item_path;
+use komga_infrastructure_base::persistence::sqlite::codecs::{clamp_kotlin_int_u32, parse_sqlite_group_concat_values};
+use komga_infrastructure_base::persistence::resolve_library_item_path;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct PersistedMediaFileRow {

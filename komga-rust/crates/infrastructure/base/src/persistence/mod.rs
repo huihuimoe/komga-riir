@@ -1,6 +1,6 @@
 mod database;
-pub(crate) mod sqlite;
-pub(crate) mod stored_paths;
+pub mod sqlite;
+pub mod stored_paths;
 mod unit_of_work;
 
 pub use database::DatabaseHandle;
@@ -14,7 +14,7 @@ pub use sqlite::{
 };
 pub use unit_of_work::{SqlitePersistenceConnection, SqlitePersistenceContext, SqliteUnitOfWork};
 
-pub(crate) use stored_paths::{
+pub use stored_paths::{
     resolve_library_item_path, resolve_optional_library_item_path, resolve_rooted_path,
     resolve_stored_path,
 };

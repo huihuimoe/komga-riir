@@ -13,7 +13,7 @@ use komga_application::identity_access::{
 use rusqlite::{Connection, OptionalExtension, Row, params};
 use sha2::{Digest, Sha256};
 
-use crate::random_hex_token;
+use komga_infrastructure_base::random_hex_token;
 
 pub(crate) fn session_token_store() -> &'static SessionRegistry {
     &SESSION_REGISTRY

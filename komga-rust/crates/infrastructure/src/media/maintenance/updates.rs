@@ -5,7 +5,7 @@ use komga_application::runtime_sse::{RuntimeSseEvent, RuntimeSseEventSink};
 use komga_domain::discovery::MediaStatus;
 use sqlx::{Row, Sqlite, SqlitePool};
 
-use crate::random_hex_token;
+use komga_infrastructure_base::random_hex_token;
 
 use super::persistence::PersistedHashedPageToDelete;
 

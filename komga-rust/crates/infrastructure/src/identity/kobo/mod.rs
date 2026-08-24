@@ -158,7 +158,7 @@ mod tests {
     use komga_application::identity_access::{AuthUser, AuthUserRole, KoboSyncPageRequest};
 
     use super::*;
-    use crate::persistence::sqlite::{connect_test_pool, schema};
+    use komga_infrastructure_base::persistence::sqlite::{connect_test_pool, schema};
 
     fn temp_db_path(case_id: &str) -> PathBuf {
         let nanos = SystemTime::now()

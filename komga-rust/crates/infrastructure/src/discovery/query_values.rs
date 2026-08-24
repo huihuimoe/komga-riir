@@ -1,6 +1,6 @@
 use sqlx::{QueryBuilder, Row, Sqlite, SqlitePool};
 
-pub(super) use crate::persistence::sqlite::codecs::{
+pub(super) use komga_infrastructure_base::persistence::sqlite::codecs::{
     clamp_kotlin_int_u32, parse_sqlite_group_concat_values as parse_group_concat_values,
 };
 

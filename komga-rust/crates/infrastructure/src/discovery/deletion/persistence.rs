@@ -9,7 +9,9 @@ use sqlx::{Row, SqlitePool};
 use tokio::fs;
 
 use crate::tasks::JobRuntime;
-use crate::{resolve_library_item_path, resolve_optional_library_item_path};
+use komga_infrastructure_base::persistence::{
+    resolve_library_item_path, resolve_optional_library_item_path,
+};
 
 pub(crate) async fn delete_book_task(
     runtime: &JobRuntime<'_>,
