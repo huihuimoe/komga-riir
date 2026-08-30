@@ -2377,7 +2377,7 @@ checksum = "febd6c533adf390e1e8be84cc3090d2f08132d2bdddebd22c9b39fc97b7ada2c"
 dependencies = [
  "css-inline",
  "iepub-derive",
- "quick-xml",
+ "quick-xml 0.41.0",
  "zip 8.6.0",
 ]
 
@@ -2699,7 +2699,7 @@ dependencies = [
  "icu",
  "komga-domain",
  "language-tags",
- "quick-xml",
+ "quick-xml 0.42.0",
  "regex",
  "serde",
  "serde_json",
@@ -2745,7 +2745,7 @@ dependencies = [
  "flate2",
  "iepub",
  "image",
- "quick-xml",
+ "quick-xml 0.42.0",
  "serde_json",
  "zip 9.0.0-pre3",
 ]
@@ -2854,7 +2854,7 @@ dependencies = [
  "komga-infrastructure-test-support",
  "lopdf",
  "pdfium-render",
- "quick-xml",
+ "quick-xml 0.42.0",
  "serde_json",
  "sqlx",
  "tokio",
@@ -2923,7 +2923,7 @@ dependencies = [
  "language-tags",
  "lopdf",
  "pdfium-render",
- "quick-xml",
+ "quick-xml 0.42.0",
  "rxing",
  "serde",
  "serde_json",
@@ -3033,7 +3033,7 @@ dependencies = [
  "lopdf",
  "mime_guess",
  "oauth2",
- "quick-xml",
+ "quick-xml 0.42.0",
  "regex",
  "reqwest 0.13.4",
  "rust-embed",
@@ -3156,7 +3156,7 @@ dependencies = [
  "komga-kepubify",
  "lopdf",
  "oauth2",
- "quick-xml",
+ "quick-xml 0.42.0",
  "reqwest 0.13.4",
  "serde",
  "serde_json",
@@ -3916,7 +3916,7 @@ dependencies = [
  "console_error_panic_hook",
  "console_log",
  "image",
- "itertools 0.10.5",
+ "itertools 0.14.0",
  "js-sys",
  "libloading",
  "log",
@@ -4300,6 +4300,15 @@ name = "quick-xml"
 version = "0.41.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e660451e55124f798a69a5af3f49ccfbefbd41910eefd25caf2393e1f3473ec1"
+dependencies = [
+ "memchr",
+]
+
+[[package]]
+name = "quick-xml"
+version = "0.42.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "41b1177fdf999d2321d3fb46ff47159d9c1fb9ad66a4879f8c50a0b504615e9b"
 dependencies = [
  "memchr",
 ]
