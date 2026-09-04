@@ -7,7 +7,7 @@ use komga_application::runtime_sse::{
 use komga_application::task_processing::TaskQueueRecord;
 use komga_config::profile::RuntimeMode;
 use komga_config::writer_ownership::WriterOwnershipPolicy;
-use komga_infrastructure_base::DatabaseHandle;
+use komga_infrastructure_base::{DatabaseHandle, RiirDatabase};
 use komga_infrastructure_base::{
     connect_task_pool, connect_task_write_pool, default_read_max_connections,
 };
@@ -58,6 +58,9 @@ async fn runtime_task_context_with(
     let task_read_pool = connect_task_pool(&paths.main_db, default_read_max_connections())
         .await
         .expect("test private read pool should open");
+    let riir_db = RiirDatabase::file_backed(&paths.riir_db_file)
+        .await
+        .expect("test RIIR database should open");
     TaskRuntimeContext::new(TaskRuntimeContextParams {
         main_db: DatabaseHandle::file_backed(paths.main_db.clone())
             .await
@@ -70,6 +73,7 @@ async fn runtime_task_context_with(
         task_write_pool,
         task_read_pool,
         runtime_events,
+        riir_db: Some(riir_db),
     })
 }
 
@@ -109,6 +113,15 @@ async fn runtime_task_context_from_config_with_task_pool_size(
     let task_read_pool = connect_task_pool(&config.database_file, default_read_max_connections())
         .await
         .expect("test private read pool should open");
+    let riir_db = if config.owns_riir_database() {
+        Some(
+            RiirDatabase::file_backed(&config.riir_db_file)
+                .await
+                .expect("test RIIR database should open"),
+        )
+    } else {
+        None
+    };
     TaskRuntimeContext::new(TaskRuntimeContextParams {
         main_db: DatabaseHandle::file_backed(config.database_file.clone())
             .await
@@ -136,6 +149,7 @@ async fn runtime_task_context_from_config_with_task_pool_size(
         task_write_pool,
         task_read_pool,
         runtime_events: Arc::new(RuntimeSseEventStore::default()),
+        riir_db,
     })
 }
 

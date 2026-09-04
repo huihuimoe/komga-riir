@@ -1,12 +1,13 @@
 use std::path::PathBuf;
 use std::sync::Arc;
 
+use anyhow::Context;
 use komga_application::operational::ServerSettingsPort;
 use komga_application::runtime_sse::RuntimeSseEventSink;
 use komga_application::task_processing::{CleanupEmptySetsPolicy, ThumbnailRegenerationPolicy};
 use sqlx::SqlitePool;
 
-use komga_infrastructure_base::{DatabaseHandle, SqlitePersistenceContext};
+use komga_infrastructure_base::{DatabaseHandle, RiirDatabase, SqlitePersistenceContext};
 use komga_infrastructure_media_library::MediaLibraryJobContext;
 use komga_infrastructure_operational::ServerSettingsStore;
 use komga_infrastructure_search::engine::SearchIndexEngine;
@@ -23,6 +24,7 @@ pub struct TaskRuntimeContext {
     task_read_pool: SqlitePool,
     runtime_events: Arc<dyn RuntimeSseEventSink>,
     media_library: MediaLibraryJobContext,
+    riir_db: Option<RiirDatabase>,
 }
 
 pub struct TaskRuntimeContextParams {
@@ -35,6 +37,7 @@ pub struct TaskRuntimeContextParams {
     pub task_write_pool: SqlitePool,
     pub task_read_pool: SqlitePool,
     pub runtime_events: Arc<dyn RuntimeSseEventSink>,
+    pub riir_db: Option<RiirDatabase>,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -93,6 +96,7 @@ impl TaskRuntimeContext {
             task_write_pool,
             task_read_pool,
             runtime_events,
+            riir_db,
         } = params;
         let media_library = MediaLibraryJobContext::new(
             main_db.clone(),
@@ -111,6 +115,7 @@ impl TaskRuntimeContext {
             task_read_pool,
             runtime_events,
             media_library,
+            riir_db,
         }
     }
 
@@ -206,6 +211,13 @@ impl JobRuntime<'_> {
     pub(crate) fn runtime_events_arc(&self) -> Arc<dyn RuntimeSseEventSink> {
         self.runtime.runtime_events.clone()
     }
+
+    pub(crate) fn riir_db(&self) -> anyhow::Result<&RiirDatabase> {
+        self.runtime
+            .riir_db
+            .as_ref()
+            .context("metadata task runtime does not own the RIIR database")
+    }
 }
 
 impl std::fmt::Debug for TaskRuntimeContext {
@@ -226,6 +238,7 @@ impl std::fmt::Debug for TaskRuntimeContext {
             .field("task_write_pool", &self.task_write_pool)
             .field("task_read_pool", &self.task_read_pool)
             .field("runtime_events", &"<runtime event sink>")
+            .field("riir_db", &self.riir_db.is_some())
             .finish()
     }
 }

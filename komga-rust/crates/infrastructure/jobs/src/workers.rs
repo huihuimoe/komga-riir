@@ -1123,10 +1123,10 @@ mod tests {
 
     use crate::{TaskRuntimeContextParams, TaskRuntimeOwnership};
     use komga_application::runtime_sse::RuntimeSseEventStore;
-    use komga_infrastructure_base::DatabaseHandle;
     use komga_infrastructure_base::sqlite::{
         connect_task_pool, connect_task_write_pool, default_read_max_connections,
     };
+    use komga_infrastructure_base::{DatabaseHandle, RiirDatabase};
 
     async fn runtime_context() -> TaskRuntimeContext {
         let root = std::env::temp_dir().join(format!(
@@ -1144,6 +1144,9 @@ mod tests {
         let task_read_pool = connect_task_pool(&db_path, default_read_max_connections())
             .await
             .expect("test private read pool should open");
+        let riir_db = RiirDatabase::file_backed(&root.join("riir.sqlite"))
+            .await
+            .expect("test RIIR database should open");
         TaskRuntimeContext::new(TaskRuntimeContextParams {
             main_db: DatabaseHandle::file_backed(db_path)
                 .await
@@ -1156,6 +1159,7 @@ mod tests {
             task_write_pool,
             task_read_pool,
             runtime_events: Arc::new(RuntimeSseEventStore::default()),
+            riir_db: Some(riir_db),
         })
     }
 

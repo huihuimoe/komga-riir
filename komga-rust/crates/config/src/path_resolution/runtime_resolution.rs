@@ -270,6 +270,7 @@ pub(crate) fn resolve_with_env(
         database_server_context_path: None,
         log_file: derived_paths.log_file,
         database_file: derived_paths.database_file,
+        riir_db_file: derived_paths.riir_db_file,
         tasks_db_file: derived_paths.tasks_db_file,
         lucene_data_directory: derived_paths.lucene_data_directory,
         fonts_data_directory: derived_paths.fonts_data_directory,

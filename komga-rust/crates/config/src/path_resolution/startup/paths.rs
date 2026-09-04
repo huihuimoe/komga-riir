@@ -13,6 +13,7 @@ use crate::profile::{DEFAULT_CONFIG_DIR, DEFAULT_LOG_FILE_NAME, PlatformProfile}
 pub(crate) struct DerivedRuntimePaths {
     pub(crate) log_file: PathBuf,
     pub(crate) database_file: PathBuf,
+    pub(crate) riir_db_file: PathBuf,
     pub(crate) tasks_db_file: PathBuf,
     pub(crate) lucene_data_directory: PathBuf,
     pub(crate) fonts_data_directory: PathBuf,
@@ -65,6 +66,7 @@ pub(crate) fn resolve_derived_runtime_paths(
         .or_else(|| read_string(layered, &["komga.database.file"]))
         .map(|value| PathBuf::from(expand_path_placeholders(&value, resolved_config_dir, env)))
         .unwrap_or_else(|| resolved_config_dir.join("database.sqlite"));
+    let riir_db_file = riir_db_file_for(&database_file);
 
     let tasks_db_file = env
         .get(TASKS_DB_FILE_ENV)
@@ -100,6 +102,7 @@ pub(crate) fn resolve_derived_runtime_paths(
     DerivedRuntimePaths {
         log_file,
         database_file,
+        riir_db_file,
         tasks_db_file,
         lucene_data_directory,
         fonts_data_directory,
@@ -121,6 +124,10 @@ pub(crate) fn is_default_home_config_dir(path: &Path, env: &BTreeMap<String, Str
 pub(crate) fn preferred_string<'a>(cli: Option<&'a str>, env: Option<&'a str>) -> Option<&'a str> {
     cli.filter(|value| !value.trim().is_empty())
         .or_else(|| env.filter(|value| !value.trim().is_empty()))
+}
+
+pub(crate) fn riir_db_file_for(database_file: &Path) -> PathBuf {
+    database_file.with_file_name("riir.sqlite")
 }
 
 pub(crate) fn default_log_file_for_config_dir(config_dir: &Path) -> PathBuf {

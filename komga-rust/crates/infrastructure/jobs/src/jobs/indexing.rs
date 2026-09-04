@@ -106,11 +106,11 @@ mod tests {
         BookPayload, FindBookThumbnailsToRegeneratePayload, TaskKind, TaskRequest,
     };
     use komga_domain::media_assets::ThumbnailType;
-    use komga_infrastructure_base::DatabaseHandle;
     use komga_infrastructure_base::sqlite::{
         connect_main_write_context, connect_task_pool, connect_task_write_pool, connect_test_pool,
         default_read_max_connections,
     };
+    use komga_infrastructure_base::{DatabaseHandle, RiirDatabase};
     use komga_infrastructure_media_library::analysis::analyze_book_media_file;
     use komga_infrastructure_search::SearchEntityType;
     use komga_infrastructure_tasks::TaskQueueScheduler;
@@ -178,6 +178,10 @@ mod tests {
         let task_read_pool = connect_task_pool(database_file, default_read_max_connections())
             .await
             .expect("test private read pool should open");
+        let riir_db_path = database_file.with_file_name("riir.sqlite");
+        let riir_db = RiirDatabase::file_backed(&riir_db_path)
+            .await
+            .expect("test RIIR database should open");
         TaskRuntimeContext::new(TaskRuntimeContextParams {
             main_db: DatabaseHandle::file_backed(database_file.to_path_buf())
                 .await
@@ -193,6 +197,7 @@ mod tests {
             task_write_pool,
             task_read_pool,
             runtime_events: Arc::new(RuntimeSseEventStore::default()),
+            riir_db: Some(riir_db),
         })
     }
 
