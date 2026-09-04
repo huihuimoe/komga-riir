@@ -184,7 +184,7 @@ impl JobRuntime<'_> {
 
     fn server_settings(&self) -> ServerSettingsStore {
         ServerSettingsStore::from_context(SqlitePersistenceContext::new(
-            self.database().task_write_pool().clone(),
+            self.database().task_read_pool().clone(),
         ))
     }
 

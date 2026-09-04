@@ -294,12 +294,26 @@ async fn complete_shutdown_lifecycle() {
         outcome = "graceful",
         "Server shutdown requested",
     );
-    close_all_shared_pools().await;
-    tracing::info!(
-        event = "shared_pool_close",
-        outcome = "closed",
-        "Closed shared sqlite pools",
-    );
+    if close_shared_pools_with_timeout(SHUTDOWN_GRACE_PERIOD).await {
+        tracing::info!(
+            event = "shared_pool_close",
+            outcome = "closed",
+            "Closed shared sqlite pools",
+        );
+    } else {
+        tracing::warn!(
+            event = "shared_pool_close",
+            outcome = "timed_out",
+            shutdown_grace_period_ms = SHUTDOWN_GRACE_PERIOD.as_millis() as u64,
+            "Shared sqlite pool close exceeded shutdown deadline; continuing shutdown",
+        );
+    }
+}
+
+async fn close_shared_pools_with_timeout(timeout_duration: Duration) -> bool {
+    tokio::time::timeout(timeout_duration, close_all_shared_pools())
+        .await
+        .is_ok()
 }
 
 #[cfg(test)]
