@@ -10,6 +10,7 @@ use serde::Serialize;
 use std::collections::{BTreeMap, VecDeque};
 use std::convert::Infallible;
 use std::time::Duration;
+use tokio::sync::watch;
 use tokio::time::{Instant, MissedTickBehavior, interval_at};
 
 use crate::contracts::sse::{
@@ -71,6 +72,7 @@ pub(crate) async fn sse_events(
             last_runtime_event_id,
             pending_events,
             runtime_event_updates,
+            shutdown: state.sse.shutdown_receiver(),
             app,
         },
         |mut stream_state| async move {
@@ -91,6 +93,11 @@ pub(crate) async fn sse_events(
                             return None;
                         }
                         poll_runtime_events(&mut stream_state).await;
+                    }
+                    changed = stream_state.shutdown.changed() => {
+                        if changed.is_ok() && *stream_state.shutdown.borrow() {
+                            return None;
+                        }
                     }
                 }
             }
@@ -122,6 +129,7 @@ struct SseStreamState {
     last_runtime_event_id: u64,
     pending_events: VecDeque<Event>,
     runtime_event_updates: Box<dyn RuntimeSseEventSubscription>,
+    shutdown: watch::Receiver<bool>,
     app: OperationalApiState,
 }
 
