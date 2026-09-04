@@ -59,6 +59,7 @@ pub(super) fn compose_http_runtime(
         tasks_db,
         task_engine,
         runtime_events,
+        contribution_cleanup,
     } = runtime;
     let runtime_event_source: Arc<dyn RuntimeSseEventSource> = runtime_events.clone();
     let runtime_event_sink: Arc<dyn RuntimeSseEventSink> = runtime_events;
@@ -239,6 +240,7 @@ pub(super) fn compose_http_runtime(
             db.read_pool().clone(),
             db.write_pool().clone(),
             runtime_event_sink.clone(),
+            contribution_cleanup,
         )),
         task_queue: task_engine_arc.clone(),
         server_settings: server_settings.clone(),

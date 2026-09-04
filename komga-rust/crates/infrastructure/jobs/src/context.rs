@@ -2,6 +2,7 @@ use std::path::PathBuf;
 use std::sync::Arc;
 
 use anyhow::Context;
+use komga_application::media_assets::SeriesMetadataContributionCleanupPort;
 use komga_application::operational::ServerSettingsPort;
 use komga_application::runtime_sse::RuntimeSseEventSink;
 use komga_application::task_processing::{CleanupEmptySetsPolicy, ThumbnailRegenerationPolicy};
@@ -9,6 +10,7 @@ use sqlx::SqlitePool;
 
 use komga_infrastructure_base::{DatabaseHandle, RiirDatabase, SqlitePersistenceContext};
 use komga_infrastructure_media_library::MediaLibraryJobContext;
+use komga_infrastructure_media_metadata::RiirSeriesMetadataContributionCleanup;
 use komga_infrastructure_operational::ServerSettingsStore;
 use komga_infrastructure_search::engine::SearchIndexEngine;
 
@@ -25,6 +27,7 @@ pub struct TaskRuntimeContext {
     runtime_events: Arc<dyn RuntimeSseEventSink>,
     media_library: MediaLibraryJobContext,
     riir_db: Option<RiirDatabase>,
+    contribution_cleanup: Option<Arc<dyn SeriesMetadataContributionCleanupPort>>,
 }
 
 pub struct TaskRuntimeContextParams {
@@ -98,11 +101,16 @@ impl TaskRuntimeContext {
             runtime_events,
             riir_db,
         } = params;
+        let contribution_cleanup = riir_db.as_ref().map(|riir_db| {
+            Arc::new(RiirSeriesMetadataContributionCleanup::new(riir_db.clone()))
+                as Arc<dyn SeriesMetadataContributionCleanupPort>
+        });
         let media_library = MediaLibraryJobContext::new(
             main_db.clone(),
             ownership.owns_main_database,
             ownership.owns_filesystem_scan_output,
             runtime_events.clone(),
+            contribution_cleanup.clone(),
         );
         Self {
             main_db,
@@ -116,6 +124,7 @@ impl TaskRuntimeContext {
             runtime_events,
             media_library,
             riir_db,
+            contribution_cleanup,
         }
     }
 
@@ -210,6 +219,10 @@ impl JobRuntime<'_> {
 
     pub(crate) fn runtime_events_arc(&self) -> Arc<dyn RuntimeSseEventSink> {
         self.runtime.runtime_events.clone()
+    }
+
+    pub fn contribution_cleanup(&self) -> Option<Arc<dyn SeriesMetadataContributionCleanupPort>> {
+        self.runtime.contribution_cleanup.clone()
     }
 
     pub(crate) fn riir_db(&self) -> anyhow::Result<&RiirDatabase> {

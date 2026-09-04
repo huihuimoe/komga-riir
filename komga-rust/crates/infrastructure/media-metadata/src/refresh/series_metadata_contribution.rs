@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 use sqlx::{QueryBuilder, Row, Sqlite};
 
 use komga_application::discovery::SeriesReadingDirection;
+use komga_application::media_assets::SeriesMetadataContributionCleanupPort;
 use komga_infrastructure_base::RiirDatabase;
 
 use super::SeriesMetadataImportPatch;
@@ -54,6 +55,24 @@ pub(super) enum SeriesMetadataContributionOutcome {
 pub(super) enum ContributionSnapshot {
     Complete(Vec<SeriesMetadataContribution>),
     Incomplete,
+}
+
+#[derive(Clone)]
+pub struct RiirSeriesMetadataContributionCleanup {
+    database: RiirDatabase,
+}
+
+impl RiirSeriesMetadataContributionCleanup {
+    pub fn new(database: RiirDatabase) -> Self {
+        Self { database }
+    }
+}
+
+#[async_trait::async_trait]
+impl SeriesMetadataContributionCleanupPort for RiirSeriesMetadataContributionCleanup {
+    async fn delete_book_contributions(&self, book_ids: &[String]) -> anyhow::Result<()> {
+        delete_book_contributions(&self.database, book_ids).await
+    }
 }
 
 struct PersistedContributionRow {
@@ -239,6 +258,29 @@ pub(super) async fn upsert(
     Ok(())
 }
 
+async fn delete_book_contributions(
+    database: &RiirDatabase,
+    book_ids: &[String],
+) -> anyhow::Result<()> {
+    for book_ids in book_ids.chunks(CONTRIBUTION_LOOKUP_BATCH_SIZE) {
+        let mut query = QueryBuilder::<Sqlite>::new(
+            "DELETE FROM SERIES_METADATA_CONTRIBUTION WHERE BOOK_ID IN (",
+        );
+        let mut separated = query.separated(", ");
+        for book_id in book_ids {
+            separated.push_bind(book_id);
+        }
+        separated.push_unseparated(")");
+        query
+            .build()
+            .execute(database.write_pool())
+            .await
+            .context("failed to delete series metadata contributions")?;
+    }
+
+    Ok(())
+}
+
 pub(super) async fn load_complete_snapshot(
     database: &RiirDatabase,
     provider: SeriesMetadataProvider,
@@ -347,7 +389,7 @@ mod tests {
     use super::{
         ContributionSnapshot, RiirDatabase, SeriesMetadataContribution,
         SeriesMetadataContributionOutcome, SeriesMetadataContributionSource,
-        SeriesMetadataProvider, load_complete_snapshot, upsert,
+        SeriesMetadataProvider, delete_book_contributions, load_complete_snapshot, upsert,
     };
 
     fn riir_db_path(case_name: &str) -> PathBuf {
@@ -515,6 +557,60 @@ mod tests {
         };
         assert_eq!(patch.title.as_deref(), Some("EPUB Series"));
         assert_eq!(patch.language.as_deref(), Some("en"));
+        store.close().await;
+        let _ = std::fs::remove_file(path);
+    }
+
+    #[tokio::test]
+    async fn deletes_contributions_in_batches_and_treats_empty_input_as_noop() {
+        let path = riir_db_path("delete-batches");
+        let store = RiirDatabase::file_backed(&path)
+            .await
+            .expect("RIIR database should open");
+
+        delete_book_contributions(&store, &[])
+            .await
+            .expect("empty contribution cleanup should be a no-op");
+
+        let mut transaction = store
+            .write_pool()
+            .begin()
+            .await
+            .expect("RIIR seed transaction should begin");
+        for index in 0..501 {
+            sqlx::query(
+                "INSERT INTO SERIES_METADATA_CONTRIBUTION (BOOK_ID, PROVIDER, SOURCE_FILE_LAST_MODIFIED_SECONDS, SOURCE_FILE_SIZE, SOURCE_MEDIA_TYPE, SOURCE_MEDIA_MODIFIED_SECONDS, PAYLOAD_FORMAT_VERSION, OUTCOME) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            )
+            .bind(format!("book-{index}"))
+            .bind("COMICINFO")
+            .bind(1_i64)
+            .bind(2_i64)
+            .bind("application/zip")
+            .bind(3_i64)
+            .bind(1_i64)
+            .bind("ABSENT")
+            .execute(&mut *transaction)
+            .await
+            .expect("RIIR contribution should be seeded");
+        }
+        transaction
+            .commit()
+            .await
+            .expect("RIIR seed transaction should commit");
+
+        let book_ids = (0..501)
+            .map(|index| format!("book-{index}"))
+            .collect::<Vec<_>>();
+        delete_book_contributions(&store, &book_ids)
+            .await
+            .expect("batched contribution cleanup should succeed");
+        let remaining =
+            sqlx::query_scalar::<_, i64>("SELECT COUNT(*) FROM SERIES_METADATA_CONTRIBUTION")
+                .fetch_one(store.read_pool())
+                .await
+                .expect("remaining contribution count should be queryable");
+        assert_eq!(remaining, 0);
+
         store.close().await;
         let _ = std::fs::remove_file(path);
     }

@@ -33,6 +33,7 @@ use series_metadata::{
     apply_mylar_series_import, apply_oneshot_series_metadata_import,
     apply_series_metadata_from_book_imports,
 };
+pub use series_metadata_contribution::RiirSeriesMetadataContributionCleanup;
 use series_metadata_contribution::{
     SeriesMetadataContribution, SeriesMetadataContributionOutcome,
     SeriesMetadataContributionSource, SeriesMetadataProvider, upsert,
