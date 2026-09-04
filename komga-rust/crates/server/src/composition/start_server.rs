@@ -179,7 +179,11 @@ async fn serve_router_with_shutdown_timeout(
     }
 
     tokio::select! {
-        result = &mut server => flatten_server_task_result(result),
+        result = &mut server => {
+            let result = flatten_server_task_result(result);
+            let _ = (&mut shutdown_lifecycle_rx).await;
+            result
+        },
         _ = &mut shutdown_lifecycle_rx => wait_for_server_shutdown_completion(
             &mut server,
             shutdown_grace_period,
@@ -230,8 +234,10 @@ async fn shutdown_signal(
     }
 
     let _ = shutdown_tx.send(true);
-    complete_shutdown_lifecycle().await;
-    let _ = shutdown_lifecycle_tx.send(());
+    tokio::spawn(async move {
+        complete_shutdown_lifecycle().await;
+        let _ = shutdown_lifecycle_tx.send(());
+    });
 }
 
 async fn wait_for_server_shutdown_completion(
