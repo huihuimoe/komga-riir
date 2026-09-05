@@ -77,6 +77,10 @@ pub(crate) async fn sse_events(
         },
         |mut stream_state| async move {
             loop {
+                if *stream_state.shutdown.borrow() {
+                    return None;
+                }
+
                 if let Some(event) = stream_state.pending_events.pop_front() {
                     return Some((Ok::<Event, Infallible>(event), stream_state));
                 }

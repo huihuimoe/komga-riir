@@ -7,6 +7,7 @@ use crate::cli_args::{
     DATABASE_FILE_ENV, FONTS_DATA_DIRECTORY_ENV, LOG_FILE_ENV, LUCENE_DATA_DIRECTORY_ENV,
     RuntimeCli, TASKS_DB_FILE_ENV,
 };
+use crate::error::ConfigError;
 use crate::profile::{DEFAULT_CONFIG_DIR, DEFAULT_LOG_FILE_NAME, PlatformProfile};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -17,6 +18,26 @@ pub(crate) struct DerivedRuntimePaths {
     pub(crate) tasks_db_file: PathBuf,
     pub(crate) lucene_data_directory: PathBuf,
     pub(crate) fonts_data_directory: PathBuf,
+}
+
+impl DerivedRuntimePaths {
+    pub(crate) fn validate_riir_db_path(&self) -> Result<(), ConfigError> {
+        for (conflicting_setting, path) in [
+            ("komga.database.file", &self.database_file),
+            ("komga.tasks-db.file", &self.tasks_db_file),
+            ("logging.file.name", &self.log_file),
+            ("komga.lucene.data-directory", &self.lucene_data_directory),
+            ("komga.fonts.data-directory", &self.fonts_data_directory),
+        ] {
+            if path == &self.riir_db_file {
+                return Err(ConfigError::RiirStoragePathCollision {
+                    path: self.riir_db_file.clone(),
+                    conflicting_setting,
+                });
+            }
+        }
+        Ok(())
+    }
 }
 
 pub(crate) fn read_string(layered: &LayeredConfig, keys: &[&str]) -> Option<String> {

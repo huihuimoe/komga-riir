@@ -58,22 +58,29 @@ async fn runtime_task_context_with(
     let task_read_pool = connect_task_pool(&paths.main_db, default_read_max_connections())
         .await
         .expect("test private read pool should open");
-    let riir_db = RiirDatabase::file_backed(&paths.riir_db_file)
-        .await
-        .expect("test RIIR database should open");
+    let consumes_queue = true;
+    let riir_db = if ownership.owns_main_database && consumes_queue {
+        Some(
+            RiirDatabase::file_backed(&paths.riir_db_file)
+                .await
+                .expect("test RIIR database should open"),
+        )
+    } else {
+        None
+    };
     TaskRuntimeContext::new(TaskRuntimeContextParams {
         main_db: DatabaseHandle::file_backed(paths.main_db.clone())
             .await
             .expect("test db should open"),
         tasks_db_file: paths.tasks_db.clone(),
         lucene_data_directory: paths.config_dir.join("lucene"),
-        consumes_queue: true,
+        consumes_queue,
         ownership,
         task_pool_size,
         task_write_pool,
         task_read_pool,
         runtime_events,
-        riir_db: Some(riir_db),
+        riir_db,
     })
 }
 
