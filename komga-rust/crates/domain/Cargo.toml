@@ -5,4 +5,6 @@ edition.workspace = true
 publish = false
 
 [dependencies]
+icu.workspace = true
 unicode-normalization.workspace = true
+windows-sys = { workspace = true, features = ["Win32", "Win32_Globalization"] }
