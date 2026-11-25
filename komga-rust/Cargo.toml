@@ -76,7 +76,7 @@ icu_properties = "2.4"
 jiff = { version = "1", features = ["serde"] }
 language-tags = "0.3"
 rust-embed = "8.14"
-rustfs-mimalloc = { version = "0.7", features = ["no_profile"] }
+rustfs-mimalloc = { version = "0.7", features = ["no_profile", "no_thp"] }
 windows-sys = { version = "0.61", features = ["Win32_Storage_FileSystem"] }
 rxing = { version = "0.9", default-features = false, features = ["oned", "decoders", "no_character_set_support"] }
 jsonwebtoken = { version = "12.0", default-features = false, features = ["aws_lc_rs"] }
