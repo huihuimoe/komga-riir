@@ -15,7 +15,7 @@
       "counter": "{0} dosya",
       "counterSize": "{0} Dosyalar ({1} toplam)"
     },
-    "noDataText": "Veri bulunamadı"
+    "noDataText": "Veri bulunmuyor"
   },
   "account_settings": {
     "account_settings": "Hesap Ayarları",
@@ -47,7 +47,7 @@
   "author_roles": {
     "colorist": "Renklendirme",
     "cover": "Kapak",
-    "editor": "Editör",
+    "editor": "editör",
     "inker": "Mürekkepleme Sanatçısı",
     "letterer": "Dizgici",
     "penciller": "İllüstratör",
@@ -88,13 +88,14 @@
       "number": "Sayı",
       "series": "Seri"
     },
-    "title": "İçeri Aktar",
+    "title": "İçe Aktar",
     "try_another_directory": "Başka bir dizinde aramayı deneyin"
   },
   "bookreader": {
     "beginning_of_book": "Kitabın başındasınız.",
     "changing_reading_direction": "Okuma Yönünü Değiştirme",
     "cycling_page_layout": "Çevrim Sayfa Düzeni",
+    "cycling_page_margin": "Çevrim Sayfa Aralığı",
     "cycling_scale": "Çevrim Ölçeği",
     "cycling_side_padding": "Çevrim Yan Dolgusu",
     "download_current_page": "Sayfayı indir",
@@ -148,6 +149,7 @@
     "shortcuts": {
       "close": "Kapat",
       "cycle_page_layout": "Sayfa düzenini değiştir",
+      "cycle_page_margin": "Sayfa kenar boşluğunu değiştir",
       "cycle_scale": "Ölçeklendirmeyi değiştir",
       "cycle_side_padding": "Yan boşluklandırmaları değiştir",
       "first_page": "İlk sayfa",
@@ -216,14 +218,14 @@
     "books_n": "Kitap Yok | 1 Kitap | {count} Kitap",
     "books_total": "{count} / {total} Kitap",
     "cancel": "İptal",
-    "cbx": "Comic Book arşivi",
+    "cbx": "Çizgi Roman arşivleri",
     "choose_image": "Bir resim seç",
     "close": "Kapat",
     "collections": "Koleksiyonlar",
     "copied": "Kopyalandı!",
     "create": "Oluştur",
     "delete": "Sil",
-    "dimension": "e: {width}, b: {height}",
+    "dimension": "g: {width}, y: {height}",
     "discard": "Vazgeç",
     "disk_space": "Disk boyutu",
     "dismiss": "Çöpe at",
@@ -250,29 +252,33 @@
     "n_selected": "{count} tane seçildi",
     "nothing_to_show": "Gösterilecek bir şey yok",
     "ok": "Tamam",
-    "oneshot": "One-shot",
+    "oneshot": "Tek seferlik",
     "outdated": "Güncel değil",
     "page": "Sayfa",
-    "page_number": "Sayfa Numarası",
+    "page_number": "Sayfa numarası",
     "pages": "sayfalar",
     "pages_left": "Sayfa kalmadı | 1 sayfa kaldı | {count} sayfa kaldı",
     "pages_n": "Sayfa kalmadı | 1 sayfa | {count} sayfa",
     "password": "Şifre",
     "pdf": "PDF",
     "pending_tasks": "Bekleyen görev yok | 1 bekleyen görev | {count} bekleyen görev",
+    "pinned_libraries": "İşaretli Kütüphaneler",
     "publisher": "Yayıncı",
     "read": "Oku",
     "read_on": "{date} tarihinde oku",
     "readlist": "Okuma Listesi",
     "readlists": "Okuma Listeleri",
     "remember-me": "Beni hatırla",
+    "reorder": "Yeniden sırala",
     "required": "Zorunlu",
     "reset_filters": "Filtreleri sıfırla",
     "roles": "Roller",
     "save_changes": "Değişiklikleri kaydet",
     "series": "Seri | Seriler",
+    "settings": "Ayarlar",
     "sidecars": "Ek bilgi",
     "tags": "Etiketler",
+    "ui": "Kullanıcı Arayüzü",
     "unavailable": "Kullanılamıyor",
     "unlock_all": "Hepsini aç",
     "url": "URL",
@@ -291,11 +297,12 @@
   "data_import": {
     "book_number": "Kitap sayısı: {name}",
     "book_series": "Seri: {name}",
-    "button_import": "İçeri Aktar",
+    "button_import": "İçe Aktar",
     "button_match": "Eşleşme",
     "comicrack_preambule_html": "ComickRack Okuma Listelerini <code>.cbl</code> formatında içeri aktarabilirsiniz. <br>Komga seri ve kitap sayısını kütüphanenizdeki seri ve kitap sayılarıyla eşleştirmeye çalışacak.",
     "dialog_confirmation": {
       "body": "{unmatched} / {total} kitap eşleşti",
+      "body2": "{total} kitaptan {duplicates} tanesi çoğaltıldı",
       "create": "Yine de oluştur",
       "title": "Bazı kitaplar eşleşmiyor"
     },
@@ -312,7 +319,7 @@
   },
   "dialog": {
     "add_api_key": {
-      "button_confirm": "Oluştur",
+      "button_confirm": "Üret",
       "context": "API Anahtarları Kobo Sync protokolüyle kimlik doğrulamak için kullanılabilir.",
       "dialog_title": "Yeni API anahtarı oluştur",
       "field_comment": "Yorum",
@@ -402,7 +409,7 @@
     "delete_user": {
       "button_confirm": "Sil",
       "confirm_delete": "Evet, \"{name}\" kullanıcısını sil",
-      "dialog_title": "Kullanıcı Silme",
+      "dialog_title": "Kullanıcıyı Sil",
       "warning_html": "<b>{name}</b> kullanıcısı bu sunucudan silinecektir. Bu işlem <b>geri alınamaz</b>. Devam et ?"
     },
     "edit_books": {
@@ -456,6 +463,7 @@
       "dialot_title_edit": "Kütüphaneyi Düzenle",
       "field_analysis_analyze_dimensions": "Sayfa boyutlarını analiz et",
       "field_analysis_hash_files": "Dosyalar için hash'leri hesapla",
+      "field_analysis_hash_koreader": "KOReader için hash'leri hesapla",
       "field_analysis_hash_pages": "Sayfalar için hash'leri hesapla",
       "field_convert_to_cbz": "Atomatik olarak CBZ formatına dönüştür",
       "field_import_barcode_isbn": "ISBN barkodu",
@@ -471,10 +479,10 @@
       "field_name": "İsim",
       "field_oneshotsdirectory": "One-Shot klasörü",
       "field_repair_extensions": "Hatalı dosya formatlarını otomatik olarak onar",
-      "field_root_folder": "Kök dizin",
+      "field_root_folder": "Kök klasör",
       "field_scan_interval": "Tarama aralığı",
       "field_scanner_empty_trash_after_scan": "Çöp kutusunu her taramadan sonra otomatik olarak boşalt",
-      "field_scanner_force_directory_modified_time": "Klasör değiştirme zamanını her taramada güncelle",
+      "field_scanner_force_directory_modified_time": "Dizin değiştirilme zamanını zorla ayarla",
       "field_scanner_scan_startup": "Sunucu başlatıldığında tarama yap",
       "field_series_cover": "Seri kapağı",
       "file_browser_dialog_button_confirm": "Seç",
@@ -486,9 +494,9 @@
       "label_import_epub": "EPUB dosyaları için üstveriyi içeri aktar",
       "label_import_local": "Yerel medya dosyalarını içeri aktar",
       "label_import_mylar": "Mylar tarafından oluşturulan üstveriyi içeri aktar",
-      "label_scan_directory_exclusions": "Klasör istisnaları",
+      "label_scan_directory_exclusions": "Dizin istisnaları",
       "label_scan_types": "Bu dosya formatları için tara",
-      "label_scanner": "Tarama",
+      "label_scanner": "Tarayıcı",
       "label_series_cover": "Seri kapağı",
       "tab_general": "Genel",
       "tab_metadata": "Üstveri",
@@ -507,6 +515,11 @@
       "label_ordering": "Varsayılan olarak okuma listesindeki kitaplar manuel olarak sıralanır. Manuel sıralamayı devre dışı bırakarak kitapları yayın tarihine göre sıralayabilirsiniz.",
       "tab_general": "Genel",
       "tab_poster": "Poster"
+    },
+    "edit_recommended": {
+      "button_confirm": "Değişiklikleri kaydet",
+      "button_reset": "Varsayılana sıfırla",
+      "dialog_title": "Önerilenler görünümünü düzenle"
     },
     "edit_series": {
       "button_cancel": "İptal",
@@ -556,7 +569,7 @@
       "tab_shared_libraries": "Paylaşılan Kütüphaneler"
     },
     "empty_trash": {
-      "body": "Varsayılan olarak medya sunucusu, medya ile ilgili bilgiyi hemen silmez. Bu, diskin anlık olarak bağlantısının kesildiği durumlarda yardımcı olur. Bir kütüphane için çöp kutusunu boşalttığınızda medya ile ilgili tüm bilgiler de silinir.",
+      "body": "Varsayılan olarak, medya sunucusu medya öğeleriyle ilgili bilgileri hemen silmez. Bu, bir sürücünün geçici olarak bağlantısının kesilmesi durumunda faydalıdır. Bir kütüphanenin çöp kutusunu boşalttığınızda, kayıp medya öğeleriyle ilgili tüm bilgiler silinir.",
       "button_confirm": "Boşalt",
       "title": "Kütüphane için çöp kutusunu boşalt"
     },
@@ -612,7 +625,7 @@
       "label_candidate": "Aday",
       "label_existing": "Mevcut",
       "label_format": "Format",
-      "label_name": "Ad",
+      "label_name": "İsim",
       "label_pages": "Sayfalar",
       "label_size": "Boyut",
       "pages_table": {
@@ -647,6 +660,7 @@
     "delete_to_save": "{size} alan kazanmak için silin",
     "deleted_count": "{count} defa silindi",
     "empty_title": "Eş sayfa bulunamadı",
+    "empty_title_known": "Bilinen bir kopya bulunamadı",
     "filter": {
       "count": "Sayı",
       "date_added": "Eklenme tarihi",
@@ -662,7 +676,7 @@
     "matches_n": "Eşleşme yok | 1 eşleşme | {count} eşleşme",
     "new": "Yeni",
     "saved_size": "{size} kazanıldı",
-    "title": "Eş sayfalar",
+    "title": "Eş Sayfalar",
     "unknown_size": "Bilinmeyen boyut"
   },
   "duplicates": {
@@ -700,11 +714,16 @@
       "DuplicatePageDeleted": "Eş sayfa silindi",
       "SeriesFolderDeleted": "Seri klasörü silindi"
     },
+    "media_profile": {
+      "DIVINA": "DiViNa",
+      "EPUB": "EPUB",
+      "PDF": "PDF"
+    },
     "media_status": {
       "ERROR": "Hata",
       "OUTDATED": "Güncel değil",
       "READY": "Hazır",
-      "UNKNOWN": "Bİlinmiyor",
+      "UNKNOWN": "Bilinmiyor",
       "UNSUPPORTED": "Desteklenmiyor"
     },
     "page_hash_action": {
@@ -742,14 +761,16 @@
       "DEFAULT": "Varsayılan (300px)",
       "LARGE": "Büyük (900px)",
       "MEDIUM": "Ortalama (600px)",
-      "XLARGE": "Extra Büyük (1200px)"
+      "XLARGE": "Ekstra Büyük (1200px)"
     }
   },
   "epubreader": {
     "current_chapter": "Şimdiki bölüm",
     "page_of": "{count} sayfa içinde {page}.",
+    "publisher_font": "Yayıncı",
     "settings": {
       "column_count": "Sütun sayısı",
+      "font_family": "Yazı tipi",
       "layout": "Düzen",
       "layout_paginated": "Sayfalandırılmış",
       "layout_scroll": "Kaydır",
@@ -806,20 +827,28 @@
     "ERR_1031": "ComicRack CBL kitabında seri veya numara eksik",
     "ERR_1032": "EPUB dosyası hatalı medya tipinde",
     "ERR_1033": "Bazı öğeler eksik",
-    "ERR_1034": "Bu yorum ile bir API anahtarı zaten mevcut"
+    "ERR_1034": "Bu yorum ile bir API anahtarı zaten mevcut",
+    "ERR_1035": "EPUB içindekilerine erişilirken bir hata oluştu",
+    "ERR_1036": "EPUB Önemli Noktaları alınırken hata oluştu",
+    "ERR_1037": "EPUB sayfa listesi alınırken hata oluştu",
+    "ERR_1038": "EPUB divina sayfaları alınırken hata oluştu",
+    "ERR_1039": "EPUB konumları alınırken hata oluştu"
   },
   "filter": {
     "age_rating": "yaş sınırı",
     "age_rating_none": "Yok",
+    "any": "Herhangi",
     "complete": "Tamamlanmış",
     "genre": "tür",
     "in_progress": "Okunuyor",
     "language": "dil",
     "library": "kütüphane",
-    "oneshot": "One-shot",
+    "media_profile": "Medya profili",
+    "media_status": "Medya durumu",
+    "oneshot": "Tek seferlik",
     "publisher": "yayıncı",
     "read": "Okundu",
-    "release_date": "yayın tarihi",
+    "release_date": "yayınlanma tarihi",
     "sharing_label": "Paylaşım Etiketi",
     "status": "durum",
     "tag": "etiket",
@@ -844,7 +873,9 @@
     "translation": "Çeviri"
   },
   "library_navigation": {
-    "browse": "Göz At",
+    "browse": "Göz at",
+    "browse_books": "Kitaplar",
+    "browse_series": "Seri",
     "collections": "Koleksiyonlar",
     "readlists": "Okuma Listeleri",
     "recommended": "Önerilenler"
@@ -856,7 +887,7 @@
   },
   "media_analysis": {
     "comment": "Yorum",
-    "media_analysis": "Medya analizi",
+    "media_analysis": "Medya Analizi",
     "media_type": "Medya Tipi",
     "name": "İsim",
     "size": "Boyut",
@@ -891,10 +922,14 @@
     "tasks_total_time": "Toplam görev süresi",
     "title": "İstatistikler"
   },
+  "missing_posters": {
+    "title": "Eksik Posterler"
+  },
   "navigation": {
     "home": "Anasayfa",
     "libraries": "Kütüphaneler",
-    "logout": "Çıkış Yap"
+    "logout": "Çıkış Yap",
+    "try_new_ui": "Yeni arayüzü dene"
   },
   "page_not_found": {
     "go_back_to_home_page": "Ana sayfaya geri dön",
@@ -932,7 +967,7 @@
       "button_empty_trash": "Bütün kütüphaneler için çöp kutusunu boşalt",
       "button_scan_libraries": "Bütün kütüphaneleri tara",
       "button_scan_libraries_deep": "Bütün kütüphaneleri tara (detaylı)",
-      "button_shutdown": "Kapat",
+      "button_shutdown": "Sistemi Kapat",
       "download_log": "Kayıt dosyasını indir",
       "notification_tasks_cancelled": "İptal edilecek görev yok | 1 görev iptal edildi | {count} görev iptal edildi",
       "section_title": "Sunucu Yönetimi"
@@ -941,7 +976,7 @@
     "updates": "Güncellemeler"
   },
   "server_settings": {
-    "config_precedence": "Konfigürasyon dosyası üzerine önceliklidir",
+    "config_precedence": "Yapılandırma dosyasından önceliklidir",
     "dialog_regenerate_thumbnails": {
       "body": "Önizleme boyutları değişti. Önizlemeleri tekrar oluşturmak ister misiniz ?",
       "btn_alternate": "Evet, bütün kitaplar",
@@ -958,7 +993,7 @@
     "label_rememberme_duration": "Beni hatırla süresi (gün)",
     "label_server_context_path": "Esas URL",
     "label_server_port": "Sunucu Portu",
-    "label_task_pool_size": "Görev threadleri",
+    "label_task_pool_size": "Görev iş parçacıkları",
     "label_thumbnail_size": "Önizleme boyutları",
     "requires_restart": "Ayarın etkin olması için yeniden başlatma gerekir",
     "server_settings": "Sunucu Ayarları"
@@ -975,16 +1010,17 @@
   "sort": {
     "books_count": "Kitap sayısı",
     "date_added": "Eklenme tarihi",
-    "date_read": "Okunma Tarihi",
+    "date_read": "Okunma tarihi",
     "date_updated": "Güncellenme tarihi",
     "file_name": "Dosya Adına",
     "file_size": "Boyuta göre",
     "folder_name": "Klasör adı",
-    "name": "Ad",
+    "name": "İsim",
     "number": "Sayıya göre",
     "page_count": "Sayfa sayısı",
     "random": "Rastgele",
-    "release_date": "Yayın tarihi"
+    "release_date": "Yayınlanma tarihi",
+    "series": "Seri"
   },
   "theme": {
     "dark": "Koyu",
@@ -1006,6 +1042,14 @@
     "less": "Daha az başlık",
     "more": "Daha çok başlık"
   },
+  "ui_settings": {
+    "general": "Genel",
+    "label_oauth2_auto_login": "Otomatik OAuth2 girişi",
+    "label_oauth2_hide_login": "OAuth2 etkinleştirilmişse giriş alanlarını gizle",
+    "series_groups": {
+      "alpha": "Alfabetik"
+    }
+  },
   "updates": {
     "available": "Yeni güncellemeler mevcut",
     "latest_installed": "Komga'nın güncel sürümü yüklü"
@@ -1013,13 +1057,14 @@
   "user_roles": {
     "ADMIN": "Yönetici",
     "FILE_DOWNLOAD": "Dosya indirme",
-    "KOBO_SYNC": "Kobo Sync",
+    "KOBO_SYNC": "Kobo Senkronizasyonu",
+    "KOREADER_SYNC": "KOReader senkronizasyonu",
     "PAGE_STREAMING": "Sayfa yayınlama",
     "USER": "Kullanıcı"
   },
   "users": {
     "api_keys": "API Anahtarları",
-    "authentication_activity": "Giriş Aktivitesi",
+    "authentication_activity": "Kimlik Doğrulama Etkinliği",
     "users": "Kullanıcılar"
   },
   "validation": {

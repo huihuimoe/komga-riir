@@ -6,7 +6,7 @@
     <PosterSizeSlider />
 
     <v-icon-btn
-      v-tooltip:bottom="$formatMessage(editMessage)"
+      v-ktooltip:bottom="$formatMessage(editMessage)"
       icon="i-mdi:star-cog"
       @mouseenter="(event: Event) => (dialogConfirmEdit.activator = event.currentTarget as Element)"
       @click="editSections()"
@@ -75,20 +75,32 @@ import {
   type ClientSettingUserOverviewSection,
 } from '@/types/ClientSettingsUser'
 import { storeToRefs } from 'pinia'
-import { useDialogsStore } from '@/stores/dialogs'
+import { type DialogResult, useDialogsStore } from '@/stores/dialogs'
 import { commonMessages } from '@/utils/i18n/common-messages'
 import { defineMessage, useIntl } from 'vue-intl'
 import { useDisplay } from 'vuetify'
 import ReorderOverviewSections from '@/components/ReorderOverviewSections.vue'
 import { useMessagesStore } from '@/stores/messages'
 import type OverviewSection from '@/components/OverviewSection.vue'
+import { BrowsingContextKey } from '@/functions/browsing-context'
+import { useLibraryViewStore } from '@/stores/library-view'
 
 const intl = useIntl()
 const display = useDisplay()
 const route = useRoute('/libraries/[viewId]/overview')
 const libraryViewId = route.params.viewId
 
+provide(
+  BrowsingContextKey,
+  computed(() => ({ type: 'libraryView', id: libraryViewId, subType: 'overview' })),
+)
+
 const isExactParentRoute = computed(() => route.name === '/libraries/[viewId]/overview')
+
+const libraryViewStore = useLibraryViewStore()
+if (isExactParentRoute.value) {
+  libraryViewStore.saveState(libraryViewId, 'overview')
+}
 
 const { userSettings } = useClientSettingsUser()
 const overviewSections = computed(() => {
@@ -112,20 +124,26 @@ function editSections() {
   dialogConfirmEdit.value.dialogProps = {
     title: intl.formatMessage(editMessage),
     maxWidth: 500,
-    okText: 'Save',
-    cardTextClass: 'px-0',
+    cardTextProps: {
+      class: 'px-0',
+    },
     closeOnSave: false,
     scrollable: false,
     fullscreen: display.xs.value,
   }
-  dialogConfirmEdit.value.slot = {
-    component: markRaw(ReorderOverviewSections),
+  dialogConfirmEdit.value.slots = {
+    default: {
+      component: markRaw(ReorderOverviewSections),
+    },
   }
   dialogConfirmEdit.value.record = toValue(overviewSections)
   dialogConfirmEdit.value.callback = (
+    result: DialogResult,
     hideDialog: () => void,
     setLoading: (isLoading: boolean) => void,
   ) => {
+    if (result === 'cancel') return
+
     setLoading(true)
 
     const updatedSections = dialogConfirmEdit.value.record as ClientSettingUserOverviewSection[]

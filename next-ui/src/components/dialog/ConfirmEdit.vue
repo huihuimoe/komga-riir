@@ -3,6 +3,8 @@
     v-model="showDialog"
     :activator="activator"
     :max-width="maxWidth"
+    :max-height="fullscreen ? undefined : maxHeight"
+    :min-height="fullscreen ? undefined : minHeight"
     :fullscreen="fullscreen"
     :transition="fullscreen ? 'dialog-bottom-transition' : undefined"
     :scrollable="scrollable"
@@ -26,7 +28,7 @@
               :subtitle="subtitle"
               :loading="loading"
             >
-              <v-card-text :class="cardTextClass">
+              <v-card-text v-bind="cardTextProps">
                 <slot
                   name="text"
                   :proxy-model="proxyModel"
@@ -37,16 +39,23 @@
               </v-card-text>
 
               <template #actions>
+                <slot name="prepend-actions" />
                 <v-spacer />
                 <v-btn
                   :text="
+                    cancelText ||
                     $formatMessage({
                       description: 'ConfirmEdit dialog: Cancel button',
                       defaultMessage: 'Cancel',
                       id: 'G/T8/2',
                     })
                   "
-                  @click="isActive.value = false"
+                  @click="
+                    () => {
+                      emit('cancel')
+                      isActive.value = false
+                    }
+                  "
                 />
                 <v-btn
                   :text="
@@ -75,23 +84,32 @@ import type { DialogConfirmEditProps } from '@/types/dialog'
 const showDialog = defineModel<boolean>('dialog', { required: false })
 const record = defineModel<unknown>('record', { required: true })
 
+const emit = defineEmits<{
+  submitFailed: []
+  cancel: []
+}>()
+
 const form = ref()
 
 async function submitForm(callback: () => void) {
   const { valid } = await form.value.validate()
   if (valid) callback()
+  else emit('submitFailed')
 }
 
 const {
   title = undefined,
   subtitle = undefined,
   okText = undefined,
-  cardTextClass = undefined,
+  cancelText = undefined,
   maxWidth = undefined,
+  maxHeight = undefined,
+  minHeight = undefined,
   activator = undefined,
   loading = false,
   closeOnSave = true,
   fullscreen = undefined,
   scrollable = undefined,
+  cardTextProps = undefined,
 } = defineProps<DialogConfirmEditProps>()
 </script>

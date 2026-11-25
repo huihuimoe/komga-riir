@@ -1,5 +1,6 @@
 package org.gotson.komga.infrastructure.jooq.main
 
+import org.gotson.komga.application.query.isEmpty
 import org.gotson.komga.domain.model.Book
 import org.gotson.komga.domain.model.SearchCondition
 import org.gotson.komga.domain.model.SearchContext
@@ -7,7 +8,7 @@ import org.gotson.komga.domain.persistence.BookRepository
 import org.gotson.komga.infrastructure.jooq.BookSearchHelper
 import org.gotson.komga.infrastructure.jooq.RequiredJoin
 import org.gotson.komga.infrastructure.jooq.SplitDslDaoBase
-import org.gotson.komga.infrastructure.jooq.TempTable.Companion.withTempTable
+import org.gotson.komga.infrastructure.jooq.TempTable.Companion.useTempTable
 import org.gotson.komga.infrastructure.jooq.rlbAlias
 import org.gotson.komga.infrastructure.jooq.toOrderBy
 import org.gotson.komga.jooq.main.Tables
@@ -77,24 +78,22 @@ class BookDao(
       .map { it.toDomain() }
 
   @Transactional
-  override fun findAllBySeriesIds(seriesIds: Collection<String>): Collection<Book> {
-    dslRO.withTempTable(batchSize, seriesIds).use { tempTable ->
-      return dslRO
+  override fun findAllBySeriesIds(seriesIds: Collection<String>): Collection<Book> =
+    dslRO.useTempTable(batchSize, seriesIds) { dsl, tempTable ->
+      dsl
         .selectFrom(b)
         .where(b.SERIES_ID.`in`(tempTable.selectTempStrings()))
         .fetchInto(b)
         .map { it.toDomain() }
     }
-  }
 
   @Transactional
   override fun findAllNotDeletedByLibraryIdAndUrlNotIn(
     libraryId: String,
     urls: Collection<URL>,
-  ): Collection<Book> {
-    dslRO.withTempTable(batchSize, urls.map { it.toString() }).use { tempTable ->
-
-      return dslRO
+  ): Collection<Book> =
+    dslRO.useTempTable(batchSize, urls.map { it.toString() }) { dsl, tempTable ->
+      dsl
         .selectFrom(b)
         .where(b.LIBRARY_ID.eq(libraryId))
         .and(b.DELETED_DATE.isNull)
@@ -102,7 +101,6 @@ class BookDao(
         .fetchInto(b)
         .map { it.toDomain() }
     }
-  }
 
   override fun findAllDeletedByFileSize(fileSize: Long): Collection<Book> =
     dslRO
@@ -124,56 +122,63 @@ class BookDao(
   ): Page<Book> {
     val bookCondition = BookSearchHelper(searchContext).toCondition(searchCondition)
 
-    val count =
-      dslRO
-        .selectCount()
-        .from(b)
-        .apply {
-          bookCondition.second.forEach { join ->
-            when (join) {
-              RequiredJoin.BookMetadata -> innerJoin(d).on(b.ID.eq(d.BOOK_ID))
-              RequiredJoin.SeriesMetadata -> innerJoin(sd).on(b.SERIES_ID.eq(sd.SERIES_ID))
-              RequiredJoin.Media -> innerJoin(m).on(b.ID.eq(m.BOOK_ID))
-              is RequiredJoin.ReadProgress -> leftJoin(r).on(b.ID.eq(r.BOOK_ID)).and(r.USER_ID.eq(join.userId))
-              is RequiredJoin.ReadList -> {
-                val rlbAlias = rlbAlias(join.readListId)
-                leftJoin(rlbAlias).on(rlbAlias.BOOK_ID.eq(b.ID).and(rlbAlias.READLIST_ID.eq(join.readListId)))
-              }
-              // shouldn't be required for books
-              RequiredJoin.BookMetadataAggregation -> Unit
-              is RequiredJoin.Collection -> Unit
-            }
-          }
-        }.where(bookCondition.first)
-        .fetchOne(0, Long::class.java) ?: 0
-
     val orderBy = pageable.sort.toOrderBy(sorts)
 
     val items =
-      dslRO
-        .select(*b.fields())
-        .from(b)
-        .apply {
-          bookCondition.second.forEach { join ->
-            when (join) {
-              RequiredJoin.BookMetadata -> innerJoin(d).on(b.ID.eq(d.BOOK_ID))
-              RequiredJoin.SeriesMetadata -> innerJoin(sd).on(b.SERIES_ID.eq(sd.SERIES_ID))
-              RequiredJoin.Media -> innerJoin(m).on(b.ID.eq(m.BOOK_ID))
-              is RequiredJoin.ReadProgress -> leftJoin(r).on(b.ID.eq(r.BOOK_ID)).and(r.USER_ID.eq(join.userId))
-              is RequiredJoin.ReadList -> {
-                val rlbAlias = rlbAlias(join.readListId)
-                leftJoin(rlbAlias).on(rlbAlias.BOOK_ID.eq(b.ID).and(rlbAlias.READLIST_ID.eq(join.readListId)))
+      if (pageable.isEmpty())
+        emptyList()
+      else
+        dslRO
+          .select(*b.fields())
+          .from(b)
+          .apply {
+            bookCondition.second.forEach { join ->
+              when (join) {
+                RequiredJoin.BookMetadata -> innerJoin(d).on(b.ID.eq(d.BOOK_ID))
+                RequiredJoin.SeriesMetadata -> innerJoin(sd).on(b.SERIES_ID.eq(sd.SERIES_ID))
+                RequiredJoin.Media -> innerJoin(m).on(b.ID.eq(m.BOOK_ID))
+                is RequiredJoin.ReadProgress -> leftJoin(r).on(b.ID.eq(r.BOOK_ID)).and(r.USER_ID.eq(join.userId))
+                is RequiredJoin.ReadList -> {
+                  val rlbAlias = rlbAlias(join.readListId)
+                  leftJoin(rlbAlias).on(rlbAlias.BOOK_ID.eq(b.ID).and(rlbAlias.READLIST_ID.eq(join.readListId)))
+                }
+                // shouldn't be required for books
+                RequiredJoin.BookMetadataAggregation -> Unit
+                is RequiredJoin.Collection -> Unit
               }
-              // shouldn't be required for books
-              RequiredJoin.BookMetadataAggregation -> Unit
-              is RequiredJoin.Collection -> Unit
             }
-          }
-        }.where(bookCondition.first)
-        .orderBy(orderBy)
-        .apply { if (pageable.isPaged) limit(pageable.pageSize).offset(pageable.offset) }
-        .fetchInto(b)
-        .map { it.toDomain() }
+          }.where(bookCondition.first)
+          .orderBy(orderBy)
+          .apply { if (pageable.isPaged) limit(pageable.pageSize).offset(pageable.offset) }
+          .fetchInto(b)
+          .map { it.toDomain() }
+
+    val count =
+      if (pageable.isUnpaged)
+        items.size
+      else
+        dslRO
+          .selectCount()
+          .from(b)
+          .apply {
+            bookCondition.second.forEach { join ->
+              when (join) {
+                RequiredJoin.BookMetadata -> innerJoin(d).on(b.ID.eq(d.BOOK_ID))
+                RequiredJoin.SeriesMetadata -> innerJoin(sd).on(b.SERIES_ID.eq(sd.SERIES_ID))
+                RequiredJoin.Media -> innerJoin(m).on(b.ID.eq(m.BOOK_ID))
+                is RequiredJoin.ReadProgress -> leftJoin(r).on(b.ID.eq(r.BOOK_ID)).and(r.USER_ID.eq(join.userId))
+                is RequiredJoin.ReadList -> {
+                  val rlbAlias = rlbAlias(join.readListId)
+                  leftJoin(rlbAlias).on(rlbAlias.BOOK_ID.eq(b.ID).and(rlbAlias.READLIST_ID.eq(join.readListId)))
+                }
+                // shouldn't be required for books
+                RequiredJoin.BookMetadataAggregation -> Unit
+                is RequiredJoin.Collection -> Unit
+              }
+            }
+          }.where(bookCondition.first)
+          .fetchOne(0, Int::class.java) ?: 0
+
     val pageSort = if (orderBy.isNotEmpty()) pageable.sort else unsorted()
 
     return PageImpl(
@@ -181,8 +186,8 @@ class BookDao(
       if (pageable.isPaged)
         PageRequest.of(pageable.pageNumber, pageable.pageSize, pageSort)
       else
-        PageRequest.of(0, maxOf(count.toInt(), 20), pageSort),
-      count,
+        PageRequest.of(0, maxOf(count, 20), pageSort),
+      count.toLong(),
     )
   }
 
@@ -393,8 +398,8 @@ class BookDao(
 
   @Transactional
   override fun delete(bookIds: Collection<String>) {
-    dslRW.withTempTable(batchSize, bookIds).use { tempTable ->
-      dslRW.deleteFrom(b).where(b.ID.`in`(tempTable.selectTempStrings())).execute()
+    dslRW.useTempTable(batchSize, bookIds) { dsl, tempTable ->
+      dsl.deleteFrom(b).where(b.ID.`in`(tempTable.selectTempStrings())).execute()
     }
   }
 

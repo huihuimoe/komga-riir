@@ -99,6 +99,7 @@ export type BookMetadataAggregationDto = {
     authors: Array<AuthorDto>;
     created: Date;
     lastModified: Date;
+    notableEntities: Array<NotableEntityDto>;
     releaseDate?: Date;
     summary: string;
     summaryNumber: string;
@@ -114,6 +115,8 @@ export type BookMetadataDto = {
     lastModified: Date;
     links: Array<WebLinkDto>;
     linksLock: boolean;
+    notableEntities: Array<NotableEntityDto>;
+    notableEntitiesLock: boolean;
     number: string;
     numberLock: boolean;
     numberSort: number;
@@ -138,6 +141,8 @@ export type BookMetadataUpdateDto = {
     isbnLock?: boolean;
     links?: Array<WebLinkUpdateDto>;
     linksLock?: boolean;
+    notableEntities?: Array<NotableEntityUpdateDto>;
+    notableEntitiesLock?: boolean;
     number?: string;
     numberLock?: boolean;
     numberSort?: number;
@@ -430,6 +435,16 @@ export type MediaType = {
     wildcardType?: boolean;
 };
 
+export type NotableEntityDto = {
+    kind: string;
+    name: string;
+};
+
+export type NotableEntityUpdateDto = {
+    kind: string;
+    name: string;
+};
+
 export type OAuth2ClientDto = {
     name: string;
     registrationId: string;
@@ -614,6 +629,74 @@ export type PageReadListDto = {
     sort?: SortObject;
     totalElements?: number;
     totalPages?: number;
+};
+
+/**
+ * Paginated API response container
+ */
+export type PageResponseNotableEntityDto = {
+    /**
+     * List of items contained in the current page
+     */
+    content: Array<NotableEntityDto>;
+    /**
+     * Indicates if the current page is the first page
+     */
+    first: boolean;
+    /**
+     * Indicates if the current page is the last page
+     */
+    last: boolean;
+    /**
+     * Zero-based page index (0..N)
+     */
+    page: number;
+    /**
+     * Number of items requested per page
+     */
+    size: number;
+    /**
+     * Total number of elements across all pages
+     */
+    totalElements: number;
+    /**
+     * Total number of calculated pages
+     */
+    totalPages: number;
+};
+
+/**
+ * Paginated API response container
+ */
+export type PageResponseString = {
+    /**
+     * List of items contained in the current page
+     */
+    content: Array<string>;
+    /**
+     * Indicates if the current page is the first page
+     */
+    first: boolean;
+    /**
+     * Indicates if the current page is the last page
+     */
+    last: boolean;
+    /**
+     * Zero-based page index (0..N)
+     */
+    page: number;
+    /**
+     * Number of items requested per page
+     */
+    size: number;
+    /**
+     * Total number of elements across all pages
+     */
+    totalElements: number;
+    /**
+     * Total number of calculated pages
+     */
+    totalPages: number;
 };
 
 export type PageSeriesDto = {
@@ -806,7 +889,7 @@ export type SearchConditionAuthor = {
     author: SearchOperatorEqualityAuthorMatch;
 };
 
-export type SearchConditionBook = SearchConditionAnyOfBook | SearchConditionAllOfBook | SearchConditionLibraryId | SearchConditionReadListId | SearchConditionSeriesId | SearchConditionDeleted | SearchConditionOneShot | SearchConditionTitle | SearchConditionReleaseDate | SearchConditionTag | SearchConditionNumberSort | SearchConditionReadStatus | SearchConditionMediaStatus | SearchConditionMediaProfile | SearchConditionAuthor | SearchConditionPoster;
+export type SearchConditionBook = SearchConditionAnyOfBook | SearchConditionAllOfBook | SearchConditionLibraryId | SearchConditionReadListId | SearchConditionSeriesId | SearchConditionDeleted | SearchConditionOneShot | SearchConditionTitle | SearchConditionReleaseDate | SearchConditionTag | SearchConditionNumberSort | SearchConditionReadStatus | SearchConditionMediaStatus | SearchConditionMediaProfile | SearchConditionAuthor | SearchConditionNotableEntity | SearchConditionPoster;
 
 export type SearchConditionCollectionId = {
     collectionId: SearchOperatorEqualityString;
@@ -840,6 +923,10 @@ export type SearchConditionMediaStatus = {
     mediaStatus: SearchOperatorEqualityStatus;
 };
 
+export type SearchConditionNotableEntity = {
+    notableEntity: SearchOperatorEqualityNotableEntityMatch;
+};
+
 export type SearchConditionNumberSort = {
     numberSort: SearchOperatorNumericTFloat;
 };
@@ -868,7 +955,7 @@ export type SearchConditionReleaseDate = {
     releaseDate: SearchOperatorDate;
 };
 
-export type SearchConditionSeries = SearchConditionAnyOfSeries | SearchConditionAllOfSeries | SearchConditionLibraryId | SearchConditionCollectionId | SearchConditionDeleted | SearchConditionComplete | SearchConditionOneShot | SearchConditionTitle | SearchConditionTitleSort | SearchConditionReleaseDate | SearchConditionTag | SearchConditionSharingLabel | SearchConditionPublisher | SearchConditionLanguage | SearchConditionGenre | SearchConditionAgeRating | SearchConditionReadStatus | SearchConditionSeriesStatus | SearchConditionAuthor;
+export type SearchConditionSeries = SearchConditionAnyOfSeries | SearchConditionAllOfSeries | SearchConditionLibraryId | SearchConditionCollectionId | SearchConditionDeleted | SearchConditionComplete | SearchConditionOneShot | SearchConditionTitle | SearchConditionTitleSort | SearchConditionReleaseDate | SearchConditionTag | SearchConditionSharingLabel | SearchConditionPublisher | SearchConditionLanguage | SearchConditionGenre | SearchConditionAgeRating | SearchConditionReadStatus | SearchConditionSeriesStatus | SearchConditionAuthor | SearchConditionNotableEntity;
 
 export type SearchConditionSeriesId = {
     seriesId: SearchOperatorEqualityString;
@@ -939,6 +1026,10 @@ export type SearchOperatorEqualityAuthorMatch = (SearchOperatorIs | SearchOperat
 };
 
 export type SearchOperatorEqualityMediaProfile = (SearchOperatorIs | SearchOperatorIsNot) & {
+    operator: string;
+};
+
+export type SearchOperatorEqualityNotableEntityMatch = (SearchOperatorIs | SearchOperatorIsNot) & {
     operator: string;
 };
 
@@ -1125,16 +1216,18 @@ export type SettingMultiSourceString = {
 };
 
 export type SettingsDto = {
-    deleteEmptyCollections: boolean;
-    deleteEmptyReadLists: boolean;
-    kepubifyPath: SettingMultiSourceString;
+    deleteEmptyCollections?: boolean;
+    deleteEmptyReadLists?: boolean;
+    kepubifyPath?: SettingMultiSourceString;
     koboPort?: number;
-    koboProxy: boolean;
-    rememberMeDurationDays: number;
-    serverContextPath: SettingMultiSourceString;
-    serverPort: SettingMultiSourceInteger;
-    taskPoolSize: number;
-    thumbnailSize: ThumbnailSizeEnum;
+    koboProxy?: boolean;
+    maxUploadFileSizeBytes?: number;
+    nextUiAsDefault?: boolean;
+    rememberMeDurationDays?: number;
+    serverContextPath?: SettingMultiSourceString;
+    serverPort?: SettingMultiSourceInteger;
+    taskPoolSize?: number;
+    thumbnailSize?: ThumbnailSizeEnum;
 };
 
 /**
@@ -1151,6 +1244,7 @@ export type SettingsUpdateDto = {
     kepubifyPath?: string;
     koboPort?: number;
     koboProxy?: boolean;
+    nextUiAsDefault?: boolean;
     rememberMeDurationDays?: number;
     renewRememberMeKey?: boolean;
     serverContextPath?: string;
@@ -2790,6 +2884,10 @@ export type GetCollectionsData = {
          * The size of the page to be returned
          */
         size?: number;
+        /**
+         * Sorting criteria in the format: property(,asc|desc). Default sort order is ascending. Multiple sort criteria are supported.
+         */
+        sort?: Array<string>;
     };
     url: '/api/v1/collections';
 };
@@ -3822,6 +3920,10 @@ export type GetReadListsData = {
          * The size of the page to be returned
          */
         size?: number;
+        /**
+         * Sorting criteria in the format: property(,asc|desc). Default sort order is ascending. Multiple sort criteria are supported.
+         */
+        sort?: Array<string>;
     };
     url: '/api/v1/readlists';
 };
@@ -5924,3 +6026,124 @@ export type UpdatePasswordByUserIdResponses = {
 };
 
 export type UpdatePasswordByUserIdResponse = UpdatePasswordByUserIdResponses[keyof UpdatePasswordByUserIdResponses];
+
+export type GetNotableEntitiesData = {
+    body?: never;
+    path?: never;
+    query?: {
+        search?: string;
+        kind?: string;
+        library_id?: Array<string>;
+        collection_id?: Array<string>;
+        series_id?: Array<string>;
+        readlist_id?: Array<string>;
+        unpaged?: boolean;
+        /**
+         * Zero-based page index (0..N)
+         */
+        page?: number;
+        /**
+         * The size of the page to be returned
+         */
+        size?: number;
+    };
+    url: '/api/v3/notable-entities';
+};
+
+export type GetNotableEntitiesErrors = {
+    /**
+     * Bad Request
+     */
+    400: ValidationErrorResponse;
+};
+
+export type GetNotableEntitiesError = GetNotableEntitiesErrors[keyof GetNotableEntitiesErrors];
+
+export type GetNotableEntitiesResponses = {
+    /**
+     * OK
+     */
+    200: PageResponseNotableEntityDto;
+};
+
+export type GetNotableEntitiesResponse = GetNotableEntitiesResponses[keyof GetNotableEntitiesResponses];
+
+export type GetNotableEntitiesKindsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        library_id?: Array<string>;
+        collection_id?: Array<string>;
+        series_id?: Array<string>;
+        readlist_id?: Array<string>;
+        unpaged?: boolean;
+        /**
+         * Zero-based page index (0..N)
+         */
+        page?: number;
+        /**
+         * The size of the page to be returned
+         */
+        size?: number;
+    };
+    url: '/api/v3/notable-entities/kinds';
+};
+
+export type GetNotableEntitiesKindsErrors = {
+    /**
+     * Bad Request
+     */
+    400: ValidationErrorResponse;
+};
+
+export type GetNotableEntitiesKindsError = GetNotableEntitiesKindsErrors[keyof GetNotableEntitiesKindsErrors];
+
+export type GetNotableEntitiesKindsResponses = {
+    /**
+     * OK
+     */
+    200: PageResponseString;
+};
+
+export type GetNotableEntitiesKindsResponse = GetNotableEntitiesKindsResponses[keyof GetNotableEntitiesKindsResponses];
+
+export type GetNotableEntitiesNamesData = {
+    body?: never;
+    path?: never;
+    query?: {
+        search?: string;
+        kind?: string;
+        library_id?: Array<string>;
+        collection_id?: Array<string>;
+        series_id?: Array<string>;
+        readlist_id?: Array<string>;
+        unpaged?: boolean;
+        /**
+         * Zero-based page index (0..N)
+         */
+        page?: number;
+        /**
+         * The size of the page to be returned
+         */
+        size?: number;
+    };
+    url: '/api/v3/notable-entities/names';
+};
+
+export type GetNotableEntitiesNamesErrors = {
+    /**
+     * Bad Request
+     */
+    400: ValidationErrorResponse;
+};
+
+export type GetNotableEntitiesNamesError = GetNotableEntitiesNamesErrors[keyof GetNotableEntitiesNamesErrors];
+
+export type GetNotableEntitiesNamesResponses = {
+    /**
+     * OK
+     */
+    200: PageResponseString;
+};
+
+export type GetNotableEntitiesNamesResponse = GetNotableEntitiesNamesResponses[keyof GetNotableEntitiesNamesResponses];

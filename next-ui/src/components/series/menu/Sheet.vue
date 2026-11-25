@@ -5,6 +5,13 @@
     :manage-actions="actionsManagement"
     :activator="activator"
     :sheet-title="series.metadata.title"
+    :sheet-subtitle="
+      $formatMessage({
+        description: 'Series bottom sheet, subtitle',
+        defaultMessage: 'Series',
+        id: 'Gwmnm6',
+      })
+    "
   />
 </template>
 
@@ -37,11 +44,12 @@ const main = [
   ActionName.MarkRead,
   ActionName.MarkUnread,
   ActionName.AddToCollection,
+  ActionName.RemoveFromCollection,
   ActionName.AddToReadList,
   ActionName.Download,
 ] as ActionName[]
 const management = [
-  ActionName.EditSeries,
+  ActionName.EditEntity,
   ActionName.RefreshMetadata,
   ActionName.Analyze,
   ActionName.Delete,
@@ -70,7 +78,3 @@ const actionsManagement = computed(() =>
     .toSorted(createOrderCompareFn(management, (it) => it.action.toString())),
 )
 </script>
-
-<script lang="ts"></script>
-
-<style scoped></style>

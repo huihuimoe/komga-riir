@@ -4,38 +4,46 @@
       <v-col
         cols="6"
         sm="3"
+        lg="2"
       >
-        <ItemPoster
-          :poster-url="seriesPosterUrl(series.id)"
-          :top-right-icon="isRead ? 'i-mdi:check' : undefined"
-          :top-right="unreadCount"
-          :max-width="posterMaxWidth"
-        />
-
-        <v-alert
-          v-if="isRead || bookOnDeck"
-          :icon="isRead ? 'i-mdi:check' : undefined"
-          class="mt-1 text-center text-body-small"
-          :max-width="posterMaxWidth"
+        <div
+          class="ms-auto w-100"
+          style="max-width: 220px"
         >
-          <template v-if="bookOnDeck">{{
-            $formatMessage(
-              {
-                description: 'Series view: book on deck',
-                defaultMessage: 'On deck — #{number}',
-                id: '5cbjLE',
-              },
-              { number: bookOnDeck.metadata.number },
-            )
-          }}</template>
-          <template v-if="isRead">{{
-            $formatMessage({
-              description: 'Series view: read indicator',
-              defaultMessage: 'Read',
-              id: 'l7mpQK',
-            })
-          }}</template>
-        </v-alert>
+          <ItemPoster
+            :poster-url="seriesPosterUrl(series.id, cacheStore.getVersion(series.id))"
+            :top-right-icon="isRead ? 'i-mdi:check' : undefined"
+            :top-right="unreadCount"
+          />
+
+          <v-alert
+            v-if="isRead || bookOnDeck"
+            :icon="isRead ? 'i-mdi:check' : undefined"
+            class="mt-1 text-center text-body-small"
+          >
+            <template v-if="bookOnDeck"
+              >{{
+                $formatMessage(
+                  {
+                    description: 'Series view: book on deck',
+                    defaultMessage: 'On deck — {number}',
+                    id: '4jKnoO',
+                  },
+                  { number: bookOnDeck.metadata.number },
+                )
+              }}
+            </template>
+            <template v-if="isRead"
+              >{{
+                $formatMessage({
+                  description: 'Series view: read indicator',
+                  defaultMessage: 'Read',
+                  id: 'l7mpQK',
+                })
+              }}
+            </template>
+          </v-alert>
+        </div>
       </v-col>
 
       <v-col
@@ -43,6 +51,13 @@
         sm="9"
       >
         <v-container class="pa-0">
+          <div
+            v-if="display.smAndUp.value && containedIn.length > 0"
+            class="float-end"
+          >
+            <ContainerChip :containers="containedIn" />
+          </div>
+
           <v-row>
             <v-col>
               <div class="text-headline-small">{{ series.metadata.title }}</div>
@@ -133,6 +148,7 @@ other {# books}
               rounded
               label
               :text="$formatMessage(seriesStatusMessages[series.metadata.status as SeriesStatus])"
+              :to="seriesStatusLink"
             />
             <v-chip
               v-if="series.metadata.language"
@@ -140,6 +156,7 @@ other {# books}
               rounded
               label
               :text="languageDisplayNames.of(series.metadata.language)"
+              :to="languageLink"
             />
             <v-chip
               v-if="series.metadata.ageRating"
@@ -156,6 +173,7 @@ other {# books}
                   { rating: series.metadata.ageRating },
                 )
               "
+              :to="ageRatingLink"
             />
             <v-chip
               v-if="series.metadata.readingDirection"
@@ -212,6 +230,15 @@ other {# books}
         </v-col>
       </v-row>
 
+      <v-row v-if="display.xs.value && containedIn.length > 0">
+        <v-col>
+          <ContainerChip
+            :containers="containedIn"
+            small
+          />
+        </v-col>
+      </v-row>
+
       <v-row v-if="tableRows.length > 0">
         <v-col>
           <SimpleDataTable :rows="tableRows" />
@@ -240,12 +267,11 @@ other {# books}
 </template>
 
 <script setup lang="ts">
-import { seriesPosterUrl } from '@/api/images'
-
+import { collectionPosterUrl, seriesPosterUrl } from '@/api/images'
 import { useIntl } from 'vue-intl'
 import { useDisplay } from 'vuetify'
 import SimpleDataTable, { type TableRow } from '@/components/SimpleDataTable.vue'
-import { contributorsRolesMessages } from '@/types/referential'
+import { contributorsRolesMessages } from '@/types/referential/contributor'
 import { createOrderCompareFn } from '@/functions/sort'
 import { useSeries } from '@/composables/series/useSeries'
 import { type ReadingDirection, readingDirectionMessages } from '@/types/ReadingDirection'
@@ -253,22 +279,48 @@ import { languageDisplayNames } from '@/utils/i18n/locale-helper'
 import { type SeriesStatus, seriesStatusMessages } from '@/types/SeriesStatus'
 import { storeToRefs } from 'pinia'
 import { useDialogsStore } from '@/stores/dialogs'
-import { useBooks } from '@/composables/book/useBooks'
 import type { SeriesDto } from '@/generated/openapi'
+import { useImageCacheStore } from '@/stores/image-cache'
+import { getBooksInParentOptions } from '@/functions/book-container'
+import { useQuery } from '@pinia/colada'
+import { bookListQuery } from '@/colada/books'
+import { seriesCollectionsQuery } from '@/colada/collections'
+import type { Container } from '@/components/ContainerChip.vue'
+import { commonMessages } from '@/utils/i18n/common-messages'
+import { useBrowsingContextFromRouteQuery } from '@/composables/browsingContext'
+import {
+  filterBrowsingContext,
+  formatBrowsingContextAsQueryParam,
+  popBrowsingContext,
+} from '@/functions/browsing-context'
+import { PageRequest } from '@/types/PageRequest'
+import type { RouteLocationObject } from '@/types/route'
+import { enrichRouteQuery } from '@/functions/router'
+import {
+  contributorToContributorsQuery,
+  filterToQuery,
+  notableEntityToQuery,
+} from '@/functions/filter'
+import { notableEntitiesKindsMessages } from '@/types/referential/notableEntity'
 
 const intl = useIntl()
 const display = useDisplay()
+const cacheStore = useImageCacheStore()
 const id = useId()
-const posterMaxWidth = 220
 
 const props = defineProps<{
   series: SeriesDto
 }>()
 
 const { unreadCount, isRead } = useSeries(() => props.series)
-const { getFirstBookInParentQuery } = useBooks(() => props.series)
 
-const { data: booksOnDeck } = getFirstBookInParentQuery(true)
+const bookOnDeckOptions = computed(() => getBooksInParentOptions(props.series, true))
+const { data: booksOnDeck } = useQuery(() =>
+  bookListQuery({
+    search: bookOnDeckOptions.value.search,
+    pageRequest: new PageRequest(0, 1, bookOnDeckOptions.value.sort),
+  }),
+)
 const bookOnDeck = computed(() => booksOnDeck.value?.content?.[0])
 
 const alternateTitles = computed(() =>
@@ -277,6 +329,80 @@ const alternateTitles = computed(() =>
     data: it.title,
   })),
 )
+
+const { context } = useBrowsingContextFromRouteQuery()
+// first valid context for filter navigation
+const contextFilter = computed(() =>
+  popBrowsingContext(filterBrowsingContext(context.value, ['libraryView', 'collection'])),
+)
+
+// upper context for lateral navigation
+const contextFilteredParam = computed(() =>
+  formatBrowsingContextAsQueryParam(filterBrowsingContext(context.value, ['libraryView'])),
+)
+
+// browsing context
+const { data: collections } = useQuery(() => ({
+  ...seriesCollectionsQuery({ seriesId: props.series.id }),
+}))
+const containedIn = computed(
+  () =>
+    collections.value?.map(
+      (it) =>
+        ({
+          text: it.name,
+          subTitle: intl.formatMessage(commonMessages.containerChipSubTitleCollection),
+          imageUrl: collectionPosterUrl(it.id, cacheStore.getVersion(it.id)),
+          link: {
+            name: '/collection/[id]',
+            params: { id: it.id },
+            query: contextFilteredParam.value,
+          },
+        }) satisfies Container,
+    ) ?? [],
+)
+
+const parentTo = computed<RouteLocationObject | undefined>(() => {
+  if (contextFilter.value.top?.type === 'libraryView')
+    return {
+      name: '/libraries/[viewId]/series',
+      params: { viewId: contextFilter.value.top.id },
+      query: formatBrowsingContextAsQueryParam(contextFilter.value.remainingStack),
+    }
+  if (contextFilter.value.top?.type === 'collection')
+    return {
+      name: '/collection/[id]',
+      params: { id: contextFilter.value.top.id },
+      query: formatBrowsingContextAsQueryParam(contextFilter.value.remainingStack),
+    }
+})
+
+const seriesStatusLink = computed(() => {
+  if (props.series.metadata.status)
+    return enrichRouteQuery(
+      parentTo.value,
+      filterToQuery('seriesStatus', {
+        v: [props.series.metadata.status as 'ENDED' | 'ONGOING' | 'ABANDONED' | 'HIATUS'],
+      }),
+    )
+})
+const languageLink = computed(() => {
+  if (props.series.metadata.language)
+    return enrichRouteQuery(
+      parentTo.value,
+      filterToQuery('language', {
+        m: 'anyOf',
+        v: [{ i: 'i', v: props.series.metadata.language }],
+      }),
+    )
+})
+const ageRatingLink = computed(() => {
+  if (props.series.metadata.ageRating)
+    return enrichRouteQuery(
+      parentTo.value,
+      filterToQuery('age', { is: props.series.metadata.ageRating }),
+    )
+})
 
 const allRows = computed(() => {
   const rows = {} as Record<string, TableRow>
@@ -289,7 +415,25 @@ const allRows = computed(() => {
           header: contributorsRolesMessages?.[role]
             ? intl.formatMessage(contributorsRolesMessages?.[role])
             : role,
-          data: contributor!.map((it) => ({ text: it.name })),
+          data: contributor!.map((it) => ({
+            text: it.name,
+            to: enrichRouteQuery(parentTo.value, contributorToContributorsQuery(it)),
+          })),
+        }
+      })
+
+  if (props.series.booksMetadata.notableEntities.length > 0)
+    Object.entries(Object.groupBy(props.series.booksMetadata.notableEntities, (it) => it.kind))
+      .toSorted(createOrderCompareFn(Object.keys(notableEntitiesKindsMessages), ([kind]) => kind))
+      .forEach(([kind, entity]) => {
+        rows[kind] = {
+          header: notableEntitiesKindsMessages?.[kind]
+            ? intl.formatMessage(notableEntitiesKindsMessages?.[kind])
+            : kind,
+          data: entity!.map((it) => ({
+            text: it.name,
+            to: enrichRouteQuery(parentTo.value, notableEntityToQuery(it)),
+          })),
         }
       })
 
@@ -300,7 +444,18 @@ const allRows = computed(() => {
         defaultMessage: 'Publisher',
         id: 'OLqBQc',
       }),
-      data: [{ text: props.series.metadata.publisher }],
+      data: [
+        {
+          text: props.series.metadata.publisher,
+          to: enrichRouteQuery(
+            parentTo.value,
+            filterToQuery('publisher', {
+              m: 'anyOf',
+              v: [{ v: props.series.metadata.publisher }],
+            }),
+          ),
+        },
+      ],
     }
 
   if (props.series.metadata.genres.length > 0)
@@ -310,7 +465,16 @@ const allRows = computed(() => {
         defaultMessage: 'Genre',
         id: 'r5O+/d',
       }),
-      data: props.series.metadata.genres.map((it) => ({ text: it })),
+      data: props.series.metadata.genres.map((it) => ({
+        text: it,
+        to: enrichRouteQuery(
+          parentTo.value,
+          filterToQuery('genre', {
+            m: 'anyOf',
+            v: [{ v: it }],
+          }),
+        ),
+      })),
     }
 
   if (props.series.metadata.tags.length > 0)
@@ -320,7 +484,10 @@ const allRows = computed(() => {
         defaultMessage: 'Tags',
         id: '6UXlVe',
       }),
-      data: props.series.metadata.tags.map((it) => ({ text: it })),
+      data: props.series.metadata.tags.map((it) => ({
+        text: it,
+        to: enrichRouteQuery(parentTo.value, filterToQuery('tag', { m: 'anyOf', v: [{ v: it }] })),
+      })),
     }
   if (props.series.booksMetadata.tags.length > 0)
     rows['bookTags'] = {
@@ -329,7 +496,10 @@ const allRows = computed(() => {
         defaultMessage: 'Book tags',
         id: 'Thjcar',
       }),
-      data: props.series.booksMetadata.tags.map((it) => ({ text: it })),
+      data: props.series.booksMetadata.tags.map((it) => ({
+        text: it,
+        to: enrichRouteQuery(parentTo.value, filterToQuery('tag', { m: 'anyOf', v: [{ v: it }] })),
+      })),
     }
 
   if (props.series.metadata.links.length > 0)
@@ -341,6 +511,23 @@ const allRows = computed(() => {
       }),
       data: props.series.metadata.links.map((it) => ({ text: it.label, href: it.url })),
     }
+
+  if (props.series.metadata.sharingLabels.length > 0)
+    rows['sharing'] = {
+      header: intl.formatMessage({
+        description: 'Series view table: sharing labels header',
+        defaultMessage: 'Sharing labels',
+        id: 'UsTdV2',
+      }),
+      data: props.series.metadata.sharingLabels.map((it) => ({
+        text: it,
+        to: enrichRouteQuery(
+          parentTo.value,
+          filterToQuery('sharingLabel', { m: 'anyOf', v: [{ v: it }] }),
+        ),
+      })),
+    }
+
   rows['filePath'] = {
     header: intl.formatMessage({
       description: 'Series view table: file path header',
@@ -369,7 +556,7 @@ const allRows = computed(() => {
   return rows
 })
 
-const displayDefault = ['writer', 'penciller', 'publisher', 'genre', 'tags', 'links']
+const displayDefault = ['writer', 'penciller', 'publisher', 'genres', 'tags', 'links']
 const tableRows = computed(() =>
   Object.entries(allRows.value)
     .filter(([key]) => displayDefault.includes(key))

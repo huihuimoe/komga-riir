@@ -1,5 +1,5 @@
 import { commonMessages } from '@/utils/i18n/common-messages'
-import { useDialogsStore } from '@/stores/dialogs'
+import { type DialogResult, useDialogsStore } from '@/stores/dialogs'
 import { storeToRefs } from 'pinia'
 import { useIntl } from 'vue-intl'
 import { useDisplay } from 'vuetify'
@@ -12,6 +12,7 @@ import { readListFileUrl } from '@/api/files'
 import { type Action, actionDetails, ActionName } from '@/types/action/action'
 import type { ReadListDto } from '@/generated/openapi'
 import { useBooks } from '@/composables/book/useBooks'
+import { useEditReadListElementsDialog } from '@/composables/readlist/useEditReadListElementsDialog'
 
 export function useReadListActions(
   readList: MaybeRefOrGetter<ReadListDto>,
@@ -53,6 +54,20 @@ export function useReadListActions(
     ...(isAdmin.value
       ? [
           {
+            title: intl.formatMessage(actionDetails[ActionName.EditReadListElements].message),
+            icon: actionDetails[ActionName.EditReadListElements].icon,
+            action: ActionName.EditReadListElements,
+            onMouseenter: (event: Event) =>
+              (editElementsActivator.value = event.currentTarget as Element),
+            onClick: () => {
+              editElements(() => callback(ActionName.EditReadListElements))
+            },
+          },
+        ]
+      : []),
+    ...(isAdmin.value
+      ? [
+          {
             title: intl.formatMessage(actionDetails[ActionName.Delete].message),
             action: ActionName.Delete,
             onMouseenter: (event: Event) =>
@@ -85,11 +100,20 @@ export function useReadListActions(
     },
   ])
 
-  //region Edit collection
+  //region Edit read list
   const { prepareDialog: showEditDialog, activator: editActivator } = useEditReadListDialog()
 
   function edit(callback: () => void) {
     showEditDialog(toValue(readList), callback)
+  }
+  //endregion
+
+  //region Edit read list elements
+  const { prepareDialog: showEditElementsDialog, activator: editElementsActivator } =
+    useEditReadListElementsDialog()
+
+  function editElements(callback: () => void) {
+    showEditElementsDialog(toValue(readList), callback)
   }
   //endregion
 
@@ -119,25 +143,28 @@ export function useReadListActions(
       component: markRaw(ReadListDeletionWarning),
       props: {},
     }
-    dialogConfirm.value.callback = () => {
-      mutateDelete(toValue(readList).id)
-        .then(() => {
-          messagesStore.messages.push({
-            message: intl.formatMessage(
-              {
-                description: 'Snackbar notification shown upon successful readlist deletion',
-                defaultMessage: 'Read list deleted: {readlist}',
-                id: 'Oj3xqB',
-              },
-              {
-                readlist: toValue(readList).name,
-              },
-            ),
+    dialogConfirm.value.callback = (result: DialogResult) => {
+      if (result === 'confirm') {
+        mutateDelete(toValue(readList).id)
+          .then(() => {
+            messagesStore.messages.push({
+              message: intl.formatMessage(
+                {
+                  description: 'Snackbar notification shown upon successful readlist deletion',
+                  defaultMessage: 'Read list deleted: {readlist}',
+                  id: 'Oj3xqB',
+                },
+                {
+                  readlist: toValue(readList).name,
+                },
+              ),
+            })
           })
-        })
-        .catch((error) => {
-          messagesStore.messages.push(error?.cause?.message ?? commonMessages.networkError)
-        })
+          .catch((error) => {
+            messagesStore.messages.push(error?.cause?.message ?? commonMessages.networkError)
+          })
+      }
+
       callback(ActionName.Delete)
     }
   }

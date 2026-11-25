@@ -26,7 +26,7 @@
 import { useLibraries } from '@/colada/libraries'
 import { commonMessages } from '@/utils/i18n/common-messages'
 import { storeToRefs } from 'pinia'
-import { useDialogsStore } from '@/stores/dialogs'
+import { type DialogResult, useDialogsStore } from '@/stores/dialogs'
 import { useMessagesStore } from '@/stores/messages'
 import { useIntl } from 'vue-intl'
 import { useDisplay } from 'vuetify'
@@ -46,9 +46,7 @@ import { UserRole } from '@/types/UserRoles'
 const intl = useIntl()
 
 // API data
-const { data: users, error, isLoading, refetch: refetchUsers } = useUsers()
-
-onMounted(() => refetchUsers())
+const { data: users, error, isLoading } = useUsers()
 
 // Dialogs handling
 // stores the user being actioned upon
@@ -84,9 +82,11 @@ function showDialog(action: DialogAction, user?: UserDto) {
         closeOnSave: false,
         fullscreen: display.xs.value,
       }
-      dialogConfirmEdit.value.slot = {
-        component: markRaw(UserFormCreateEdit),
-        props: {},
+      dialogConfirmEdit.value.slots = {
+        default: {
+          component: markRaw(UserFormCreateEdit),
+          props: {},
+        },
       }
       dialogConfirmEdit.value.record = {
         email: '',
@@ -117,9 +117,11 @@ function showDialog(action: DialogAction, user?: UserDto) {
         closeOnSave: false,
         fullscreen: display.xs.value,
       }
-      dialogConfirmEdit.value.slot = {
-        component: markRaw(UserFormCreateEdit),
-        props: {},
+      dialogConfirmEdit.value.slots = {
+        default: {
+          component: markRaw(UserFormCreateEdit),
+          props: {},
+        },
       }
       dialogConfirmEdit.value.record = {
         ...user,
@@ -171,9 +173,11 @@ function showDialog(action: DialogAction, user?: UserDto) {
         closeOnSave: false,
         fullscreen: display.xs.value,
       }
-      dialogConfirmEdit.value.slot = {
-        component: markRaw(UserFormChangePassword),
-        props: {},
+      dialogConfirmEdit.value.slots = {
+        default: {
+          component: markRaw(UserFormChangePassword),
+          props: {},
+        },
       }
       // password change initiated with an empty string
       dialogConfirmEdit.value.record = ''
@@ -183,9 +187,12 @@ function showDialog(action: DialogAction, user?: UserDto) {
 }
 
 function handleDialogConfirmation(
+  result: DialogResult,
   hideDialog: () => void,
   setLoading: (isLoading: boolean) => void,
 ) {
+  if (result === 'cancel') return
+
   let mutation: Promise<unknown> | undefined
   let successMessage: string | undefined
 

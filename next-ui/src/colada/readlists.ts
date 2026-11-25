@@ -4,23 +4,35 @@ import {
   defineQueryOptions,
   useMutation,
 } from '@pinia/colada'
-import { PageRequest } from '@/types/PageRequest'
-import { entitiesChanged, entityChanged } from '@/colada/cache'
+import { PageRequest, type Sort, sortToString } from '@/types/PageRequest'
+import { clearAllReadLists, clearReadList, clearThumbnailReadList } from '@/colada/cache'
 import { useAppStore } from '@/stores/app'
 import {
+  komgaAddUserUploadedReadListThumbnail,
+  komgaGetReadListsByBookId,
   komgaCreateReadList,
   komgaDeleteReadListById,
+  komgaDeleteUserUploadedReadListThumbnail,
   komgaGetReadListById,
   komgaGetReadLists,
+  komgaGetReadListThumbnails,
+  komgaMarkReadListThumbnailSelected,
   komgaUpdateReadListById,
   type ReadListCreationDto,
   type ReadListUpdateDto,
+  komgaGetBookSiblingPreviousInReadList,
+  komgaGetBookSiblingNextInReadList,
 } from '@/generated/openapi'
+import { useImageCacheStore } from '@/stores/image-cache'
+import { STALE_TIME } from '@/types/time'
 
 export const QUERY_KEYS_READLIST = {
   root: ['readlists'] as const,
   bySearch: (request: object) => [...QUERY_KEYS_READLIST.root, JSON.stringify(request)] as const,
   byId: (id: string) => [...QUERY_KEYS_READLIST.root, id] as const,
+  byBook: () => [...QUERY_KEYS_READLIST.root, 'byBook'] as const,
+  byBookId: (bookId: string) => [...QUERY_KEYS_READLIST.byBook(), bookId] as const,
+  posters: (id: string) => [...QUERY_KEYS_READLIST.byId(id), 'posters'] as const,
 }
 
 export const readListsListQuery = defineQueryOptions(
@@ -41,7 +53,7 @@ export const readListsListQuery = defineQueryOptions(
     query: () =>
       komgaGetReadLists({
         query: {
-          search: search,
+          search: search || undefined,
           library_id: libraryIds,
           ...pageRequest,
         },
@@ -51,9 +63,11 @@ export const readListsListQuery = defineQueryOptions(
 )
 
 export const readListsListQueryInfinite = defineInfiniteQueryOptions(
-  ({ libraryIds }: { libraryIds?: string[] }) => ({
+  ({ search, libraryIds, sort }: { search?: string; libraryIds?: string[]; sort?: Sort[] }) => ({
     key: QUERY_KEYS_READLIST.bySearch({
+      search: search,
       libraryIds: libraryIds,
+      sort: sort,
       infinite: true,
     }),
     initialPageParam: new PageRequest(0, 50),
@@ -62,7 +76,9 @@ export const readListsListQueryInfinite = defineInfiniteQueryOptions(
         query: {
           page: pageParam.page,
           size: pageParam.size,
+          search: search || undefined,
           library_id: libraryIds,
+          sort: sort?.map((it) => sortToString(it)),
         },
       }),
     getNextPageParam: (lastPage, _, lastPageParam) =>
@@ -78,7 +94,45 @@ export const readListDetailQuery = defineQueryOptions(({ readListId }: { readLis
         id: readListId,
       },
     }),
+  staleTime: STALE_TIME.LONG,
 }))
+
+export const bookReadListsQuery = defineQueryOptions(({ bookId }: { bookId: string }) => ({
+  key: QUERY_KEYS_READLIST.byBookId(bookId),
+  query: () =>
+    komgaGetReadListsByBookId({
+      path: {
+        bookId: bookId,
+      },
+    }),
+  staleTime: STALE_TIME.LONG,
+}))
+
+export const bookPreviousInReadList = defineQueryOptions(
+  ({ readListId, bookId }: { readListId: string; bookId: string }) => ({
+    key: [...QUERY_KEYS_READLIST.byId(bookId), 'books', bookId, 'previous'],
+    query: () =>
+      komgaGetBookSiblingPreviousInReadList({
+        path: {
+          id: readListId,
+          bookId: bookId,
+        },
+      }),
+  }),
+)
+
+export const bookNextInReadList = defineQueryOptions(
+  ({ readListId, bookId }: { readListId: string; bookId: string }) => ({
+    key: [...QUERY_KEYS_READLIST.byId(bookId), 'books', bookId, 'next'],
+    query: () =>
+      komgaGetBookSiblingNextInReadList({
+        path: {
+          id: readListId,
+          bookId: bookId,
+        },
+      }),
+  }),
+)
 
 export const useCreateReadList = defineMutation(() => {
   const appStore = useAppStore()
@@ -88,7 +142,7 @@ export const useCreateReadList = defineMutation(() => {
         body: readList,
       }),
     onSuccess: () => {
-      if (appStore.sseUnavailable) entitiesChanged(QUERY_KEYS_READLIST.root)
+      if (appStore.sseUnavailable) clearAllReadLists()
     },
   })
 })
@@ -104,7 +158,7 @@ export const useUpdateReadList = defineMutation(() => {
         body: data,
       }),
     onSuccess: (_data, { readListId }) => {
-      if (appStore.sseUnavailable) entityChanged(QUERY_KEYS_READLIST.root, readListId)
+      if (appStore.sseUnavailable) clearReadList(readListId)
     },
   })
 })
@@ -119,7 +173,93 @@ export const useDeleteReadList = defineMutation(() => {
         },
       }),
     onSuccess: (_data, readListId) => {
-      if (appStore.sseUnavailable) entityChanged(QUERY_KEYS_READLIST.root, readListId)
+      if (appStore.sseUnavailable) clearReadList(readListId)
+    },
+  })
+})
+
+export const readListPostersQuery = defineQueryOptions(
+  ({ readListId }: { readListId: string }) => ({
+    key: QUERY_KEYS_READLIST.posters(readListId),
+    query: () =>
+      komgaGetReadListThumbnails({
+        path: {
+          id: readListId,
+        },
+      }),
+    staleTime: STALE_TIME.LONG,
+  }),
+)
+
+export const useAddReadListPoster = defineMutation(() => {
+  const appStore = useAppStore()
+  const cacheStore = useImageCacheStore()
+  return useMutation({
+    mutation: ({
+      readListId,
+      file,
+      selected,
+    }: {
+      readListId: string
+      file: File
+      selected: boolean
+    }) =>
+      komgaAddUserUploadedReadListThumbnail({
+        query: {
+          selected: selected,
+        },
+        body: {
+          file: file,
+        },
+        path: {
+          id: readListId,
+        },
+      }),
+    onSuccess: (_data, { readListId }) => {
+      if (appStore.sseUnavailable) {
+        clearThumbnailReadList(readListId)
+        cacheStore.bustCache(readListId)
+      }
+    },
+  })
+})
+
+export const useDeleteReadListPoster = defineMutation(() => {
+  const appStore = useAppStore()
+  const cacheStore = useImageCacheStore()
+  return useMutation({
+    mutation: ({ readListId, thumbnailId }: { readListId: string; thumbnailId: string }) =>
+      komgaDeleteUserUploadedReadListThumbnail({
+        path: {
+          id: readListId,
+          thumbnailId: thumbnailId,
+        },
+      }),
+    onSuccess: (_data, { readListId }) => {
+      if (appStore.sseUnavailable) {
+        clearThumbnailReadList(readListId)
+        cacheStore.bustCache(readListId)
+      }
+    },
+  })
+})
+
+export const useMarkReadListPosterSelected = defineMutation(() => {
+  const appStore = useAppStore()
+  const cacheStore = useImageCacheStore()
+  return useMutation({
+    mutation: ({ readListId, thumbnailId }: { readListId: string; thumbnailId: string }) =>
+      komgaMarkReadListThumbnailSelected({
+        path: {
+          id: readListId,
+          thumbnailId: thumbnailId,
+        },
+      }),
+    onSuccess: (_data, { readListId }) => {
+      if (appStore.sseUnavailable) {
+        clearThumbnailReadList(readListId)
+        cacheStore.bustCache(readListId)
+      }
     },
   })
 })

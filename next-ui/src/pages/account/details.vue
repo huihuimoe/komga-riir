@@ -29,7 +29,7 @@
 import { useCurrentUser, useUpdateUserPassword } from '@/colada/users'
 import { commonMessages } from '@/utils/i18n/common-messages'
 import { storeToRefs } from 'pinia'
-import { useDialogsStore } from '@/stores/dialogs'
+import { type DialogResult, useDialogsStore } from '@/stores/dialogs'
 import UserFormChangePassword from '@/components/user/form/ChangePassword.vue'
 import { useMessagesStore } from '@/stores/messages'
 import { useIntl } from 'vue-intl'
@@ -53,9 +53,11 @@ function changePassword() {
     closeOnSave: false,
     fullscreen: display.xs.value,
   }
-  dialogConfirmEdit.value.slot = {
-    component: markRaw(UserFormChangePassword),
-    props: {},
+  dialogConfirmEdit.value.slots = {
+    default: {
+      component: markRaw(UserFormChangePassword),
+      props: {},
+    },
   }
   // password change initiated with an empty string
   dialogConfirmEdit.value.record = ''
@@ -63,9 +65,12 @@ function changePassword() {
 }
 
 function handleDialogConfirmation(
+  result: DialogResult,
   hideDialog: () => void,
   setLoading: (isLoading: boolean) => void,
 ) {
+  if (result === 'cancel') return
+
   setLoading(true)
 
   mutateUserPassword({

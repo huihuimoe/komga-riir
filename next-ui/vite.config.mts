@@ -11,6 +11,7 @@ import { VueRouterAutoImports } from 'vue-router/unplugin'
 import Vuetify, { transformAssetUrls } from 'vite-plugin-vuetify'
 import dir2json from 'vite-plugin-dir2json'
 import UnoCSS from 'unocss/vite'
+import { unheadVueComposablesImports } from '@unhead/vue'
 
 // Utilities
 import { defineConfig } from 'vite'
@@ -18,6 +19,8 @@ import { fileURLToPath, URL } from 'node:url'
 import { storybookTest } from '@storybook/addon-vitest/vitest-plugin'
 import * as path from 'path'
 import { playwright } from '@vitest/browser-playwright'
+import { PiniaColadaDevtools } from '@pinia/colada-devtools/vite'
+import { DevTools } from '@vitejs/devtools'
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
@@ -27,7 +30,7 @@ export default defineConfig(({ mode }) => ({
     }),
     Layouts(),
     AutoImport({
-      imports: ['vue', VueRouterAutoImports],
+      imports: ['vue', VueRouterAutoImports, unheadVueComposablesImports],
       dts: 'src/auto-imports.d.ts',
       eslintrc: {
         enabled: true,
@@ -36,12 +39,26 @@ export default defineConfig(({ mode }) => ({
     }),
     Components({
       dts: 'src/components.d.ts',
-      dirs: ['src/components'],
+      dirs: ['src/components', 'src/directives'],
       extensions: ['vue', 'ts'],
       include: [/\.vue$/, /\.[tj]s$/],
       excludeNames: [/\.stories/],
       directoryAsNamespace: true,
       collapseSamePrefixes: true,
+      resolvers: [
+        {
+          type: 'directive',
+          resolve: (name) => {
+            // Captures v-ktooltip in templates
+            if (name === 'Ktooltip') {
+              return {
+                name: 'vKtooltip',
+                from: '@/directives/ktooltip',
+              }
+            }
+          },
+        },
+      ],
     }),
     Vue({
       template: { transformAssetUrls },
@@ -68,6 +85,11 @@ export default defineConfig(({ mode }) => ({
       dts: true,
     }),
     UnoCSS(),
+    DevTools({
+      // @ts-expect-error don't care about mcp
+      mcp: false,
+    }),
+    PiniaColadaDevtools(),
   ],
   define: { 'process.env': {} },
   resolve: {
@@ -101,6 +123,9 @@ export default defineConfig(({ mode }) => ({
       'pinia-plugin-persistedstate',
       'qs',
       '@testing-library/vue',
+      '@unhead/vue/client',
+      '@storybook/addon-vitest',
+      '@storybook/vue3',
     ],
   },
   test: {
@@ -122,6 +147,7 @@ export default defineConfig(({ mode }) => ({
         test: {
           name: 'storybook',
           testTimeout: 30_000,
+          hookTimeout: 30_000,
           browser: {
             enabled: true,
             headless: true,

@@ -445,7 +445,7 @@ class OpdsController(
     @Parameter(hidden = true) page: Pageable,
   ): OpdsFeed {
     val pageable = PageRequest.of(page.pageNumber, page.pageSize, Sort.by(Sort.Order.asc("name")))
-    val collections = collectionRepository.findAll(principal.user.getAuthorizedLibraryIds(null), principal.user.getAuthorizedLibraryIds(null), pageable = pageable)
+    val collections = collectionRepository.findAll(SearchContext(principal.user), pageable, principal.user.getAuthorizedLibraryIds(null))
 
     val uriBuilder = uriBuilder(ROUTE_COLLECTIONS_ALL)
 
@@ -470,7 +470,7 @@ class OpdsController(
     @Parameter(hidden = true) page: Pageable,
   ): OpdsFeed {
     val pageable = PageRequest.of(page.pageNumber, page.pageSize, Sort.by(Sort.Order.asc("name")))
-    val readLists = readListRepository.findAll(principal.user.getAuthorizedLibraryIds(null), principal.user.getAuthorizedLibraryIds(null), pageable = pageable)
+    val readLists = readListRepository.findAll(SearchContext(principal.user), pageable, principal.user.getAuthorizedLibraryIds(null))
 
     val uriBuilder = uriBuilder(ROUTE_READLISTS_ALL)
 
@@ -494,7 +494,7 @@ class OpdsController(
     @AuthenticationPrincipal principal: KomgaPrincipal,
     @Parameter(hidden = true) page: Pageable,
   ): OpdsFeed {
-    val publishers = referentialRepository.findAllPublishers(principal.user.getAuthorizedLibraryIds(null), page)
+    val publishers = referentialRepository.findPublishers(SearchContext(principal.user), null, null, page)
 
     val uriBuilder = uriBuilder(ROUTE_PUBLISHERS_ALL)
 
@@ -610,7 +610,7 @@ class OpdsController(
     @PathVariable id: String,
     @Parameter(hidden = true) page: Pageable,
   ): OpdsFeed =
-    collectionRepository.findByIdOrNull(id, principal.user.getAuthorizedLibraryIds(null))?.let { collection ->
+    collectionRepository.findByIdOrNull(id, SearchContext(principal.user))?.let { collection ->
       val sort =
         if (collection.ordered)
           Sort.by(Sort.Order.asc("collection.number"))
@@ -654,7 +654,7 @@ class OpdsController(
     @PathVariable id: String,
     @Parameter(hidden = true) page: Pageable,
   ): OpdsFeed =
-    readListRepository.findByIdOrNull(id, principal.user.getAuthorizedLibraryIds(null))?.let { readList ->
+    readListRepository.findByIdOrNull(id, SearchContext(principal.user))?.let { readList ->
       val sort =
         if (readList.ordered)
           Sort.by(Sort.Order.asc("readList.number"))

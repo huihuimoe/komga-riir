@@ -1,5 +1,5 @@
 import { commonMessages } from '@/utils/i18n/common-messages'
-import { useDialogsStore } from '@/stores/dialogs'
+import { type DialogResult, useDialogsStore } from '@/stores/dialogs'
 import { storeToRefs } from 'pinia'
 import { useIntl } from 'vue-intl'
 import { useDisplay } from 'vuetify'
@@ -10,6 +10,7 @@ import { useEditCollectionDialog } from '@/composables/collection/useEditCollect
 import { useDeleteCollection } from '@/colada/collections'
 import { type Action, actionDetails, ActionName } from '@/types/action/action'
 import type { CollectionDto } from '@/generated/openapi'
+import { useEditCollectionElementsDialog } from '@/composables/collection/useEditCollectionElementsDialog'
 
 export function useCollectionActions(
   collection: MaybeRefOrGetter<CollectionDto>,
@@ -38,6 +39,20 @@ export function useCollectionActions(
     ...(isAdmin.value
       ? [
           {
+            title: intl.formatMessage(actionDetails[ActionName.EditCollectionElements].message),
+            icon: actionDetails[ActionName.EditCollectionElements].icon,
+            action: ActionName.EditCollectionElements,
+            onMouseenter: (event: Event) =>
+              (editElementsActivator.value = event.currentTarget as Element),
+            onClick: () => {
+              editElements(() => callback(ActionName.EditCollectionElements))
+            },
+          },
+        ]
+      : []),
+    ...(isAdmin.value
+      ? [
+          {
             title: intl.formatMessage(actionDetails[ActionName.Delete].message),
             action: ActionName.Delete,
             onMouseenter: (event: Event) =>
@@ -56,6 +71,15 @@ export function useCollectionActions(
 
   function edit(callback: () => void) {
     showEditCollectionDialog(toValue(collection), callback)
+  }
+  //endregion
+
+  //region Edit collection elements
+  const { prepareDialog: showEditElementsDialog, activator: editElementsActivator } =
+    useEditCollectionElementsDialog()
+
+  function editElements(callback: () => void) {
+    showEditElementsDialog(toValue(collection), callback)
   }
   //endregion
 
@@ -85,25 +109,28 @@ export function useCollectionActions(
       component: markRaw(CollectionDeletionWarning),
       props: {},
     }
-    dialogConfirm.value.callback = () => {
-      mutateDelete(toValue(collection).id)
-        .then(() => {
-          messagesStore.messages.push({
-            message: intl.formatMessage(
-              {
-                description: 'Snackbar notification shown upon successful collection deletion',
-                defaultMessage: 'Collection deleted: {collection}',
-                id: 'HdsnFp',
-              },
-              {
-                collection: toValue(collection).name,
-              },
-            ),
+    dialogConfirm.value.callback = (result: DialogResult) => {
+      if (result === 'confirm') {
+        mutateDelete(toValue(collection).id)
+          .then(() => {
+            messagesStore.messages.push({
+              message: intl.formatMessage(
+                {
+                  description: 'Snackbar notification shown upon successful collection deletion',
+                  defaultMessage: 'Collection deleted: {collection}',
+                  id: 'HdsnFp',
+                },
+                {
+                  collection: toValue(collection).name,
+                },
+              ),
+            })
           })
-        })
-        .catch((error) => {
-          messagesStore.messages.push(error?.cause?.message ?? commonMessages.networkError)
-        })
+          .catch((error) => {
+            messagesStore.messages.push(error?.cause?.message ?? commonMessages.networkError)
+          })
+      }
+
       callback(ActionName.Delete)
     }
   }

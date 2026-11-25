@@ -54,7 +54,7 @@
 
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
-import { useDialogsStore } from '@/stores/dialogs'
+import { type DialogResult, useDialogsStore } from '@/stores/dialogs'
 import RemoteFileList from '@/components/RemoteFileList.vue'
 import { useDisplay } from 'vuetify'
 import { useAppStore } from '@/stores/app'
@@ -96,12 +96,15 @@ function browse() {
     scrollable: true,
     fullscreen: display.xs.value,
   }
-  dialogConfirmEdit.value.slot = {
-    component: markRaw(RemoteFileList),
-    props: {},
+  dialogConfirmEdit.value.slots = {
+    default: {
+      component: markRaw(RemoteFileList),
+      props: {},
+    },
   }
   dialogConfirmEdit.value.record = appStore.importBooksPath || '' // workaround for https://github.com/vuetifyjs/vuetify/issues/4144
-  dialogConfirmEdit.value.callback = () => {
+  dialogConfirmEdit.value.callback = (result: DialogResult) => {
+    if (result === 'cancel') return
     appStore.importBooksPath = dialogConfirmEdit.value.record as string
   }
 }

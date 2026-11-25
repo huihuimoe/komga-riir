@@ -11,6 +11,7 @@ import org.apache.commons.compress.archivers.zip.Zip64Mode
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream
 import org.apache.commons.io.IOUtils
+import org.gotson.komga.application.query.UnpagedSorted
 import org.gotson.komga.domain.model.Author
 import org.gotson.komga.domain.model.BookSearch
 import org.gotson.komga.domain.model.CodedException
@@ -31,10 +32,10 @@ import org.gotson.komga.domain.persistence.ThumbnailReadListRepository
 import org.gotson.komga.domain.service.BookLifecycle
 import org.gotson.komga.domain.service.ReadListLifecycle
 import org.gotson.komga.infrastructure.image.ImageAnalyzer
-import org.gotson.komga.infrastructure.jooq.UnpagedSorted
 import org.gotson.komga.infrastructure.mediacontainer.ContentDetector
 import org.gotson.komga.infrastructure.openapi.AuthorsAsQueryParam
 import org.gotson.komga.infrastructure.openapi.OpenApiConfiguration
+import org.gotson.komga.infrastructure.openapi.PageableAsQueryParam
 import org.gotson.komga.infrastructure.openapi.PageableWithoutSortAsQueryParam
 import org.gotson.komga.infrastructure.security.KomgaPrincipal
 import org.gotson.komga.infrastructure.web.Authors
@@ -101,7 +102,7 @@ class ReadListController(
   private val eventPublisher: ApplicationEventPublisher,
 ) {
   @Operation(summary = "List readlists", tags = [OpenApiConfiguration.TagNames.READLISTS])
-  @PageableWithoutSortAsQueryParam
+  @PageableAsQueryParam
   @GetMapping
   fun getReadLists(
     @AuthenticationPrincipal principal: KomgaPrincipal,
@@ -128,7 +129,7 @@ class ReadListController(
         )
 
     return readListRepository
-      .findAll(principal.user.getAuthorizedLibraryIds(libraryIds), principal.user.getAuthorizedLibraryIds(null), searchTerm, pageRequest, principal.user.restrictions)
+      .findAll(context = SearchContext(principal.user), pageRequest, principal.user.getAuthorizedLibraryIds(libraryIds), searchTerm)
       .map { it.toDto() }
   }
 
@@ -139,7 +140,7 @@ class ReadListController(
     @PathVariable id: String,
   ): ReadListDto =
     readListRepository
-      .findByIdOrNull(id, principal.user.getAuthorizedLibraryIds(null), principal.user.restrictions)
+      .findByIdOrNull(id, SearchContext(principal.user))
       ?.toDto()
       ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
 
@@ -150,7 +151,7 @@ class ReadListController(
     @AuthenticationPrincipal principal: KomgaPrincipal,
     @PathVariable id: String,
   ): ResponseEntity<ByteArray> {
-    readListRepository.findByIdOrNull(id, principal.user.getAuthorizedLibraryIds(null), principal.user.restrictions)?.let {
+    readListRepository.findByIdOrNull(id, SearchContext(principal.user))?.let {
       return ResponseEntity
         .ok()
         .cacheControl(CacheControl.maxAge(1, TimeUnit.HOURS).cachePrivate())
@@ -166,7 +167,7 @@ class ReadListController(
     @PathVariable(name = "id") id: String,
     @PathVariable(name = "thumbnailId") thumbnailId: String,
   ): ByteArray {
-    readListRepository.findByIdOrNull(id, principal.user.getAuthorizedLibraryIds(null), principal.user.restrictions)?.let {
+    readListRepository.findByIdOrNull(id, SearchContext(principal.user))?.let {
       thumbnailReadListRepository.findByIdOrNull(thumbnailId)?.let { poster ->
         if (poster.readListId != it.id) throw ResponseStatusException(HttpStatus.BAD_REQUEST)
         return poster.thumbnail
@@ -180,7 +181,7 @@ class ReadListController(
     @AuthenticationPrincipal principal: KomgaPrincipal,
     @PathVariable(name = "id") id: String,
   ): Collection<ThumbnailReadListDto> {
-    readListRepository.findByIdOrNull(id, principal.user.getAuthorizedLibraryIds(null), principal.user.restrictions)?.let {
+    readListRepository.findByIdOrNull(id, SearchContext(principal.user))?.let {
       return thumbnailReadListRepository.findAllByReadListId(id).map { it.toDto() }
     } ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
   }
@@ -194,7 +195,7 @@ class ReadListController(
     @RequestParam("file") file: MultipartFile,
     @RequestParam("selected") selected: Boolean = true,
   ): ThumbnailReadListDto {
-    readListRepository.findByIdOrNull(id, principal.user.getAuthorizedLibraryIds(null), principal.user.restrictions)?.let { readList ->
+    readListRepository.findByIdOrNull(id, SearchContext(principal.user))?.let { readList ->
 
       val mediaType = file.inputStream.buffered().use { contentDetector.detectMediaType(it) }
       if (!contentDetector.isImage(mediaType))
@@ -224,7 +225,7 @@ class ReadListController(
     @PathVariable(name = "id") id: String,
     @PathVariable(name = "thumbnailId") thumbnailId: String,
   ) {
-    readListRepository.findByIdOrNull(id, principal.user.getAuthorizedLibraryIds(null), principal.user.restrictions)?.let { readList ->
+    readListRepository.findByIdOrNull(id, SearchContext(principal.user))?.let { readList ->
       thumbnailReadListRepository.findByIdOrNull(thumbnailId)?.let { poster ->
         if (poster.readListId != readList.id) throw ResponseStatusException(HttpStatus.BAD_REQUEST)
         readListLifecycle.markSelectedThumbnail(poster)
@@ -242,7 +243,7 @@ class ReadListController(
     @PathVariable(name = "id") id: String,
     @PathVariable(name = "thumbnailId") thumbnailId: String,
   ) {
-    readListRepository.findByIdOrNull(id, principal.user.getAuthorizedLibraryIds(null), principal.user.restrictions)?.let { readList ->
+    readListRepository.findByIdOrNull(id, SearchContext(principal.user))?.let { readList ->
       thumbnailReadListRepository.findByIdOrNull(thumbnailId)?.let { poster ->
         if (poster.readListId != readList.id) throw ResponseStatusException(HttpStatus.BAD_REQUEST)
         readListLifecycle.deleteThumbnail(poster)
@@ -288,11 +289,12 @@ class ReadListController(
   @PreAuthorize("hasRole('ADMIN')")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   fun updateReadListById(
+    @AuthenticationPrincipal principal: KomgaPrincipal,
     @PathVariable id: String,
     @Valid @RequestBody
     readList: ReadListUpdateDto,
   ) {
-    readListRepository.findByIdOrNull(id)?.let { existing ->
+    readListRepository.findByIdOrNull(id, SearchContext(principal.user))?.let { existing ->
       val updated =
         existing.copy(
           name = readList.name ?: existing.name,
@@ -313,9 +315,10 @@ class ReadListController(
   @PreAuthorize("hasRole('ADMIN')")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   fun deleteReadListById(
+    @AuthenticationPrincipal principal: KomgaPrincipal,
     @PathVariable id: String,
   ) {
-    readListRepository.findByIdOrNull(id)?.let {
+    readListRepository.findByIdOrNull(id, SearchContext(principal.user))?.let {
       readListLifecycle.deleteReadList(it)
     } ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
   }
@@ -336,7 +339,7 @@ class ReadListController(
     @Parameter(hidden = true) @Authors authors: List<Author>?,
     @Parameter(hidden = true) page: Pageable,
   ): Page<BookDto> =
-    readListRepository.findByIdOrNull(id, principal.user.getAuthorizedLibraryIds(null))?.let { readList ->
+    readListRepository.findByIdOrNull(id, SearchContext(principal.user))?.let { readList ->
       val sort =
         if (readList.ordered)
           Sort.by(Sort.Order.asc("readList.number"))
@@ -379,14 +382,12 @@ class ReadListController(
     @PathVariable id: String,
     @PathVariable bookId: String,
   ): BookDto =
-    readListRepository.findByIdOrNull(id, principal.user.getAuthorizedLibraryIds(null))?.let {
+    readListRepository.findByIdOrNull(id, SearchContext(principal.user))?.let {
       bookDtoRepository
         .findPreviousInReadListOrNull(
           it,
           bookId,
-          principal.user.id,
-          principal.user.getAuthorizedLibraryIds(null),
-          principal.user.restrictions,
+          SearchContext(principal.user),
         )?.restrictUrl(!principal.user.isAdmin)
     } ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
 
@@ -397,14 +398,12 @@ class ReadListController(
     @PathVariable id: String,
     @PathVariable bookId: String,
   ): BookDto =
-    readListRepository.findByIdOrNull(id, principal.user.getAuthorizedLibraryIds(null))?.let {
+    readListRepository.findByIdOrNull(id, SearchContext(principal.user))?.let {
       bookDtoRepository
         .findNextInReadListOrNull(
           it,
           bookId,
-          principal.user.id,
-          principal.user.getAuthorizedLibraryIds(null),
-          principal.user.restrictions,
+          SearchContext(principal.user),
         )?.restrictUrl(!principal.user.isAdmin)
     } ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
 
@@ -414,7 +413,7 @@ class ReadListController(
     @PathVariable id: String,
     @AuthenticationPrincipal principal: KomgaPrincipal,
   ): TachiyomiReadProgressDto =
-    readListRepository.findByIdOrNull(id, principal.user.getAuthorizedLibraryIds(null))?.let { readList ->
+    readListRepository.findByIdOrNull(id, SearchContext(principal.user))?.let { readList ->
       readProgressDtoRepository.findProgressByReadList(readList.id, principal.user.id)
     } ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
 
@@ -427,7 +426,7 @@ class ReadListController(
     readProgress: TachiyomiReadProgressUpdateDto,
     @AuthenticationPrincipal principal: KomgaPrincipal,
   ) {
-    readListRepository.findByIdOrNull(id, principal.user.getAuthorizedLibraryIds(null))?.let { readList ->
+    readListRepository.findByIdOrNull(id, SearchContext(principal.user))?.let { readList ->
       bookDtoRepository
         .findAll(BookSearch(SearchCondition.ReadListId(SearchOperator.Is(readList.id))), SearchContext(principal.user), UnpagedSorted(Sort.by(Sort.Order.asc("readList.number"))))
         .filterIndexed { index, _ -> index < readProgress.lastBookRead }
@@ -445,7 +444,7 @@ class ReadListController(
     @AuthenticationPrincipal principal: KomgaPrincipal,
     @PathVariable id: String,
   ): ResponseEntity<StreamingResponseBody> {
-    readListRepository.findByIdOrNull(id, principal.user.getAuthorizedLibraryIds(null))?.let { readList ->
+    readListRepository.findByIdOrNull(id, SearchContext(principal.user))?.let { readList ->
 
       val books =
         readList.bookIds

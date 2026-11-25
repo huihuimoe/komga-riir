@@ -3,6 +3,7 @@ package org.gotson.komga.domain.service
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.gotson.komga.domain.model.DomainEvent
 import org.gotson.komga.domain.model.DuplicateNameException
+import org.gotson.komga.domain.model.SearchContext
 import org.gotson.komga.domain.model.Series
 import org.gotson.komga.domain.model.SeriesCollection
 import org.gotson.komga.domain.model.ThumbnailSeriesCollection
@@ -12,6 +13,8 @@ import org.gotson.komga.infrastructure.image.MosaicGenerator
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.transaction.support.TransactionSynchronization
+import org.springframework.transaction.support.TransactionSynchronizationManager
 import org.springframework.transaction.support.TransactionTemplate
 
 private val logger = KotlinLogging.logger {}
@@ -37,9 +40,15 @@ class SeriesCollectionLifecycle(
 
     collectionRepository.insert(collection)
 
-    eventPublisher.publishEvent(DomainEvent.CollectionAdded(collection))
+    TransactionSynchronizationManager.registerSynchronization(
+      object : TransactionSynchronization {
+        override fun afterCommit() {
+          eventPublisher.publishEvent(DomainEvent.CollectionAdded(collection))
+        }
+      },
+    )
 
-    return collectionRepository.findByIdOrNull(collection.id)!!
+    return collectionRepository.findByIdOrNull(collection.id, SearchContext.empty())!!
   }
 
   @Transactional
@@ -47,7 +56,7 @@ class SeriesCollectionLifecycle(
     logger.info { "Update collection: $toUpdate" }
 
     val existing =
-      collectionRepository.findByIdOrNull(toUpdate.id)
+      collectionRepository.findByIdOrNull(toUpdate.id, SearchContext.empty())
         ?: throw IllegalArgumentException("Cannot update collection that does not exist")
 
     if (!existing.name.equals(toUpdate.name, true) && collectionRepository.existsByName(toUpdate.name))
@@ -55,7 +64,13 @@ class SeriesCollectionLifecycle(
 
     collectionRepository.update(toUpdate)
 
-    eventPublisher.publishEvent(DomainEvent.CollectionUpdated(toUpdate))
+    TransactionSynchronizationManager.registerSynchronization(
+      object : TransactionSynchronization {
+        override fun afterCommit() {
+          eventPublisher.publishEvent(DomainEvent.CollectionUpdated(toUpdate))
+        }
+      },
+    )
   }
 
   fun deleteCollection(collection: SeriesCollection) {

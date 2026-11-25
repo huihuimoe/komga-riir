@@ -1,7 +1,7 @@
 <template>
   <v-icon-btn
     :id="id"
-    v-tooltip:bottom="allModes[currentMode].title"
+    v-ktooltip:bottom="allModes[currentMode].title"
     :icon="allModes[currentMode].icon"
     :aria-label="
       $formatMessage({
@@ -80,7 +80,3 @@ function cycleMode() {
   currentMode.value = modes[newIndex]!
 }
 </script>
-
-<script lang="ts"></script>
-
-<style scoped></style>

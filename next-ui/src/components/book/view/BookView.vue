@@ -1,47 +1,56 @@
+tio
 <template>
   <v-container fluid>
     <v-row>
       <v-col
         cols="6"
         sm="3"
+        lg="2"
       >
-        <ItemPoster
-          :poster-url="bookPosterUrl(book.id)"
-          :progress-percent="progressPercent"
-          :max-width="posterMaxWidth"
-        />
-
-        <v-alert
-          v-if="isRead || pagesLeft"
-          :icon="isRead ? 'i-mdi:check' : undefined"
-          class="mt-1 text-center text-body-small"
-          :max-width="posterMaxWidth"
+        <div
+          class="ms-auto"
+          style="max-width: 220px"
         >
-          <template v-if="pagesLeft">{{
-            $formatMessage(
-              {
-                description: 'Book view: number of pages left',
-                defaultMessage: '{count} pages left',
-                id: 'Z5hsZ9',
-              },
-              { count: pagesLeft },
-            )
-          }}</template>
-          <template v-if="isRead">{{
-            $formatMessage(
-              {
-                description: 'Book view: date read',
-                defaultMessage: 'Read on {readDate}',
-                id: 'T3Ofay',
-              },
-              {
-                readDate: intl.formatDate(book.readProgress?.readDate, {
-                  dateStyle: 'medium',
-                }),
-              },
-            )
-          }}</template>
-        </v-alert>
+          <ItemPoster
+            :poster-url="bookPosterUrl(book.id, cacheStore.getVersion(book.id))"
+            :progress-percent="progressPercent"
+          />
+
+          <v-alert
+            v-if="isRead || pagesLeft"
+            :icon="isRead ? 'i-mdi:check' : undefined"
+            class="mt-1 text-center text-body-small"
+          >
+            <template v-if="pagesLeft"
+              >{{
+                $formatMessage(
+                  {
+                    description: 'Book view: number of pages left',
+                    defaultMessage: '{count} pages left',
+                    id: 'Z5hsZ9',
+                  },
+                  { count: pagesLeft },
+                )
+              }}
+            </template>
+            <template v-if="isRead"
+              >{{
+                $formatMessage(
+                  {
+                    description: 'Book view: date read',
+                    defaultMessage: 'Read on {readDate}',
+                    id: 'T3Ofay',
+                  },
+                  {
+                    readDate: intl.formatDate(book.readProgress?.readDate, {
+                      dateStyle: 'medium',
+                    }),
+                  },
+                )
+              }}
+            </template>
+          </v-alert>
+        </div>
       </v-col>
 
       <v-col
@@ -49,10 +58,21 @@
         sm="9"
       >
         <v-container class="pa-0">
+          <div
+            v-if="display.smAndUp.value && containedIn.length > 0"
+            class="float-end"
+          >
+            <ContainerChip :containers="containedIn" />
+          </div>
+
           <v-row v-if="!book.oneshot">
             <v-col>
               <RouterLink
-                :to="{ name: '/series/[id]', params: { id: book.seriesId } }"
+                :to="{
+                  name: '/series/[id]',
+                  params: { id: book.seriesId },
+                  query: contextFilteredParam,
+                }"
                 class="text-headline-large link-underline"
                 >{{ book.seriesTitle }}</RouterLink
               >
@@ -209,9 +229,61 @@
         </v-col>
       </v-row>
 
+      <v-row v-if="oneShotAttributes">
+        <v-col>
+          <div class="d-flex ga-2">
+            <v-chip
+              v-if="oneShotAttributes.language"
+              size="small"
+              rounded
+              label
+              :text="languageDisplayNames.of(oneShotAttributes.language)"
+              :to="languageLink"
+            />
+            <v-chip
+              v-if="oneShotAttributes.ageRating"
+              size="small"
+              rounded
+              label
+              :text="
+                $formatMessage(
+                  {
+                    description: 'Book view: age rating chip',
+                    defaultMessage: '{rating}+',
+                    id: 'tbNQ5v',
+                  },
+                  { rating: oneShotAttributes.ageRating },
+                )
+              "
+              :to="ageRatingLink"
+            />
+            <v-chip
+              v-if="oneShotAttributes.readingDirection"
+              size="small"
+              rounded
+              label
+              :text="
+                $formatMessage(
+                  readingDirectionMessages[oneShotAttributes.readingDirection as ReadingDirection],
+                )
+              "
+            />
+          </div>
+        </v-col>
+      </v-row>
+
       <v-row v-if="book.metadata.summary">
         <v-col>
           <ReadMore :text="book.metadata.summary" />
+        </v-col>
+      </v-row>
+
+      <v-row v-if="display.xs.value && containedIn.length > 0">
+        <v-col>
+          <ContainerChip
+            :containers="containedIn"
+            small
+          />
         </v-col>
       </v-row>
 
@@ -225,35 +297,188 @@
 </template>
 
 <script setup lang="ts">
-import { bookPosterUrl } from '@/api/images'
+import { bookPosterUrl, collectionPosterUrl, readListPosterUrl } from '@/api/images'
 import { useBookReadProgress } from '@/composables/book/useBookReadProgress'
-
 import { useIntl } from 'vue-intl'
 import { useBook } from '@/composables/book/useBook'
 import { useDisplay } from 'vuetify'
 import SimpleDataTable, { type TableRow } from '@/components/SimpleDataTable.vue'
-import { contributorsRolesMessages } from '@/types/referential'
-import { getFileSize } from '@/utils/utils'
+import { contributorsRolesMessages } from '@/types/referential/contributor'
+import { getFileSize } from '@/functions/filesize'
 import { useErrorCodeFormatter } from '@/composables/errorCodeFormatter'
 import { createOrderCompareFn } from '@/functions/sort'
-import type { BookDto } from '@/generated/openapi'
+import type { BookDto, SeriesMetadataDto } from '@/generated/openapi'
 import { MediaStatus } from '@/types/MediaStatus'
+import { useImageCacheStore } from '@/stores/image-cache'
+import { languageDisplayNames } from '@/utils/i18n/locale-helper'
+import { type ReadingDirection, readingDirectionMessages } from '@/types/ReadingDirection'
+import { isMessageDescriptor } from '@/stores/messages'
+import { useQuery } from '@pinia/colada'
+import { bookReadListsQuery } from '@/colada/readlists'
+import type { Container } from '@/components/ContainerChip.vue'
+import { seriesCollectionsQuery } from '@/colada/collections'
+import { useBrowsingContextFromRouteQuery } from '@/composables/browsingContext'
+import {
+  filterBrowsingContext,
+  formatBrowsingContextAsQueryParam,
+  popBrowsingContext,
+} from '@/functions/browsing-context'
+import { commonMessages } from '@/utils/i18n/common-messages'
+import { enrichRouteQuery } from '@/functions/router'
+import type { RouteLocationObject } from '@/types/route'
+import {
+  contributorToContributorsQuery,
+  filterToQuery,
+  notableEntityToQuery,
+} from '@/functions/filter'
+import { notableEntitiesKindsMessages } from '@/types/referential/notableEntity'
 
 const intl = useIntl()
 const display = useDisplay()
+const cacheStore = useImageCacheStore()
 const { convertErrorCodes } = useErrorCodeFormatter()
 const id = useId()
-const posterMaxWidth = 220
+
+type OneShotAttributes = Pick<
+  SeriesMetadataDto,
+  'publisher' | 'ageRating' | 'genres' | 'language' | 'readingDirection' | 'sharingLabels'
+>
 
 const props = defineProps<{
   book: BookDto
+  oneShotAttributes?: OneShotAttributes
 }>()
 
 const { isRead, progressPercent, pagesLeft } = useBookReadProgress(() => props.book)
 const { isDeleted, format } = useBook(() => props.book)
 
+const { context } = useBrowsingContextFromRouteQuery()
+const popped = computed(() => popBrowsingContext(context.value))
+
+// first valid context for oneshot filter navigation
+const contextOneshot = computed(() =>
+  popBrowsingContext(filterBrowsingContext(context.value, ['libraryView'])),
+)
+
+// upper context for lateral navigation
+const contextFilteredParam = computed(() =>
+  formatBrowsingContextAsQueryParam(filterBrowsingContext(context.value, ['libraryView'])),
+)
+
+const { data: readLists } = useQuery(() => ({
+  ...bookReadListsQuery({ bookId: props.book.id }),
+}))
+// for oneshots we need to retrieve collections
+const { data: collections } = useQuery(() => ({
+  ...seriesCollectionsQuery({ seriesId: props.book.seriesId }),
+  enabled: props.book.oneshot,
+}))
+const containedIn = computed(() => [
+  ...(readLists.value?.map(
+    (it) =>
+      ({
+        text: it.name,
+        subTitle: intl.formatMessage(commonMessages.containerChipSubTitleReadList),
+        imageUrl: readListPosterUrl(it.id, cacheStore.getVersion(it.id)),
+        link: {
+          name: '/readlist/[id]',
+          params: { id: it.id },
+          query: contextFilteredParam.value,
+        },
+      }) satisfies Container,
+  ) ?? []),
+  ...(props.book.oneshot
+    ? (collections.value?.map(
+        (it) =>
+          ({
+            text: it.name,
+            subTitle: intl.formatMessage(commonMessages.containerChipSubTitleCollection),
+            imageUrl: collectionPosterUrl(it.id, cacheStore.getVersion(it.id)),
+            link: {
+              name: '/collection/[id]',
+              params: { id: it.id },
+              query: contextFilteredParam.value,
+            },
+          }) satisfies Container,
+      ) ?? [])
+    : []),
+])
+
+const parentToOneShot = computed<RouteLocationObject | undefined>(() => {
+  if (!props.book.oneshot) return undefined
+  if (contextOneshot?.value?.top?.type === 'libraryView')
+    return {
+      name: '/libraries/[viewId]/series',
+      params: { viewId: contextOneshot.value.top.id },
+      query: formatBrowsingContextAsQueryParam(contextOneshot.value.remainingStack),
+    }
+})
+const parentTo = computed<RouteLocationObject | undefined>(() => {
+  if (popped.value.top?.type === 'series')
+    return {
+      name: '/series/[id]',
+      params: { id: popped.value.top.id },
+      query: formatBrowsingContextAsQueryParam(popped.value.remainingStack),
+    }
+  if (popped.value.top?.type === 'readList')
+    return {
+      name: '/readlist/[id]',
+      params: { id: popped.value.top.id },
+      query: formatBrowsingContextAsQueryParam(popped.value.remainingStack),
+    }
+  if (popped.value.top?.type == 'libraryView') {
+    return {
+      name:
+        popped.value.top.subType === 'series'
+          ? '/libraries/[viewId]/series'
+          : '/libraries/[viewId]/books',
+      params: { viewId: popped.value.top.id },
+      query: formatBrowsingContextAsQueryParam(popped.value.remainingStack),
+    }
+  }
+})
+
+const languageLink = computed(() => {
+  if (props.oneShotAttributes?.language)
+    return enrichRouteQuery(
+      parentToOneShot.value,
+      filterToQuery('language', {
+        m: 'anyOf',
+        v: [{ i: 'i', v: props.oneShotAttributes.language }],
+      }),
+    )
+})
+const ageRatingLink = computed(() => {
+  if (props.oneShotAttributes?.ageRating)
+    return enrichRouteQuery(
+      parentToOneShot.value,
+      filterToQuery('age', { is: props.oneShotAttributes.ageRating }),
+    )
+})
+
 const tableRows = computed(() => {
   const rows: TableRow[] = []
+
+  if (props.oneShotAttributes?.publisher)
+    rows.push({
+      header: intl.formatMessage({
+        description: 'Series view table: publisher header',
+        defaultMessage: 'Publisher',
+        id: 'OLqBQc',
+      }),
+      data: [
+        {
+          text: props.oneShotAttributes.publisher,
+          to: enrichRouteQuery(
+            parentToOneShot.value,
+            filterToQuery('publisher', {
+              m: 'anyOf',
+              v: [{ v: props.oneShotAttributes.publisher }],
+            }),
+          ),
+        },
+      ],
+    })
 
   if (props.book.metadata.authors.length > 0)
     Object.entries(Object.groupBy(props.book.metadata.authors, (it) => it.role))
@@ -263,9 +488,46 @@ const tableRows = computed(() => {
           header: contributorsRolesMessages?.[role]
             ? intl.formatMessage(contributorsRolesMessages?.[role])
             : role,
-          data: contributor!.map((it) => ({ text: it.name })),
+          data: contributor!.map((it) => ({
+            text: it.name,
+            to: enrichRouteQuery(parentTo.value, contributorToContributorsQuery(it)),
+          })),
         })
       })
+
+  if (props.book.metadata.notableEntities.length > 0)
+    Object.entries(Object.groupBy(props.book.metadata.notableEntities, (it) => it.kind))
+      .toSorted(createOrderCompareFn(Object.keys(notableEntitiesKindsMessages), ([kind]) => kind))
+      .forEach(([kind, entity]) => {
+        rows.push({
+          header: notableEntitiesKindsMessages?.[kind]
+            ? intl.formatMessage(notableEntitiesKindsMessages?.[kind])
+            : kind,
+          data: entity!.map((it) => ({
+            text: it.name,
+            to: enrichRouteQuery(parentTo.value, notableEntityToQuery(it)),
+          })),
+        })
+      })
+
+  if (props.oneShotAttributes && props.oneShotAttributes.genres.length > 0)
+    rows.push({
+      header: intl.formatMessage({
+        description: 'Book view table: genre header',
+        defaultMessage: 'Genre',
+        id: 'uOPuSH',
+      }),
+      data: props.oneShotAttributes.genres.map((it) => ({
+        text: it,
+        to: enrichRouteQuery(
+          parentToOneShot.value,
+          filterToQuery('genre', {
+            m: 'anyOf',
+            v: [{ v: it }],
+          }),
+        ),
+      })),
+    })
 
   if (props.book.metadata.tags.length > 0)
     rows.push({
@@ -274,8 +536,12 @@ const tableRows = computed(() => {
         defaultMessage: 'Tags',
         id: 'TPX4qo',
       }),
-      data: props.book.metadata.tags.map((it) => ({ text: it })),
+      data: props.book.metadata.tags.map((it) => ({
+        text: it,
+        to: enrichRouteQuery(parentTo.value, filterToQuery('tag', { m: 'anyOf', v: [{ v: it }] })),
+      })),
     })
+
   if (props.book.metadata.links.length > 0)
     rows.push({
       header: intl.formatMessage({
@@ -285,6 +551,23 @@ const tableRows = computed(() => {
       }),
       data: props.book.metadata.links.map((it) => ({ text: it.label, href: it.url })),
     })
+
+  if (props.oneShotAttributes && props.oneShotAttributes.sharingLabels.length > 0)
+    rows.push({
+      header: intl.formatMessage({
+        description: 'Book view table: sharing labels  header',
+        defaultMessage: 'Sharing labels',
+        id: '1z+Z+q',
+      }),
+      data: props.oneShotAttributes.sharingLabels.map((it) => ({
+        text: it,
+        to: enrichRouteQuery(
+          parentToOneShot.value,
+          filterToQuery('sharingLabel', { m: 'anyOf', v: [{ v: it }] }),
+        ),
+      })),
+    })
+
   if (props.book.metadata.isbn)
     rows.push({
       header: intl.formatMessage({
@@ -294,14 +577,14 @@ const tableRows = computed(() => {
       }),
       data: props.book.metadata.isbn,
     })
-  if (props.book.media.comment)
+  if (format.value)
     rows.push({
       header: intl.formatMessage({
         description: 'Book view table: file type header',
         defaultMessage: 'File type',
         id: 'QALnuE',
       }),
-      data: format.value,
+      data: isMessageDescriptor(format.value) ? intl.formatMessage(format.value) : format.value,
     })
   rows.push({
     header: intl.formatMessage({

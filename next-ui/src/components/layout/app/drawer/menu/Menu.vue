@@ -5,8 +5,7 @@
     <LayoutAppDrawerMenuMedia v-if="isAdmin" />
     <LayoutAppDrawerMenuHistory v-if="isAdmin" />
     <LayoutAppDrawerMenuServer v-if="isAdmin" />
-    <LayoutAppDrawerMenuAccount />
-    <LayoutAppDrawerMenuLogout />
+    <LayoutAppDrawerMenuClassicUi />
   </v-list>
 </template>
 

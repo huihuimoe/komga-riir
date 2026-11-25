@@ -1,13 +1,20 @@
 import { storeToRefs } from 'pinia'
-import { useDialogsStore } from '@/stores/dialogs'
+import { type DialogResult, useDialogsStore } from '@/stores/dialogs'
 import { useIntl } from 'vue-intl'
 import { useDisplay } from 'vuetify/framework'
 import { useMessagesStore } from '@/stores/messages'
 
-import EditMetadata from '@/components/series/form/EditMetadata.vue'
+import EditCollection from '@/components/collection/form/Edit.vue'
 import { commonMessages } from '@/utils/i18n/common-messages'
-import { useUpdateCollection } from '@/colada/collections'
-import type { CollectionDto, CollectionUpdateDto } from '@/generated/openapi'
+import {
+  useAddCollectionPoster,
+  useDeleteCollectionPoster,
+  useMarkCollectionPosterSelected,
+  useUpdateCollection,
+} from '@/colada/collections'
+import type { CollectionDto } from '@/generated/openapi'
+import { createEntityUpdate, type EntityUpdate } from '@/types/entityUpdate'
+import { pick } from '@/functions/object'
 
 export function useEditCollectionDialog() {
   const { confirmEdit: dialogConfirmEdit } = storeToRefs(useDialogsStore())
@@ -15,6 +22,9 @@ export function useEditCollectionDialog() {
   const display = useDisplay()
   const messagesStore = useMessagesStore()
   const { mutateAsync: mutateUpdateCollection } = useUpdateCollection()
+  const { mutateAsync: mutateAddPoster } = useAddCollectionPoster()
+  const { mutateAsync: mutateMarkPosterSelected } = useMarkCollectionPosterSelected()
+  const { mutateAsync: mutateDeletePoster } = useDeleteCollectionPoster()
 
   const prepareDialog = (collection: CollectionDto, callback: () => void = () => {}) => {
     dialogConfirmEdit.value.dialogProps = {
@@ -24,26 +34,72 @@ export function useEditCollectionDialog() {
         id: 'YVQ49g',
       }),
       subtitle: collection.name,
-      maxWidth: 600,
-      okText: 'Save',
-      cardTextClass: 'px-0',
+      maxWidth: 900,
+      cardTextProps: {
+        class: 'px-0',
+      },
       closeOnSave: false,
       scrollable: true,
       fullscreen: display.xs.value,
     }
-    dialogConfirmEdit.value.slot = {
-      component: markRaw(EditMetadata),
+    dialogConfirmEdit.value.slots = {
+      default: {
+        component: markRaw(EditCollection),
+      },
     }
-    dialogConfirmEdit.value.record = collection
-    dialogConfirmEdit.value.callback = (
+    dialogConfirmEdit.value.record = createEntityUpdate(collection)
+    dialogConfirmEdit.value.callback = async (
+      result: DialogResult,
       hideDialog: () => void,
       setLoading: (isLoading: boolean) => void,
     ) => {
+      if (result === 'cancel') {
+        callback()
+        return
+      }
+
       setLoading(true)
 
-      const updatedData = dialogConfirmEdit.value.record as CollectionUpdateDto
+      const updatedData = dialogConfirmEdit.value.record as EntityUpdate<CollectionDto, never>
 
-      mutateUpdateCollection({ collectionId: collection.id, data: updatedData })
+      // upload new posters
+      if (updatedData.uploadQueue.length > 0) {
+        for (const newPoster of updatedData.uploadQueue) {
+          await mutateAddPoster({
+            collectionId: updatedData.entity.id,
+            file: newPoster.file,
+            selected: newPoster.selected,
+          }).catch((error) => {
+            messagesStore.messages.push(error?.cause?.message ?? commonMessages.networkError)
+          })
+        }
+      }
+
+      // mark existing poster as selected
+      if (updatedData.selected) {
+        await mutateMarkPosterSelected({
+          collectionId: updatedData.entity.id,
+          thumbnailId: updatedData.selected.id,
+        }).catch((error) => {
+          messagesStore.messages.push(error?.cause?.message ?? commonMessages.networkError)
+        })
+      }
+
+      // delete posters
+      if (updatedData.deleteQueue.length > 0) {
+        for (const posterToDelete of updatedData.deleteQueue) {
+          await mutateDeletePoster({
+            collectionId: updatedData.entity.id,
+            thumbnailId: posterToDelete.id,
+          }).catch((error) => {
+            messagesStore.messages.push(error?.cause?.message ?? commonMessages.networkError)
+          })
+        }
+      }
+
+      // update collection
+      const updateDto = pick(updatedData.entity, 'name', 'ordered')
+      mutateUpdateCollection({ collectionId: collection.id, data: updateDto })
         .then(() => {
           hideDialog()
           messagesStore.messages.push({
@@ -54,7 +110,7 @@ export function useEditCollectionDialog() {
                 id: 'E0cw62',
               },
               {
-                collection: updatedData.name,
+                collection: updateDto.name,
               },
             ),
           })

@@ -1,5 +1,5 @@
 import { commonMessages } from '@/utils/i18n/common-messages'
-import { useDialogsStore } from '@/stores/dialogs'
+import { type DialogResult, useDialogsStore } from '@/stores/dialogs'
 import { storeToRefs } from 'pinia'
 import { useIntl } from 'vue-intl'
 import { useDisplay } from 'vuetify'
@@ -13,12 +13,16 @@ import {
 } from '@/colada/series'
 import { useCurrentUser } from '@/colada/users'
 import SeriesDeletionWarning from '@/components/series/DeletionWarning.vue'
-import { useEditSeriesMetadataDialog } from '@/composables/series/useEditSeriesMetadataDialog'
 import { seriesFileUrl } from '@/api/files'
 import { type Action, actionDetails, ActionName } from '@/types/action/action'
 import { useBooks } from '@/composables/book/useBooks'
 import { useSeries } from '@/composables/series/useSeries'
 import type { SeriesDto } from '@/generated/openapi'
+import { useAddToReadListDialog } from '@/composables/book/useAddToReadListDialog'
+import { useAddToCollectionDialog } from '@/composables/series/useAddToCollectionDialog'
+import { useRemoveFromCollection } from '@/composables/series/useRemoveFromCollection'
+import { BrowsingContextKey, popBrowsingContext } from '@/functions/browsing-context'
+import { useEditDialog } from '@/composables/entity/useEditDialog'
 
 export function useSeriesActions(
   series: MaybeRefOrGetter<SeriesDto>,
@@ -32,16 +36,36 @@ export function useSeriesActions(
   const { readFirstBook } = useBooks(series)
   const { canRead, inProgress } = useSeries(series)
 
+  // browsing context
+  const context = inject(BrowsingContextKey, undefined)
+  const contextCollectionId = computed(() => {
+    const top = popBrowsingContext(toValue(context))?.top
+    if (top?.type === 'collection') return top.id
+  })
+
   const actions = computed<Action<ActionName>[]>(() => [
     ...(isAdmin.value
       ? [
           {
             title: intl.formatMessage(actionDetails[ActionName.AddToCollection].message),
-            disabled: true, //TODO: implement
             action: ActionName.AddToCollection,
+            onMouseenter: (event: Event) =>
+              (addToCollectionActivator.value = event.currentTarget as Element),
             onClick: () => {
-              todo()
-              callback(ActionName.AddToCollection)
+              addToCollection(() => callback(ActionName.AddToCollection))
+            },
+          },
+        ]
+      : []),
+    ...(isAdmin.value && !!contextCollectionId.value
+      ? [
+          {
+            title: intl.formatMessage(actionDetails[ActionName.RemoveFromCollection].message),
+            action: ActionName.RemoveFromCollection,
+            onMouseenter: (event: Event) =>
+              (removeFromCollectionActivator.value = event.currentTarget as Element),
+            onClick: () => {
+              removeFromCollection(() => callback(ActionName.RemoveFromCollection))
             },
           },
         ]
@@ -50,11 +74,11 @@ export function useSeriesActions(
       ? [
           {
             title: intl.formatMessage(actionDetails[ActionName.AddToReadList].message),
-            disabled: true, //TODO: implement
             action: ActionName.AddToReadList,
+            onMouseenter: (event: Event) =>
+              (addToReadListActivator.value = event.currentTarget as Element),
             onClick: () => {
-              todo()
-              callback(ActionName.AddToReadList)
+              addToReadList(() => callback(ActionName.AddToReadList))
             },
           },
         ]
@@ -98,13 +122,13 @@ export function useSeriesActions(
     ...(isAdmin.value
       ? [
           {
-            title: intl.formatMessage(actionDetails[ActionName.EditSeries].message),
-            icon: actionDetails[ActionName.EditSeries].icon,
-            action: ActionName.EditSeries,
+            title: intl.formatMessage(actionDetails[ActionName.EditEntity].message),
+            icon: actionDetails[ActionName.EditEntity].icon,
+            action: ActionName.EditEntity,
             onMouseenter: (event: Event) =>
               (editMetadataActivator.value = event.currentTarget as Element),
             onClick: () => {
-              updateSeriesMetadata(() => callback(ActionName.EditSeries))
+              updateSeriesMetadata(() => callback(ActionName.EditEntity))
             },
           },
         ]
@@ -179,12 +203,43 @@ export function useSeriesActions(
       },
     },
   ])
+
+  //region Add to collection
+  const { prepareDialog: showAddToCollectionDialog, activator: addToCollectionActivator } =
+    useAddToCollectionDialog()
+
+  function addToCollection(callback: () => void) {
+    showAddToCollectionDialog([toValue(series).id], callback)
+  }
+  //endregion
+
+  //region Remove from collection
+  const {
+    prepareDialog: showRemoveFromCollectionDialog,
+    activator: removeFromCollectionActivator,
+  } = useRemoveFromCollection()
+
+  function removeFromCollection(callback: () => void) {
+    if (contextCollectionId.value)
+      void showRemoveFromCollectionDialog([toValue(series).id], contextCollectionId.value, callback)
+  }
+  //endregion
+
+  //region Add to read list
+  const { prepareDialog: showAddToReadListDialog, activator: addToReadListActivator } =
+    useAddToReadListDialog()
+
+  function addToReadList(callback: () => void) {
+    showAddToReadListDialog([toValue(series)], callback)
+  }
+  //endregion
+
   //region Update Series metadata
   const { prepareDialog: showEditSeriesMetadataDialog, activator: editMetadataActivator } =
-    useEditSeriesMetadataDialog()
+    useEditDialog()
 
   function updateSeriesMetadata(callback: () => void) {
-    showEditSeriesMetadataDialog(toValue(series), callback)
+    showEditSeriesMetadataDialog([toValue(series)], callback)
   }
   //endregion
 
@@ -205,9 +260,6 @@ export function useSeriesActions(
     callback(ActionName.Analyze)
   }
   //endregion
-
-  //TODO: do :)
-  function todo() {}
 
   //region Mark read
   const { mutate: mutateMarkRead } = useMarkSeriesRead()
@@ -253,25 +305,28 @@ export function useSeriesActions(
       component: markRaw(SeriesDeletionWarning),
       props: {},
     }
-    dialogConfirm.value.callback = () => {
-      mutateDelete(toValue(series).id)
-        .then(() => {
-          messagesStore.messages.push({
-            message: intl.formatMessage(
-              {
-                description: 'Snackbar notification shown upon successful series files deletion',
-                defaultMessage: 'Series files deleted: {series}',
-                id: 'aSDxrt',
-              },
-              {
-                series: toValue(series).metadata.title,
-              },
-            ),
+    dialogConfirm.value.callback = (result: DialogResult) => {
+      if (result === 'confirm') {
+        mutateDelete(toValue(series).id)
+          .then(() => {
+            messagesStore.messages.push({
+              message: intl.formatMessage(
+                {
+                  description: 'Snackbar notification shown upon successful series files deletion',
+                  defaultMessage: 'Series files deleted: {series}',
+                  id: 'aSDxrt',
+                },
+                {
+                  series: toValue(series).metadata.title,
+                },
+              ),
+            })
           })
-        })
-        .catch((error) => {
-          messagesStore.messages.push(error?.cause?.message ?? commonMessages.networkError)
-        })
+          .catch((error) => {
+            messagesStore.messages.push(error?.cause?.message ?? commonMessages.networkError)
+          })
+      }
+
       callback(ActionName.Delete)
     }
   }

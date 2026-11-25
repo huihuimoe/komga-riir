@@ -8,6 +8,7 @@ import org.gotson.komga.infrastructure.security.apikey.ApiKeyAuthenticationFilte
 import org.gotson.komga.infrastructure.security.apikey.ApiKeyAuthenticationProvider
 import org.gotson.komga.infrastructure.security.apikey.HeaderApiKeyAuthenticationConverter
 import org.gotson.komga.infrastructure.security.apikey.UriRegexApiKeyAuthenticationConverter
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest
 import org.springframework.boot.actuate.health.HealthEndpoint
 import org.springframework.context.annotation.Bean
@@ -47,7 +48,7 @@ class SecurityConfiguration(
   private val apiKeyAuthenticationProvider: ApiKeyAuthenticationProvider,
   private val oauth2UserService: OAuth2UserService<OAuth2UserRequest, OAuth2User>,
   private val oidcUserService: OAuth2UserService<OidcUserRequest, OidcUser>,
-  private val sessionCookieName: String,
+  @param:Value($$"${server.servlet.session.cookie.name:KOMGA-SESSION}") private val sessionCookieName: String,
   private val userAgentWebAuthenticationDetailsSource: WebAuthenticationDetailsSource,
   private val theSessionRegistry: SessionRegistry,
   private val opdsAuthenticationEntryPoint: OpdsAuthenticationEntryPoint,
@@ -187,17 +188,6 @@ class SecurityConfiguration(
         cacheControl { disable() }
       }
 
-      // somehow the Kobo gets a Json issue when receiving the session ID in a cookie header
-      // this happens when requesting /v1/user/profile
-      // Kobo error: packetdump.warning) Invalid JSON script: QVariant(Invalid) "illegal value"
-//      sessionManagement {
-//        sessionCreationPolicy = SessionCreationPolicy.IF_REQUIRED
-//        sessionConcurrency {
-//          sessionRegistry = theSessionRegistry
-//          maximumSessions = -1
-//        }
-//      }
-
       addFilterBefore<AnonymousAuthenticationFilter>(koboAuthenticationFilter())
     }
 
@@ -223,14 +213,6 @@ class SecurityConfiguration(
 
       headers {
         cacheControl { disable() }
-      }
-
-      sessionManagement {
-        sessionCreationPolicy = SessionCreationPolicy.IF_REQUIRED
-        sessionConcurrency {
-          sessionRegistry = theSessionRegistry
-          maximumSessions = -1
-        }
       }
 
       addFilterBefore<AnonymousAuthenticationFilter>(kosyncAuthenticationFilter())

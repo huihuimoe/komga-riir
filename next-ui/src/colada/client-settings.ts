@@ -1,15 +1,23 @@
-import { defineMutation, defineQuery, useMutation, useQuery, useQueryCache } from '@pinia/colada'
 import {
-  ClientSettingUser,
-  ClientSettingUserSchemas,
-  type ClientSettingUserSettings,
-} from '@/types/ClientSettingsUser'
+  defineMutation,
+  defineQuery,
+  defineQueryOptions,
+  useMutation,
+  useQuery,
+  useQueryCache,
+} from '@pinia/colada'
+import { type ClientSettingUserSettings } from '@/types/ClientSettingsUser'
 import {
+  type ClientSettingGlobalUpdateDto,
   type ClientSettingUserUpdateDto,
+  komgaGetGlobalSettings,
   komgaGetUserSettings,
+  komgaSaveGlobalSetting,
   komgaSaveUserSetting,
 } from '@/generated/openapi'
-import * as v from 'valibot'
+import { STALE_TIME } from '@/types/time'
+import { parseGlobalSettings, parseUserSettings } from '@/functions/client-settings'
+import type { ClientSettingGlobalSettings } from '@/types/ClientSettingsGlobal'
 
 export const QUERY_KEYS_CLIENT_SETTINGS = {
   root: ['client-settings'] as const,
@@ -17,33 +25,60 @@ export const QUERY_KEYS_CLIENT_SETTINGS = {
   user: () => [...QUERY_KEYS_CLIENT_SETTINGS.root, 'user'] as const,
 }
 
+//region Global settings
+export const clientSettingsGlobalQuery = defineQueryOptions({
+  key: QUERY_KEYS_CLIENT_SETTINGS.global(),
+  query: () => komgaGetGlobalSettings(),
+  staleTime: STALE_TIME.LONG,
+  gcTime: false,
+})
+
+export const useClientSettingsGlobal = defineQuery(() => {
+  const { data, ...rest } = useQuery(clientSettingsGlobalQuery)
+
+  const globalSettings = computed(() => parseGlobalSettings(data.value))
+
+  return {
+    data,
+    ...rest,
+    globalSettings,
+  }
+})
+
+export const useUpdateClientSettingsGlobal = defineMutation(() => {
+  const queryCache = useQueryCache()
+  return useMutation({
+    mutation: (settings: Partial<ClientSettingGlobalSettings>) => {
+      const body: Record<string, ClientSettingGlobalUpdateDto> = {}
+      for (const [key, value] of Object.entries(settings)) {
+        if (value !== undefined) {
+          body[key] = {
+            allowUnauthorized: value.allowUnauthorized,
+            value: JSON.stringify(value.value),
+          }
+        }
+      }
+      return komgaSaveGlobalSetting({ body })
+    },
+    onSuccess: () => {
+      void queryCache.invalidateQueries({ key: QUERY_KEYS_CLIENT_SETTINGS.global() })
+    },
+  })
+})
+//endregion
+
+//region User settings
+export const clientSettingsUserQuery = defineQueryOptions({
+  key: QUERY_KEYS_CLIENT_SETTINGS.user(),
+  query: () => komgaGetUserSettings(),
+  staleTime: STALE_TIME.LONG,
+  gcTime: false,
+})
+
 export const useClientSettingsUser = defineQuery(() => {
-  const { data, ...rest } = useQuery({
-    key: () => QUERY_KEYS_CLIENT_SETTINGS.user(),
-    query: () => komgaGetUserSettings(),
-    // 1 hour
-    staleTime: 60 * 60 * 1000,
-    gcTime: false,
-  })
+  const { data, ...rest } = useQuery(clientSettingsUserQuery)
 
-  const userSettings = computed(() => {
-    const raw = data.value
-    const result: Partial<Record<ClientSettingUser, unknown>> = {}
-
-    // only expose settings declared in ClientSettingUser
-    for (const settingKey of Object.values(ClientSettingUser)) {
-      const schema = ClientSettingUserSchemas[settingKey]
-      if (!schema) continue
-
-      // validate raw json against defined schema, else fallback
-      const setting = raw?.[settingKey]
-      result[settingKey] = setting?.value
-        ? v.parse(schema, JSON.parse(setting.value))
-        : v.getDefaults(schema)
-    }
-
-    return result as ClientSettingUserSettings
-  })
+  const userSettings = computed(() => parseUserSettings(data.value))
 
   return {
     data,
@@ -69,3 +104,4 @@ export const useUpdateClientSettingsUser = defineMutation(() => {
     },
   })
 })
+//endregion

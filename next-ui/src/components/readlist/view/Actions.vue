@@ -11,14 +11,14 @@
     <v-icon-btn
       v-for="action in prominentActions"
       :key="action.action"
-      v-tooltip:bottom="action.title"
+      v-ktooltip:bottom="action.title"
       v-bind="action"
     />
 
     <v-icon-btn
       v-if="hasExtra"
       :id="id"
-      v-tooltip:bottom="$formatMessage(commonMessages.buttonMore)"
+      v-ktooltip:bottom="$formatMessage(commonMessages.buttonMore)"
       icon="i-mdi:dots-horizontal"
       @click="bottomSheet = true"
     />
@@ -46,16 +46,18 @@ const id = useId()
 const { actions } = useReadListActions(() => props.readList)
 
 const bottomSheet = ref(false)
-const prominent = computed(
-  () => [ActionName.OpenReaderIncognito, ActionName.EditReadList] as ActionName[],
-)
+const prominent = [
+  ActionName.OpenReaderIncognito,
+  ActionName.EditReadList,
+  ActionName.EditReadListElements,
+] as ActionName[]
 
-const exclude = [...prominent.value, ActionName.OpenReader]
+const exclude = [...prominent, ActionName.OpenReader]
 
 const prominentActions = computed(() =>
   actions.value
-    .filter((it) => prominent.value.includes(it.action))
-    .toSorted(createOrderCompareFn(prominent.value, (it) => it.action.toString())),
+    .filter((it) => prominent.includes(it.action))
+    .toSorted(createOrderCompareFn(prominent, (it) => it.action.toString())),
 )
 const readAction = computed(() => actions.value.find((it) => it.action === ActionName.OpenReader))
 const hasExtra = computed(() => actions.value.some((it) => !exclude.includes(it.action)))

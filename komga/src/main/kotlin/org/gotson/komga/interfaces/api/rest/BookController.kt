@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
+import org.gotson.komga.application.query.UnpagedSorted
 import org.gotson.komga.application.tasks.HIGHEST_PRIORITY
 import org.gotson.komga.application.tasks.HIGH_PRIORITY
 import org.gotson.komga.application.tasks.LOWEST_PRIORITY
@@ -15,7 +16,6 @@ import org.gotson.komga.application.tasks.TaskEmitter
 import org.gotson.komga.domain.model.BookSearch
 import org.gotson.komga.domain.model.Dimension
 import org.gotson.komga.domain.model.DomainEvent
-import org.gotson.komga.domain.model.EntityNotFoundException
 import org.gotson.komga.domain.model.ImageConversionException
 import org.gotson.komga.domain.model.MarkSelectedPreference
 import org.gotson.komga.domain.model.Media
@@ -35,7 +35,6 @@ import org.gotson.komga.domain.persistence.ThumbnailBookRepository
 import org.gotson.komga.domain.service.BookAnalyzer
 import org.gotson.komga.domain.service.BookLifecycle
 import org.gotson.komga.infrastructure.image.ImageAnalyzer
-import org.gotson.komga.infrastructure.jooq.UnpagedSorted
 import org.gotson.komga.infrastructure.mediacontainer.ContentDetector
 import org.gotson.komga.infrastructure.openapi.OpenApiConfiguration
 import org.gotson.komga.infrastructure.openapi.PageableAsQueryParam
@@ -274,7 +273,6 @@ class BookController(
 
   @Operation(summary = "Get book details", tags = [OpenApiConfiguration.TagNames.BOOKS])
   @GetMapping("api/v1/books/{bookId}")
-  @Throws(EntityNotFoundException::class)
   fun getBookById(
     @AuthenticationPrincipal principal: KomgaPrincipal,
     @PathVariable bookId: String,
@@ -283,7 +281,7 @@ class BookController(
       contentRestrictionChecker.checkContentRestrictionBook(principal.user, it)
 
       it.restrictUrl(!principal.user.isAdmin)
-    } ?: throw EntityNotFoundException()
+    } ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
 
   @Operation(summary = "Get previous book in series", tags = [OpenApiConfiguration.TagNames.BOOKS])
   @GetMapping("api/v1/books/{bookId}/previous")
@@ -322,7 +320,7 @@ class BookController(
     contentRestrictionChecker.checkContentRestrictionBook(principal.user, bookId)
 
     return readListRepository
-      .findAllContainingBookId(bookId, principal.user.getAuthorizedLibraryIds(null), principal.user.restrictions)
+      .findAllContainingBookId(bookId, SearchContext(principal.user))
       .map { it.toDto() }
   }
 

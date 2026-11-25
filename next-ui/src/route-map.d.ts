@@ -158,8 +158,8 @@ declare module 'vue-router/auto-routes' {
     '/libraries/[viewId]/overview/[section]': RouteRecordInfo<
       '/libraries/[viewId]/overview/[section]',
       '/libraries/:viewId/overview/:section',
-      { viewId: ParamValue<true>, section: ParamValue<true> },
-      { viewId: ParamValue<false>, section: ParamValue<false> },
+      { section: ParamValue<true>, viewId: ParamValue<true> },
+      { section: ParamValue<false>, viewId: ParamValue<false> },
       | never
     >,
     '/libraries/[viewId]/readlists': RouteRecordInfo<
@@ -263,13 +263,6 @@ declare module 'vue-router/auto-routes' {
     '/server/settings': RouteRecordInfo<
       '/server/settings',
       '/server/settings',
-      Record<never, never>,
-      Record<never, never>,
-      | never
-    >,
-    '/server/ui': RouteRecordInfo<
-      '/server/ui',
-      '/server/ui',
       Record<never, never>,
       Record<never, never>,
       | never
@@ -574,14 +567,6 @@ declare module 'vue-router/auto-routes' {
     'src/pages/server/settings.vue': {
       routes:
         | '/server/settings'
-      views:
-        | never
-      pathParamNames:
-        | never
-    }
-    'src/pages/server/ui.vue': {
-      routes:
-        | '/server/ui'
       views:
         | never
       pathParamNames:

@@ -4,8 +4,8 @@ import {
   defineQueryOptions,
   useMutation,
 } from '@pinia/colada'
-import { PageRequest } from '@/types/PageRequest'
-import { entityChanged } from '@/colada/cache'
+import { PageRequest, type Sort, sortToString } from '@/types/PageRequest'
+import { clearAllCollections, clearCollection, clearThumbnailCollection } from '@/colada/cache'
 import { useAppStore } from '@/stores/app'
 import {
   komgaDeleteCollectionById,
@@ -13,12 +13,24 @@ import {
   komgaGetCollections,
   komgaUpdateCollectionById,
   type CollectionUpdateDto,
+  type CollectionCreationDto,
+  komgaCreateCollection,
+  komgaGetCollectionThumbnails,
+  komgaAddUserUploadedCollectionThumbnail,
+  komgaDeleteUserUploadedCollectionThumbnail,
+  komgaMarkCollectionThumbnailSelected,
+  komgaGetCollectionsBySeriesId,
 } from '@/generated/openapi'
+import { useImageCacheStore } from '@/stores/image-cache'
+import { STALE_TIME } from '@/types/time'
 
 export const QUERY_KEYS_COLLECTIONS = {
   root: ['collections'] as const,
   bySearch: (request: object) => [...QUERY_KEYS_COLLECTIONS.root, JSON.stringify(request)] as const,
   byId: (id: string) => [...QUERY_KEYS_COLLECTIONS.root, id] as const,
+  bySeries: () => [...QUERY_KEYS_COLLECTIONS.root, 'bySeries'] as const,
+  bySeriesId: (seriesId: string) => [...QUERY_KEYS_COLLECTIONS.bySeries(), seriesId] as const,
+  posters: (id: string) => [...QUERY_KEYS_COLLECTIONS.byId(id), 'posters'] as const,
 }
 
 export const collectionsListQuery = defineQueryOptions(
@@ -35,7 +47,7 @@ export const collectionsListQuery = defineQueryOptions(
     query: () =>
       komgaGetCollections({
         query: {
-          search: search,
+          search: search || undefined,
           library_id: libraryIds,
           ...pageRequest,
         },
@@ -45,8 +57,13 @@ export const collectionsListQuery = defineQueryOptions(
 )
 
 export const collectionsListQueryInfinite = defineInfiniteQueryOptions(
-  ({ libraryIds }: { libraryIds?: string[] }) => ({
-    key: QUERY_KEYS_COLLECTIONS.bySearch({ libraryIds, infinite: true }),
+  ({ search, libraryIds, sort }: { search?: string; libraryIds?: string[]; sort?: Sort[] }) => ({
+    key: QUERY_KEYS_COLLECTIONS.bySearch({
+      search: search,
+      libraryIds,
+      sort: sort,
+      infinite: true,
+    }),
     initialPageParam: new PageRequest(0, 50),
     query: ({ pageParam }) =>
       komgaGetCollections({
@@ -54,6 +71,8 @@ export const collectionsListQueryInfinite = defineInfiniteQueryOptions(
           library_id: libraryIds,
           page: pageParam.page,
           size: pageParam.size,
+          search: search || undefined,
+          sort: sort?.map((it) => sortToString(it)),
         },
       }),
     getNextPageParam: (lastPage, _, lastPageParam) =>
@@ -70,8 +89,33 @@ export const collectionDetailQuery = defineQueryOptions(
           id: collectionId,
         },
       }),
+    staleTime: STALE_TIME.LONG,
   }),
 )
+
+export const seriesCollectionsQuery = defineQueryOptions(({ seriesId }: { seriesId: string }) => ({
+  key: QUERY_KEYS_COLLECTIONS.bySeriesId(seriesId),
+  query: () =>
+    komgaGetCollectionsBySeriesId({
+      path: {
+        seriesId: seriesId,
+      },
+    }),
+  staleTime: STALE_TIME.LONG,
+}))
+
+export const useCreateCollection = defineMutation(() => {
+  const appStore = useAppStore()
+  return useMutation({
+    mutation: (collection: CollectionCreationDto) =>
+      komgaCreateCollection({
+        body: collection,
+      }),
+    onSuccess: () => {
+      if (appStore.sseUnavailable) clearAllCollections()
+    },
+  })
+})
 
 export const useUpdateCollection = defineMutation(() => {
   const appStore = useAppStore()
@@ -84,7 +128,7 @@ export const useUpdateCollection = defineMutation(() => {
         body: data,
       }),
     onSuccess: (_data, { collectionId }) => {
-      if (appStore.sseUnavailable) entityChanged(QUERY_KEYS_COLLECTIONS.root, collectionId)
+      if (appStore.sseUnavailable) clearCollection(collectionId)
     },
   })
 })
@@ -99,7 +143,93 @@ export const useDeleteCollection = defineMutation(() => {
         },
       }),
     onSuccess: (_data, collectionId) => {
-      if (appStore.sseUnavailable) entityChanged(QUERY_KEYS_COLLECTIONS.root, collectionId)
+      if (appStore.sseUnavailable) clearCollection(collectionId)
+    },
+  })
+})
+
+export const collectionPostersQuery = defineQueryOptions(
+  ({ collectionId }: { collectionId: string }) => ({
+    key: QUERY_KEYS_COLLECTIONS.posters(collectionId),
+    query: () =>
+      komgaGetCollectionThumbnails({
+        path: {
+          id: collectionId,
+        },
+      }),
+    staleTime: STALE_TIME.LONG,
+  }),
+)
+
+export const useAddCollectionPoster = defineMutation(() => {
+  const appStore = useAppStore()
+  const cacheStore = useImageCacheStore()
+  return useMutation({
+    mutation: ({
+      collectionId,
+      file,
+      selected,
+    }: {
+      collectionId: string
+      file: File
+      selected: boolean
+    }) =>
+      komgaAddUserUploadedCollectionThumbnail({
+        query: {
+          selected: selected,
+        },
+        body: {
+          file: file,
+        },
+        path: {
+          id: collectionId,
+        },
+      }),
+    onSuccess: (_data, { collectionId }) => {
+      if (appStore.sseUnavailable) {
+        clearThumbnailCollection(collectionId)
+        cacheStore.bustCache(collectionId)
+      }
+    },
+  })
+})
+
+export const useDeleteCollectionPoster = defineMutation(() => {
+  const appStore = useAppStore()
+  const cacheStore = useImageCacheStore()
+  return useMutation({
+    mutation: ({ collectionId, thumbnailId }: { collectionId: string; thumbnailId: string }) =>
+      komgaDeleteUserUploadedCollectionThumbnail({
+        path: {
+          id: collectionId,
+          thumbnailId: thumbnailId,
+        },
+      }),
+    onSuccess: (_data, { collectionId }) => {
+      if (appStore.sseUnavailable) {
+        clearThumbnailCollection(collectionId)
+        cacheStore.bustCache(collectionId)
+      }
+    },
+  })
+})
+
+export const useMarkCollectionPosterSelected = defineMutation(() => {
+  const appStore = useAppStore()
+  const cacheStore = useImageCacheStore()
+  return useMutation({
+    mutation: ({ collectionId, thumbnailId }: { collectionId: string; thumbnailId: string }) =>
+      komgaMarkCollectionThumbnailSelected({
+        path: {
+          id: collectionId,
+          thumbnailId: thumbnailId,
+        },
+      }),
+    onSuccess: (_data, { collectionId }) => {
+      if (appStore.sseUnavailable) {
+        clearThumbnailCollection(collectionId)
+        cacheStore.bustCache(collectionId)
+      }
     },
   })
 })

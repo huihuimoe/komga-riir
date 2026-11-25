@@ -11,7 +11,6 @@
     multi-sort
     mobile-breakpoint="md"
     show-expand
-    style="height: 100%"
     @update:options="updateOptions"
   >
     <template #top>
@@ -55,11 +54,31 @@
     </template>
 
     <template #[`item.seriesId`]="{ value: seriesId }">
-      {{ seriesCache[seriesId] || seriesId }}
+      <SeriesFetchDetails :series-id="seriesId">
+        <template #default="{ data: seriesData }">
+          <RouterLink
+            v-if="seriesId && seriesData"
+            :to="{ name: '/series/[id]', params: { id: seriesId } }"
+            class="link-underline"
+            >{{ seriesData?.metadata.title }}</RouterLink
+          >
+          <span v-else>{{ seriesId }}</span>
+        </template>
+      </SeriesFetchDetails>
     </template>
 
     <template #[`item.bookId`]="{ value: bookId }">
-      {{ booksCache[bookId] || bookId }}
+      <BookFetchDetails :book-id="bookId">
+        <template #default="{ data: bookData }">
+          <RouterLink
+            v-if="bookId && bookData"
+            :to="{ name: '/book/[id]', params: { id: bookId } }"
+            class="link-underline"
+            >{{ bookData?.metadata.title }}</RouterLink
+          >
+          <span v-else>{{ bookId }}</span>
+        </template>
+      </BookFetchDetails>
     </template>
 
     <template #[`item.timestamp`]="{ value }">
@@ -93,9 +112,6 @@ import HistoryExpandBookConverted from '@/components/history/expand/BookConverte
 import HistoryExpandDuplicatePageDeleted from '@/components/history/expand/DuplicatePageDeleted.vue'
 import HistoryExpandSeriesDirectoryDeleted from '@/components/history/expand/SeriesDirectoryDeleted.vue'
 import { historicalEventMessages } from '@/utils/i18n/enum/historical-event'
-import { seriesDetailQuery } from '@/colada/series'
-import { bookDetailQuery } from '@/colada/books'
-import { useMemoize } from '@vueuse/core'
 
 const intl = useIntl()
 
@@ -194,35 +210,4 @@ function getExpandedComponent(eventType: string): Component | null {
       return null
   }
 }
-
-const seriesCache = reactive<Record<string, string | undefined>>({})
-const booksCache = reactive<Record<string, string | undefined>>({})
-
-const getSeriesTitle = useMemoize(async (seriesId: string) =>
-  useQuery(() => seriesDetailQuery({ seriesId: seriesId }))
-    .refresh(true)
-    .then(({ data }) => data?.metadata.title)
-    .catch(() => undefined),
-)
-
-const getBookTitle = useMemoize(async (bookId: string) =>
-  useQuery(() => bookDetailQuery({ bookId: bookId }))
-    .refresh(true)
-    .then(({ data }) => data?.metadata.title)
-    .catch(() => undefined),
-)
-
-watch(data, (data) => {
-  for (const seriesId of new Set(data?.content?.map((s) => s.seriesId))) {
-    if (seriesId) {
-      void getSeriesTitle(seriesId).then((title) => (seriesCache[seriesId] = title))
-    }
-  }
-
-  for (const bookId of new Set(data?.content?.map((s) => s.bookId))) {
-    if (bookId) {
-      void getBookTitle(bookId).then((title) => (booksCache[bookId] = title))
-    }
-  }
-})
 </script>

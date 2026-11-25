@@ -6,6 +6,7 @@ import org.gotson.komga.domain.model.DomainEvent
 import org.gotson.komga.domain.model.DuplicateNameException
 import org.gotson.komga.domain.model.ReadList
 import org.gotson.komga.domain.model.ReadListRequestMatch
+import org.gotson.komga.domain.model.SearchContext
 import org.gotson.komga.domain.model.ThumbnailReadList
 import org.gotson.komga.domain.persistence.ReadListRepository
 import org.gotson.komga.domain.persistence.ThumbnailReadListRepository
@@ -14,6 +15,8 @@ import org.gotson.komga.infrastructure.metadata.comicrack.ReadListProvider
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.transaction.support.TransactionSynchronization
+import org.springframework.transaction.support.TransactionSynchronizationManager
 import org.springframework.transaction.support.TransactionTemplate
 
 private val logger = KotlinLogging.logger {}
@@ -41,16 +44,22 @@ class ReadListLifecycle(
 
     readListRepository.insert(readList)
 
-    eventPublisher.publishEvent(DomainEvent.ReadListAdded(readList))
+    TransactionSynchronizationManager.registerSynchronization(
+      object : TransactionSynchronization {
+        override fun afterCommit() {
+          eventPublisher.publishEvent(DomainEvent.ReadListAdded(readList))
+        }
+      },
+    )
 
-    return readListRepository.findByIdOrNull(readList.id)!!
+    return readListRepository.findByIdOrNull(readList.id, SearchContext.empty())!!
   }
 
   @Transactional
   fun updateReadList(toUpdate: ReadList) {
     logger.info { "Update read list: $toUpdate" }
     val existing =
-      readListRepository.findByIdOrNull(toUpdate.id)
+      readListRepository.findByIdOrNull(toUpdate.id, SearchContext.empty())
         ?: throw IllegalArgumentException("Cannot update read list that does not exist")
 
     if (!existing.name.equals(toUpdate.name, true) && readListRepository.existsByName(toUpdate.name))
@@ -58,7 +67,13 @@ class ReadListLifecycle(
 
     readListRepository.update(toUpdate)
 
-    eventPublisher.publishEvent(DomainEvent.ReadListUpdated(toUpdate))
+    TransactionSynchronizationManager.registerSynchronization(
+      object : TransactionSynchronization {
+        override fun afterCommit() {
+          eventPublisher.publishEvent(DomainEvent.ReadListUpdated(toUpdate))
+        }
+      },
+    )
   }
 
   fun deleteReadList(readList: ReadList) {

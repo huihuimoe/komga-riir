@@ -4,6 +4,7 @@
     v-bind="simple.dialogProps"
     :loading="loading"
     :activator="simple.activator"
+    @cancel="simple.callback('cancel', hideDialog, setLoading)"
   >
     <template #text>
       <component
@@ -29,6 +30,15 @@ const loading = ref<boolean>(false)
 
 const { simple } = storeToRefs(useDialogsStore())
 
+function hideDialog() {
+  showDialog.value = false
+  loading.value = false
+}
+
+function setLoading(isLoading: boolean) {
+  loading.value = isLoading
+}
+
 watch(
   () => simple.value.dialogProps.shown,
   (newShow) => {
@@ -38,6 +48,12 @@ watch(
     }
   },
 )
-</script>
 
-<style scoped></style>
+const route = useRoute()
+watch(
+  () => route?.name,
+  () => {
+    showDialog.value = false
+  },
+)
+</script>

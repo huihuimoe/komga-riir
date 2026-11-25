@@ -1,8 +1,12 @@
 import {
+  type FilterContributorsRecord,
   type FilterIncludeExclude,
+  type FilterNotableEntitiesRecord,
   type FilterType,
   SchemaAnyNone,
   SchemaFilterContributors,
+  SchemaFilterNotableEntities,
+  SchemaFilterPoster,
   SchemaFilterReadStatus,
   SchemaFilterStrings,
   SchemaSeriesAgeRatings,
@@ -10,7 +14,16 @@ import {
 } from '@/types/filter'
 import type { InferOutput } from 'valibot'
 import * as v from 'valibot'
-import { CONTRIBUTOR_ANYROLE } from '@/types/referential'
+import { CONTRIBUTOR_ANYROLE } from '@/types/referential/contributor'
+import type { AuthorDto, NotableEntityDto } from '@/generated/openapi'
+import {
+  QueryParamContributors,
+  QueryParamNotableEntities,
+  type StandardFilters,
+  type SupportedFiltersOutput,
+} from '@/composables/filter'
+import { NOTABLE_ENTITY_ANYKIND } from '@/types/referential/notableEntity'
+import type { UnwrapRef } from 'vue'
 
 export function clearFilter(filter: FilterType) {
   if ('v' in filter) filter.v = []
@@ -33,6 +46,70 @@ export function countFilter(filter: FilterType): number {
   return 0
 }
 
+export function filtersToConditions(filters: Ref<Partial<UnwrapRef<SupportedFiltersOutput>>>) {
+  const conditions = []
+
+  if (filters.value.library)
+    conditions.push(
+      schemaFilterStringToConditions(filters.value.library.filter, 'libraryId', false),
+    )
+
+  if (filters.value.complete)
+    conditions.push(
+      schemaFilterIncludeExcludeToConditions(filters.value.complete.filter, 'complete'),
+    )
+  if (filters.value.unavailable)
+    conditions.push(
+      schemaFilterIncludeExcludeToConditions(filters.value.unavailable.filter, 'deleted'),
+    )
+  if (filters.value.oneshot)
+    conditions.push(schemaFilterIncludeExcludeToConditions(filters.value.oneshot.filter, 'oneShot'))
+  if (filters.value.seriesStatus)
+    conditions.push(valuesToConditions(filters.value.seriesStatus.filter.v, 'seriesStatus'))
+  if (filters.value.read)
+    conditions.push(schemaFilterReadStatusToConditions(filters.value.read.filter))
+  if (filters.value.poster)
+    conditions.push(schemaFilterPosterToConditions(filters.value.poster.filter))
+  if (filters.value.mediaStatus)
+    conditions.push(valuesToConditions(filters.value.mediaStatus.filter.v, 'mediaStatus'))
+  if (filters.value.profile)
+    conditions.push(valuesToConditions(filters.value.profile.filter.v, 'mediaProfile'))
+  if (filters.value.genre)
+    conditions.push(schemaFilterStringToConditions(filters.value.genre.filter, 'genre', true))
+  if (filters.value.tag)
+    conditions.push(schemaFilterStringToConditions(filters.value.tag.filter, 'tag', true))
+  if (filters.value.publisher)
+    conditions.push(
+      schemaFilterStringToConditions(filters.value.publisher.filter, 'publisher', false),
+    )
+  if (filters.value.sharingLabel)
+    conditions.push(
+      schemaFilterStringToConditions(filters.value.sharingLabel.filter, 'sharingLabel', true),
+    )
+  if (filters.value.language)
+    conditions.push(
+      schemaFilterStringToConditions(filters.value.language.filter, 'language', false),
+    )
+  if (filters.value.year)
+    conditions.push(schemaFilterReleaseYearToConditions(filters.value.year.filter))
+  if (filters.value.age)
+    conditions.push(schemaFilterAgeRatingToConditions(filters.value.age.filter))
+  if (filters.value.contributors)
+    conditions.push(
+      ...Object.entries(filters.value.contributors.filter).map(([role, filter]) =>
+        schemaFilterContributorsToConditions(filter, role),
+      ),
+    )
+  if (filters.value.notableEntities)
+    conditions.push(
+      ...Object.entries(filters.value.notableEntities.filter).map(([kind, filter]) =>
+        schemaFilterNotableEntitiesToConditions(filter, kind),
+      ),
+    )
+
+  return conditions.filter((it) => it !== null)
+}
+
 export function valuesToConditions(value: string[] | undefined, key: string) {
   if (!value || value.length === 0) return null
   const list = value.map((it) => ({
@@ -47,7 +124,7 @@ export function valuesToConditions(value: string[] | undefined, key: string) {
   }
 }
 
-export function schemaFilterAuthorsToConditions(
+export function schemaFilterContributorsToConditions(
   filter: InferOutput<typeof SchemaFilterContributors>,
   role?: string,
 ) {
@@ -58,7 +135,7 @@ export function schemaFilterAuthorsToConditions(
         author: {
           operator: it.a === 'any' ? 'is' : 'isNot',
           value: {
-            role: role,
+            ...(role === CONTRIBUTOR_ANYROLE ? {} : { role: role }),
           },
         },
       }
@@ -85,6 +162,44 @@ export function schemaFilterAuthorsToConditions(
     }
 }
 
+export function schemaFilterNotableEntitiesToConditions(
+  filter: InferOutput<typeof SchemaFilterNotableEntities>,
+  kind?: string,
+) {
+  if (filter.v.length === 0) return null
+  const list = filter.v.map((it) => {
+    if (v.is(SchemaAnyNone, it)) {
+      return {
+        notableEntity: {
+          operator: it.a === 'any' ? 'is' : 'isNot',
+          value: {
+            ...(kind === NOTABLE_ENTITY_ANYKIND ? {} : { kind: kind }),
+          },
+        },
+      }
+    } else {
+      return {
+        notableEntity: {
+          operator: it.i === 'e' ? 'isNot' : 'is',
+          value: {
+            name: it.v,
+            ...(kind === NOTABLE_ENTITY_ANYKIND ? {} : { kind: kind }),
+          },
+        },
+      }
+    }
+  })
+
+  if (filter.m === 'allOf')
+    return {
+      allOf: list,
+    }
+  else
+    return {
+      anyOf: list,
+    }
+}
+
 export function schemaFilterReadStatusToConditions(
   filter: InferOutput<typeof SchemaFilterReadStatus>,
 ) {
@@ -94,6 +209,24 @@ export function schemaFilterReadStatusToConditions(
       readStatus: {
         operator: it.i === 'e' ? 'isNot' : 'is',
         value: it.v,
+      },
+    }
+  })
+  return {
+    anyOf: list,
+  }
+}
+
+export function schemaFilterPosterToConditions(filter: InferOutput<typeof SchemaFilterPoster>) {
+  if (filter.v.length === 0) return null
+  const list = filter.v.map((it) => {
+    return {
+      poster: {
+        operator: it.i === 'e' ? 'isNot' : 'is',
+        value: {
+          type: it.v[0] === 'ANYTYPE' ? undefined : it.v[0],
+          selected: it.v[1],
+        },
       },
     }
   })
@@ -238,5 +371,43 @@ export function schemaFilterAgeRatingToConditions(
   if (conds.length === 0) return null
   return {
     allOf: conds,
+  }
+}
+
+/**
+ * Transforms a {@link AuthorDto} to a valid Vue Router route query param for filtering purpose.
+ * @param contributor
+ */
+export function contributorToContributorsQuery(contributor: AuthorDto) {
+  return {
+    [QueryParamContributors]: JSON.stringify({
+      [contributor.role]: { m: 'anyOf', v: [{ i: 'i', v: contributor.name }] },
+    } satisfies FilterContributorsRecord),
+  }
+}
+
+/**
+ * Transforms a {@link NotableEntityDto} to a valid Vue Router route query param for filtering purpose.
+ * @param notableEntity
+ */
+export function notableEntityToQuery(notableEntity: NotableEntityDto) {
+  return {
+    [QueryParamNotableEntities]: JSON.stringify({
+      [notableEntity.kind]: { m: 'anyOf', v: [{ i: 'i', v: notableEntity.name }] },
+    } satisfies FilterNotableEntitiesRecord),
+  }
+}
+
+/**
+ * Transforms a filter into its corresponding query param for filtering purpose.
+ * @param filter
+ * @param value
+ */
+export function filterToQuery<K extends keyof StandardFilters>(
+  filter: K,
+  value: StandardFilters[K],
+) {
+  return {
+    [filter]: JSON.stringify(value),
   }
 }

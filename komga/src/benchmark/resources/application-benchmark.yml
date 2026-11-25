@@ -1,14 +1,5 @@
 application.version: BENCHMARK
 
-benchmark:
-  result-folder: ${project.reportsDir}/benchmark
-  measurement-iterations: \${BENCHMARK_MEASUREMENT_ITERATIONS:5}
-  warmup-iterations: \${BENCHMARK_WARMUP_ITERATIONS:1}
-  mode: \${BENCHMARK_MODE:averagetime}
-  #  measurement-iterations: 1
-  #  warmup-iterations: 0
-  #  mode: singleshottime
-  result-format: text
 komga:
   config-dir: ${rootDir}/config-dir
   workspace: diesel

@@ -1,7 +1,12 @@
+
 import nu.studer.gradle.jooq.JooqGenerate
 import org.flywaydb.gradle.task.FlywayMigrateTask
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.util.prefixIfNot
+import org.jooq.meta.kotlin.database
+import org.jooq.meta.kotlin.generator
+import org.jooq.meta.kotlin.jdbc
+import org.jooq.meta.kotlin.target
 import org.springframework.boot.gradle.plugin.SpringBootPlugin
 
 plugins {
@@ -66,6 +71,7 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
   implementation("org.springframework.boot:spring-boot-starter-jooq")
   implementation("org.springframework.session:spring-session-core")
+  implementation("org.springframework.session:spring-session-jdbc")
   implementation("com.github.gotson:spring-session-caffeine:2.1.0")
   implementation("org.springframework.data:spring-data-commons")
 
@@ -81,7 +87,7 @@ dependencies {
   implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml")
 
   implementation("commons-io:commons-io:2.22.0")
-  implementation("org.apache.commons:commons-lang3:3.20.0")
+  implementation("org.apache.commons:commons-lang3:3.21.0")
   implementation("commons-validator:commons-validator:1.11.0")
 
   implementation("org.apache.lucene:lucene-core:${libs.versions.lucene.get()}")
@@ -89,16 +95,16 @@ dependencies {
   implementation("org.apache.lucene:lucene-queryparser:${libs.versions.lucene.get()}")
   implementation("org.apache.lucene:lucene-backward-codecs:${libs.versions.lucene.get()}")
 
-  implementation("com.ibm.icu:icu4j:78.3")
+  implementation("com.ibm.icu:icu4j:79.1")
 
   implementation("com.appmattus.crypto:cryptohash:1.0.2")
 
   implementation("org.apache.tika:tika-core:3.3.2")
   implementation("org.apache.commons:commons-compress:1.28.0")
-  implementation("com.github.junrar:junrar:8.1.0")
+  implementation("com.github.junrar:junrar:8.1.2")
   implementation("org.apache.pdfbox:pdfbox:3.0.8")
   implementation("net.grey-panther:natural-comparator:1.1")
-  implementation("org.jsoup:jsoup:1.23.1")
+  implementation("org.jsoup:jsoup:1.23.2")
 
   implementation("net.coobird:thumbnailator:0.4.21")
   runtimeOnly("com.twelvemonkeys.imageio:imageio-jpeg:${libs.versions.twelvemonkeys.get()}")
@@ -133,9 +139,10 @@ dependencies {
   testImplementation("org.springframework.security:spring-security-test")
   testImplementation("com.ninja-squad:springmockk:4.0.2") // v5 needs Spring Framework v7
   testImplementation("io.mockk:mockk:1.14.11")
-  testImplementation("com.google.jimfs:jimfs:1.3.1")
+  testImplementation("com.google.jimfs:jimfs:1.3.2")
 
-  testImplementation("com.tngtech.archunit:archunit-junit5:1.5.0")
+  testImplementation("com.tngtech.archunit:archunit-junit5:1.5.1")
+  testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.11.0")
 
   benchmarkImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0")
   benchmarkImplementation("org.openjdk.jmh:jmh-core:1.37")
@@ -242,6 +249,14 @@ tasks {
     inputs.files(benchmarkSourceSet.output)
     testClassesDirs = benchmarkSourceSet.output.classesDirs
     classpath = benchmarkSourceSet.runtimeClasspath
+
+    systemProperty(
+      "jmh.resultFolder",
+      layout.buildDirectory
+        .dir("reports/benchmarks")
+        .get()
+        .asFile.absolutePath,
+    )
   }
 }
 
@@ -271,7 +286,6 @@ val sqliteMigrationDirs =
     "tasks" to
       listOf(
         "$projectDir/src/flyway/resources/tasks/migration/sqlite",
-//    "$projectDir/src/flyway/kotlin/tasks/migration/sqlite",
       ),
   )
 
@@ -321,37 +335,37 @@ buildscript {
 }
 
 jooq {
-  version = libs.versions.jooq.get()
+  version.set(libs.versions.jooq.get())
   configurations {
     create("main") {
-      jooqConfiguration.apply {
+      jooqConfiguration {
         logging = org.jooq.meta.jaxb.Logging.WARN
-        jdbc.apply {
+        jdbc {
           driver = "org.sqlite.JDBC"
           url = sqliteUrls["main"]
         }
-        generator.apply {
-          database.apply {
+        generator {
+          database {
             name = "org.jooq.meta.sqlite.SQLiteDatabase"
           }
-          target.apply {
+          target {
             packageName = "org.gotson.komga.jooq.main"
           }
         }
       }
     }
     create("tasks") {
-      jooqConfiguration.apply {
+      jooqConfiguration {
         logging = org.jooq.meta.jaxb.Logging.WARN
-        jdbc.apply {
+        jdbc {
           driver = "org.sqlite.JDBC"
           url = sqliteUrls["tasks"]
         }
-        generator.apply {
-          database.apply {
+        generator {
+          database {
             name = "org.jooq.meta.sqlite.SQLiteDatabase"
           }
-          target.apply {
+          target {
             packageName = "org.gotson.komga.jooq.tasks"
           }
         }
@@ -368,6 +382,12 @@ tasks.named<JooqGenerate>("generateTasksJooq") {
   sqliteMigrationDirs["tasks"]?.forEach { inputs.dir(it) }
   allInputsDeclared = true
   dependsOn("flywayMigrateTasks")
+}
+tasks.withType<JooqGenerate>().configureEach {
+  javaExecSpec =
+    Action<JavaExecSpec> {
+      jvmArgs("--enable-native-access=ALL-UNNAMED")
+    }
 }
 
 tasks.whenTaskAdded {

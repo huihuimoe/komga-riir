@@ -10,13 +10,6 @@
   >
     <template #default="{ isActive }">
       <v-card :title="dialogTitle">
-        <template #append>
-          <v-icon
-            icon="i-mdi:close"
-            @click="isActive.value = false"
-          />
-        </template>
-
         <v-card-text>
           <v-list
             :disabled="isLoading"
@@ -59,7 +52,7 @@
                       width="52"
                       height="75"
                       contain
-                      :src="seriesPosterUrl(s.id)"
+                      :src="seriesPosterUrl(s.id, cacheStore.getVersion(s.id))"
                       lazy-src="@/assets/cover.svg"
                       class="me-2"
                     />
@@ -100,6 +93,20 @@
             </template>
           </v-list>
         </v-card-text>
+
+        <template #actions>
+          <v-spacer />
+          <v-btn
+            :text="
+              $formatMessage({
+                description: 'Series picker dialog: Close button',
+                defaultMessage: 'Close',
+                id: 'BXkP7H',
+              })
+            "
+            @click="isActive.value = false"
+          />
+        </template>
       </v-card>
     </template>
   </v-dialog>
@@ -115,9 +122,11 @@ import { useLibraries } from '@/colada/libraries'
 import { PageRequest } from '@/types/PageRequest'
 import { useIntl } from 'vue-intl'
 import type { SeriesDto } from '@/generated/openapi'
+import { useImageCacheStore } from '@/stores/image-cache'
 
 const showDialog = defineModel<boolean>('dialog', { required: false })
 const intl = useIntl()
+const cacheStore = useImageCacheStore()
 
 const {
   includeOneShots = true,
@@ -180,4 +189,3 @@ const dialogTitle = intl.formatMessage({
   id: 'SIfmpC',
 })
 </script>
-<script setup lang="ts"></script>

@@ -1,5 +1,7 @@
 package org.gotson.komga.infrastructure.jooq.main
 
+import org.gotson.komga.application.query.buildPage
+import org.gotson.komga.application.query.isEmpty
 import org.gotson.komga.domain.model.SearchCondition
 import org.gotson.komga.domain.model.SearchContext
 import org.gotson.komga.domain.model.Series
@@ -7,7 +9,7 @@ import org.gotson.komga.domain.persistence.SeriesRepository
 import org.gotson.komga.infrastructure.jooq.RequiredJoin
 import org.gotson.komga.infrastructure.jooq.SeriesSearchHelper
 import org.gotson.komga.infrastructure.jooq.SplitDslDaoBase
-import org.gotson.komga.infrastructure.jooq.TempTable.Companion.withTempTable
+import org.gotson.komga.infrastructure.jooq.TempTable.Companion.useTempTable
 import org.gotson.komga.infrastructure.jooq.csAlias
 import org.gotson.komga.jooq.main.Tables
 import org.gotson.komga.jooq.main.tables.records.SeriesRecord
@@ -17,8 +19,6 @@ import org.jooq.impl.DSL
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.domain.Page
-import org.springframework.data.domain.PageImpl
-import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort.unsorted
 import org.springframework.stereotype.Component
@@ -63,9 +63,9 @@ class SeriesDao(
   override fun findAllNotDeletedByLibraryIdAndUrlNotIn(
     libraryId: String,
     urls: Collection<URL>,
-  ): List<Series> {
-    dslRO.withTempTable(batchSize, urls.map { it.toString() }).use { tempTable ->
-      return dslRO
+  ): List<Series> =
+    dslRO.useTempTable(batchSize, urls.map { it.toString() }) { dsl, tempTable ->
+      dsl
         .selectFrom(s)
         .where(s.LIBRARY_ID.eq(libraryId))
         .and(s.DELETED_DATE.isNull)
@@ -73,7 +73,6 @@ class SeriesDao(
         .fetchInto(s)
         .map { it.toDomain() }
     }
-  }
 
   override fun findNotDeletedByLibraryIdAndUrlOrNull(
     libraryId: String,
@@ -141,22 +140,18 @@ class SeriesDao(
           }
         }.where(conditions)
 
-    val count = dslRO.fetchCount(query)
+    val count = if (pageable.isUnpaged) null else dslRO.fetchCount(query)
 
     val items =
-      query
-        .apply { if (pageable.isPaged) limit(pageable.pageSize).offset(pageable.offset) }
-        .fetchInto(s)
-        .map { it.toDomain() }
-
-    return PageImpl(
-      items,
-      if (pageable.isPaged)
-        PageRequest.of(pageable.pageNumber, pageable.pageSize, unsorted())
+      if (pageable.isEmpty())
+        emptyList()
       else
-        PageRequest.of(0, maxOf(count, 20), unsorted()),
-      count.toLong(),
-    )
+        query
+          .apply { if (pageable.isPaged) limit(pageable.pageSize).offset(pageable.offset) }
+          .fetchInto(s)
+          .map { it.toDomain() }
+
+    return buildPage(items, pageable, count ?: items.size, unsorted())
   }
 
   override fun insert(series: Series) {
@@ -200,8 +195,8 @@ class SeriesDao(
 
   @Transactional
   override fun delete(seriesIds: Collection<String>) {
-    dslRW.withTempTable(batchSize, seriesIds).use {
-      dslRW.deleteFrom(s).where(s.ID.`in`(it.selectTempStrings())).execute()
+    dslRW.useTempTable(batchSize, seriesIds) { dsl, tempTable ->
+      dsl.deleteFrom(s).where(s.ID.`in`(tempTable.selectTempStrings())).execute()
     }
   }
 

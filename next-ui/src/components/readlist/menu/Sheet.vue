@@ -5,6 +5,13 @@
     :manage-actions="actionsManagement"
     :activator="activator"
     :sheet-title="readList.name"
+    :sheet-subtitle="
+      $formatMessage({
+        description: 'Read list bottom sheet, subtitle',
+        defaultMessage: 'Read list',
+        id: 'Po0Z4Z',
+      })
+    "
   />
 </template>
 
@@ -35,7 +42,11 @@ const main = [
   ActionName.OpenReaderIncognito,
   ActionName.Download,
 ] as ActionName[]
-const management = [ActionName.EditReadList, ActionName.Delete] as ActionName[]
+const management = [
+  ActionName.EditReadList,
+  ActionName.EditReadListElements,
+  ActionName.Delete,
+] as ActionName[]
 
 function afterClick() {
   isShown.value = false
@@ -60,7 +71,3 @@ const actionsManagement = computed(() =>
     .toSorted(createOrderCompareFn(management, (it) => it.action.toString())),
 )
 </script>
-
-<script lang="ts"></script>
-
-<style scoped></style>

@@ -5,6 +5,7 @@
       :animation="150"
       ghost-class="ghost"
       target=".sort-target"
+      handle=".handle"
       @start="drag = true"
       @end="nextTick(() => (drag = false))"
     >
@@ -16,10 +17,20 @@
           <v-list-item
             v-for="section in localSections"
             :key="section.section"
-            :title="$formatMessage(overviewSectionMessages[section.section])"
-            prepend-icon="i-mdi:drag-horizontal"
-            class="cursor-grab"
           >
+            <template #prepend>
+              <v-icon
+                icon="i-mdi:drag-horizontal"
+                class="handle cursor-grab"
+              />
+            </template>
+
+            <template #title>
+              <div class="handle cursor-grab">
+                {{ $formatMessage(overviewSectionMessages[section.section]) }}
+              </div>
+            </template>
+
             <template #append>
               <v-switch
                 v-model="section.enabled"
@@ -59,6 +70,7 @@ import { VueDraggable } from 'vue-draggable-plus'
 import { type ClientSettingUserOverviewSection } from '@/types/ClientSettingsUser'
 import { overviewSectionMessages, OverviewSectionsDefault } from '@/types/OverviewSection'
 import { watchDeep } from '@vueuse/core'
+import { deepEqual } from 'fast-equals'
 
 const model = defineModel<ClientSettingUserOverviewSection[]>({ required: true })
 
@@ -85,9 +97,7 @@ function restoreDefaults() {
   localSections.value = structuredClone(defaultSections)
 }
 
-const isDefault = computed(
-  () => JSON.stringify(defaultSections) === JSON.stringify(localSections.value),
-)
+const isDefault = computed(() => deepEqual(defaultSections, localSections.value))
 
 const drag = ref(false)
 </script>

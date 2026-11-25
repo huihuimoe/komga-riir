@@ -68,3 +68,6 @@ __pycache__/
 *.py[cod]
 *$py.class
 .venv
+
+### Kilo
+/.kilo/

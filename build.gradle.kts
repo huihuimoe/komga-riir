@@ -13,7 +13,7 @@ plugins {
     kotlin("kapt") version kotlinVersion
   }
   id("org.jlleitschuh.gradle.ktlint") version "14.2.0"
-  id("org.jreleaser") version "1.25.0"
+  id("org.jreleaser") version "1.27.0"
 }
 
 fun isNonStable(version: String): Boolean {
@@ -51,7 +51,7 @@ allprojects {
 }
 
 tasks.wrapper {
-  gradleVersion = "9.6.1"
+  gradleVersion = "9.8.2"
   distributionType = Wrapper.DistributionType.ALL
 }
 
@@ -71,6 +71,7 @@ jreleaser {
       discussionCategoryName = "Announcements"
       skipTag = true
       tagName = "{{projectVersion}}"
+      immutableRelease = true
 
       changelog {
         formatted = Active.ALWAYS

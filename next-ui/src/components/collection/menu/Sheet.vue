@@ -4,6 +4,13 @@
     :actions="actionsManagement"
     :activator="activator"
     :sheet-title="collection.name"
+    :sheet-subtitle="
+      $formatMessage({
+        description: 'Collection bottom sheet, subtitle',
+        defaultMessage: 'Collection',
+        id: 'S1/qO0',
+      })
+    "
   />
 </template>
 
@@ -28,7 +35,11 @@ const {
   addSelectAction?: boolean
 }>()
 
-const management = [ActionName.EditCollection, ActionName.Delete] as ActionName[]
+const management = [
+  ActionName.EditCollection,
+  ActionName.EditCollectionElements,
+  ActionName.Delete,
+] as ActionName[]
 
 function afterClick() {
   isShown.value = false
@@ -49,7 +60,3 @@ const actionsManagement = computed(() => [
     .toSorted(createOrderCompareFn(management, (it) => it.action.toString())),
 ])
 </script>
-
-<script lang="ts"></script>
-
-<style scoped></style>

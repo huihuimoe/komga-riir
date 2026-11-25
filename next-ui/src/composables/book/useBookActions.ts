@@ -1,7 +1,7 @@
 import { useCurrentUser } from '@/colada/users'
 import { useIntl } from 'vue-intl'
 import { storeToRefs } from 'pinia'
-import { useDialogsStore } from '@/stores/dialogs'
+import { type DialogResult, useDialogsStore } from '@/stores/dialogs'
 import { useMessagesStore } from '@/stores/messages'
 import { useDisplay } from 'vuetify/framework'
 import BookDeletionWarning from '@/components/book/DeletionWarning.vue'
@@ -13,13 +13,17 @@ import {
   useMarkBookUnread,
   useRefreshMetadataBook,
 } from '@/colada/books'
-import { useEditBookMetadataDialog } from '@/composables/book/useEditBookMetadataDialog'
 import { bookFileUrl } from '@/api/files'
 import { type Action, actionDetails, ActionName } from '@/types/action/action'
 import { useBook } from '@/composables/book/useBook'
 import { useBookReadProgress } from '@/composables/book/useBookReadProgress'
 import { bookReaderUrl } from '@/api/links'
 import type { BookDto } from '@/generated/openapi'
+import { useAddToReadListDialog } from '@/composables/book/useAddToReadListDialog'
+import { useAddToCollectionDialog } from '@/composables/series/useAddToCollectionDialog'
+import { BrowsingContextKey, popBrowsingContext } from '@/functions/browsing-context'
+import { useRemoveFromReadList } from '@/composables/book/useRemoveFromReadList'
+import { useEditDialog } from '@/composables/entity/useEditDialog'
 
 export function useBookActions(
   book: MaybeRefOrGetter<BookDto>,
@@ -33,16 +37,23 @@ export function useBookActions(
   const { canRead, isEpubReader } = useBook(book)
   const { inProgress } = useBookReadProgress(book)
 
+  // browsing context
+  const context = inject(BrowsingContextKey, undefined)
+  const contextReadListId = computed(() => {
+    const top = popBrowsingContext(toValue(context))?.top
+    if (top?.type === 'readList') return top.id
+  })
+
   const actions = computed<Action<ActionName>[]>(() => [
     ...(isAdmin.value && toValue(book).oneshot
       ? [
           {
             title: intl.formatMessage(actionDetails[ActionName.AddToCollection].message),
-            disabled: true, //TODO: implement
             action: ActionName.AddToCollection,
+            onMouseenter: (event: Event) =>
+              (addToCollectionActivator.value = event.currentTarget as Element),
             onClick: () => {
-              todo()
-              callback(ActionName.AddToCollection)
+              addToCollection(() => callback(ActionName.AddToCollection))
             },
           },
         ]
@@ -51,11 +62,24 @@ export function useBookActions(
       ? [
           {
             title: intl.formatMessage(actionDetails[ActionName.AddToReadList].message),
-            disabled: true, //TODO: implement
             action: ActionName.AddToReadList,
+            onMouseenter: (event: Event) =>
+              (addToReadListActivator.value = event.currentTarget as Element),
             onClick: () => {
-              todo()
-              callback(ActionName.AddToReadList)
+              addToReadList(() => callback(ActionName.AddToReadList))
+            },
+          },
+        ]
+      : []),
+    ...(isAdmin.value && contextReadListId.value
+      ? [
+          {
+            title: intl.formatMessage(actionDetails[ActionName.RemoveFromReadList].message),
+            action: ActionName.RemoveFromReadList,
+            onMouseenter: (event: Event) =>
+              (removeFromReadListActivator.value = event.currentTarget as Element),
+            onClick: () => {
+              removeFromReadList(() => callback(ActionName.RemoveFromReadList))
             },
           },
         ]
@@ -99,13 +123,13 @@ export function useBookActions(
     ...(isAdmin.value
       ? [
           {
-            title: intl.formatMessage(actionDetails[ActionName.EditBook].message),
-            icon: actionDetails[ActionName.EditBook].icon,
-            action: ActionName.EditBook,
+            title: intl.formatMessage(actionDetails[ActionName.EditEntity].message),
+            icon: actionDetails[ActionName.EditEntity].icon,
+            action: ActionName.EditEntity,
             onMouseenter: (event: Event) =>
               (editMetadataActivator.value = event.currentTarget as Element),
             onClick: () => {
-              updateBookMetadata(() => callback(ActionName.EditBook))
+              updateBookMetadata(() => callback(ActionName.EditEntity))
             },
           },
         ]
@@ -182,12 +206,40 @@ export function useBookActions(
     },
   ])
 
-  //region Update Series metadata
+  //region Add to collection
+  const { prepareDialog: showAddToCollectionDialog, activator: addToCollectionActivator } =
+    useAddToCollectionDialog()
+
+  function addToCollection(callback: () => void) {
+    showAddToCollectionDialog([toValue(book).seriesId], callback)
+  }
+  //endregion
+
+  //region Add to read list
+  const { prepareDialog: showAddToReadListDialog, activator: addToReadListActivator } =
+    useAddToReadListDialog()
+
+  function addToReadList(callback: () => void) {
+    showAddToReadListDialog([toValue(book)], callback)
+  }
+  //endregion
+
+  //region Remove from read list
+  const { prepareDialog: showRemoveFromReadListDialog, activator: removeFromReadListActivator } =
+    useRemoveFromReadList()
+
+  function removeFromReadList(callback: () => void) {
+    if (contextReadListId.value)
+      void showRemoveFromReadListDialog([toValue(book)], contextReadListId.value, callback)
+  }
+  //endregion
+
+  //region Update Book metadata
   const { prepareDialog: showEditBookMetadataDialog, activator: editMetadataActivator } =
-    useEditBookMetadataDialog()
+    useEditDialog()
 
   function updateBookMetadata(callback: () => void) {
-    showEditBookMetadataDialog(toValue(book), callback)
+    void showEditBookMetadataDialog([toValue(book)], callback)
   }
   //endregion
 
@@ -208,9 +260,6 @@ export function useBookActions(
     callback(ActionName.Analyze)
   }
   //endregion
-
-  //TODO: do :)
-  function todo() {}
 
   //region Mark read
   const { mutate: mutateMarkRead } = useMarkBookRead()
@@ -256,25 +305,28 @@ export function useBookActions(
       component: markRaw(BookDeletionWarning),
       props: {},
     }
-    dialogConfirm.value.callback = () => {
-      mutateDelete(toValue(book).id)
-        .then(() => {
-          messagesStore.messages.push({
-            message: intl.formatMessage(
-              {
-                description: 'Snackbar notification shown upon successful book files deletion',
-                defaultMessage: 'Book files deleted: {book}',
-                id: 'ccDES8',
-              },
-              {
-                book: toValue(book).metadata.title,
-              },
-            ),
+    dialogConfirm.value.callback = (result: DialogResult) => {
+      if (result === 'confirm') {
+        mutateDelete(toValue(book).id)
+          .then(() => {
+            messagesStore.messages.push({
+              message: intl.formatMessage(
+                {
+                  description: 'Snackbar notification shown upon successful book files deletion',
+                  defaultMessage: 'Book files deleted: {book}',
+                  id: 'ccDES8',
+                },
+                {
+                  book: toValue(book).metadata.title,
+                },
+              ),
+            })
           })
-        })
-        .catch((error) => {
-          messagesStore.messages.push(error?.cause?.message ?? commonMessages.networkError)
-        })
+          .catch((error) => {
+            messagesStore.messages.push(error?.cause?.message ?? commonMessages.networkError)
+          })
+      }
+
       callback(ActionName.Delete)
     }
   }

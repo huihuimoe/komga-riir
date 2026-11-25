@@ -7,7 +7,7 @@
     color="primary"
   >
     <v-btn
-      v-tooltip:bottom="
+      v-ktooltip:bottom="
         $formatMessage({
           description: 'View mode scroll button tooltip',
           defaultMessage: 'Scroll',
@@ -18,7 +18,7 @@
       value="scroll"
     />
     <v-btn
-      v-tooltip:bottom="
+      v-ktooltip:bottom="
         $formatMessage({
           description: 'View mode paginated button tooltip',
           defaultMessage: 'Paginated',
@@ -36,7 +36,3 @@ import type { Paging } from '@/types/page'
 
 const paging = defineModel<Paging>({ required: true })
 </script>
-
-<script lang="ts"></script>
-
-<style scoped></style>

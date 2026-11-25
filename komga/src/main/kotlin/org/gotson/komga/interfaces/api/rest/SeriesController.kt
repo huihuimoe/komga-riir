@@ -13,6 +13,7 @@ import org.apache.commons.compress.archivers.zip.Zip64Mode
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream
 import org.apache.commons.io.IOUtils
+import org.gotson.komga.application.query.UnpagedSorted
 import org.gotson.komga.application.tasks.HIGHEST_PRIORITY
 import org.gotson.komga.application.tasks.HIGH_PRIORITY
 import org.gotson.komga.application.tasks.TaskEmitter
@@ -21,7 +22,6 @@ import org.gotson.komga.domain.model.Author
 import org.gotson.komga.domain.model.BookSearch
 import org.gotson.komga.domain.model.Dimension
 import org.gotson.komga.domain.model.DomainEvent
-import org.gotson.komga.domain.model.EntityNotFoundException
 import org.gotson.komga.domain.model.MarkSelectedPreference
 import org.gotson.komga.domain.model.Media
 import org.gotson.komga.domain.model.MediaType.ZIP
@@ -42,7 +42,6 @@ import org.gotson.komga.domain.persistence.ThumbnailSeriesRepository
 import org.gotson.komga.domain.service.BookLifecycle
 import org.gotson.komga.domain.service.SeriesLifecycle
 import org.gotson.komga.infrastructure.image.ImageAnalyzer
-import org.gotson.komga.infrastructure.jooq.UnpagedSorted
 import org.gotson.komga.infrastructure.mediacontainer.ContentDetector
 import org.gotson.komga.infrastructure.openapi.AuthorsAsQueryParam
 import org.gotson.komga.infrastructure.openapi.OpenApiConfiguration
@@ -462,7 +461,6 @@ class SeriesController(
 
   @Operation(summary = "Get series details", tags = [OpenApiConfiguration.TagNames.SERIES])
   @GetMapping("v1/series/{seriesId}")
-  @Throws(EntityNotFoundException::class)
   fun getSeriesById(
     @AuthenticationPrincipal principal: KomgaPrincipal,
     @PathVariable(name = "seriesId") id: String,
@@ -470,7 +468,7 @@ class SeriesController(
     seriesDtoRepository.findByIdOrNull(id, principal.user.id)?.let {
       contentRestrictionChecker.checkContentRestrictionSeries(principal.user, it)
       it.restrictUrl(!principal.user.isAdmin)
-    } ?: throw EntityNotFoundException()
+    } ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
 
   @Operation(summary = "Get series' poster image", tags = [OpenApiConfiguration.TagNames.SERIES_POSTER])
   @ApiResponse(content = [Content(schema = Schema(type = "string", format = "binary"))])
@@ -643,7 +641,7 @@ class SeriesController(
     contentRestrictionChecker.checkContentRestrictionSeries(principal.user, seriesId)
 
     return collectionRepository
-      .findAllContainingSeriesId(seriesId, principal.user.getAuthorizedLibraryIds(null), principal.user.restrictions)
+      .findAllContainingSeriesId(seriesId, SearchContext(principal.user))
       .map { it.toDto() }
   }
 

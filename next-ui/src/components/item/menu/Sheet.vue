@@ -1,7 +1,6 @@
 <template>
   <ItemMenu
     v-if="!isTouchPrimary"
-    v-click-outside="isShown = false"
     :actions="actions"
     :manage-actions="manageActions"
     :activator="activator"
@@ -10,6 +9,7 @@
     v-if="isTouchPrimary"
     v-model="isShown"
     :title="sheetTitle"
+    :subtitle="sheetSubtitle"
     :actions="actions"
     :manage-actions="manageActions"
   />
@@ -27,9 +27,6 @@ const { actions = [], manageActions = [] } = defineProps<{
   actions?: Action<unknown>[]
   manageActions?: Action<unknown>[]
   sheetTitle?: string
+  sheetSubtitle?: string
 }>()
 </script>
-
-<script lang="ts"></script>
-
-<style scoped></style>

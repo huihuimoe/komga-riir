@@ -5,6 +5,13 @@
     :manage-actions="actionsManagement"
     :activator="activator"
     :sheet-title="book.metadata.title"
+    :sheet-subtitle="
+      $formatMessage({
+        description: 'Book bottom sheet, subtitle',
+        defaultMessage: 'Book',
+        id: 'dN5GoW',
+      })
+    "
   />
 </template>
 
@@ -34,12 +41,13 @@ const main = [
   ActionName.OpenReaderIncognito,
   ActionName.AddToCollection,
   ActionName.AddToReadList,
+  ActionName.RemoveFromReadList,
   ActionName.MarkRead,
   ActionName.MarkUnread,
   ActionName.Download,
 ] as ActionName[]
 const management = [
-  ActionName.EditBook,
+  ActionName.EditEntity,
   ActionName.RefreshMetadata,
   ActionName.Analyze,
   ActionName.Delete,
@@ -68,7 +76,3 @@ const actionsManagement = computed(() =>
     .toSorted(createOrderCompareFn(management, (it) => it.action.toString())),
 )
 </script>
-
-<script lang="ts"></script>
-
-<style scoped></style>

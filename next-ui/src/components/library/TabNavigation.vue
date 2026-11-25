@@ -43,7 +43,7 @@
           <v-tab
             :text="route.title"
             :to="route.to"
-            exact
+            :exact="route.to?.name === '/libraries/[viewId]/overview'"
           />
         </template>
       </v-tabs>
@@ -84,16 +84,16 @@
 </template>
 
 <script setup lang="ts">
-import type { Route } from '@/types/route'
 import type { LibraryViewId } from '@/types/libraries'
-import { useGetLibrariesByViewId } from '@/composables/libraries'
+import { useGetLibrariesByViewId, useUserLibraries } from '@/composables/libraries'
 import { useIntl } from 'vue-intl'
-import { useLibraries } from '@/colada/libraries'
 import { useDisplay } from 'vuetify/framework'
-import type { RouteLocationRaw } from 'vue-router'
+import { commonMessages } from '@/utils/i18n/common-messages'
+import type { LibrarySubRoute } from '@/types/librarySubRoute'
+import type { RouteLocationObject } from '@/types/route'
 
 const props = defineProps<{
-  routes: Route[]
+  routes: LibrarySubRoute[]
   libraryViewId: LibraryViewId
 }>()
 
@@ -102,13 +102,13 @@ const display = useDisplay()
 const currentRoute = useRoute()
 const router = useRouter()
 
-const { anyPinned, anyUnpinned } = useLibraries()
+const { anyPinned, anyUnpinned } = useUserLibraries()
 const { isSingle, library: librarySingle } = useGetLibrariesByViewId(props.libraryViewId)
 
 type LibRouteItem = {
   title: string
   value: LibraryViewId
-  to: RouteLocationRaw
+  to: RouteLocationObject
 }
 const libTypes = computed(
   () =>
@@ -116,33 +116,21 @@ const libTypes = computed(
       ...(anyPinned.value
         ? [
             {
-              title: intl.formatMessage({
-                description: 'Library tab navigation: library selection: pinned',
-                defaultMessage: 'Pinned',
-                id: '1qIfds',
-              }),
+              title: intl.formatMessage(commonMessages.libraryPinned),
               value: 'pinned',
               to: { name: currentRoute?.name, params: { viewId: 'pinned' } },
             },
           ]
         : []),
       {
-        title: intl.formatMessage({
-          description: 'Library tab navigation: library selection: all',
-          defaultMessage: 'All',
-          id: '8/BXfN',
-        }),
+        title: intl.formatMessage(commonMessages.libraryAll),
         value: 'all',
         to: { name: currentRoute?.name, params: { viewId: 'all' } },
       },
       ...(anyUnpinned.value
         ? [
             {
-              title: intl.formatMessage({
-                description: 'Library tab navigation: library selection: unpinned',
-                defaultMessage: 'Unpinned',
-                id: '9oA9gw',
-              }),
+              title: intl.formatMessage(commonMessages.libraryUnpinned),
               value: 'unpinned',
               to: { name: currentRoute?.name, params: { viewId: 'unpinned' } },
             },
@@ -161,5 +149,3 @@ const selectedRoute = computed(() =>
   }),
 )
 </script>
-
-<style scoped></style>

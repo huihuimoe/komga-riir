@@ -1,24 +1,22 @@
 <template>
-  <v-app-bar>
-    <ChipCount
-      class="ms-4"
-      :count="totalElements"
-    />
+  <v-app-bar class="bg-background px-2">
+    <template #prepend>
+      <ChipCount :count="totalElements" />
+    </template>
 
-    <v-spacer />
+    <template #append>
+      <div class="d-flex ga-2">
+        <PosterSizeSlider />
 
-    <PosterSizeSlider />
+        <PageSizeSelector
+          v-if="isBrowsingPaged"
+          v-model="appStore.browsingPageSize"
+          allow-unpaged
+        />
 
-    <PageSizeSelector
-      v-if="isBrowsingPaged"
-      v-model="appStore.browsingPageSize"
-      allow-unpaged
-    />
-
-    <PagingSelector
-      v-model="appStore.browsingPaging"
-      class="px-2"
-    />
+        <PagingSelector v-model="appStore.browsingPaging" />
+      </div>
+    </template>
   </v-app-bar>
 
   <ItemBrowser
@@ -32,7 +30,7 @@
   >
     <template #default="{ item, isSelected, preSelect, toggleSelect }">
       <CollectionCard
-        stretch-poster
+        :stretch-poster="appStore.stretchPoster"
         :collection="item"
         :selected="isSelected"
         :pre-select="preSelect"
@@ -56,15 +54,26 @@ import { storeToRefs } from 'pinia'
 import ChipCount from '@/components/ChipCount.vue'
 import { collectionsListQuery, collectionsListQueryInfinite } from '@/colada/collections'
 import { useSelectionContextualActions } from '@/composables/selection'
+import { BrowsingContextKey } from '@/functions/browsing-context'
+import { useLibraryViewStore } from '@/stores/library-view'
+import { watchImmediate } from '@vueuse/core'
 
 const router = useRouter()
 const route = useRoute('/libraries/[viewId]/collections')
 const libraryViewId = route.params.viewId
 const { libraryIds } = useGetLibrariesByViewId(libraryViewId)
 
+provide(
+  BrowsingContextKey,
+  computed(() => ({ type: 'libraryView', id: libraryViewId, subType: 'collections' })),
+)
+
 const display = useDisplay()
 const appStore = useAppStore()
 const { isBrowsingScroll, isBrowsingPaged } = storeToRefs(appStore)
+
+const libraryViewStore = useLibraryViewStore()
+libraryViewStore.saveState(libraryViewId, 'collections')
 
 const { page0, page1, pageCount } = usePagination()
 
@@ -111,16 +120,10 @@ const totalElements = computed(() =>
 
 useSelectionContextualActions(dataItems)
 
-// after load, if there's no elements, redirect to parent
-onMounted(() => {
-  if (totalElements.value == 0)
-    void router.replace({ name: '/libraries/[viewId]', params: { viewId: libraryViewId } })
-})
-
-// ongoing watch, if elements become 0 following a deletion, redirect to parent
-watch(totalElements, (newTotalElements) => {
+// if there are no elements, redirect to overview
+watchImmediate(totalElements, (newTotalElements) => {
   if (newTotalElements == 0) {
-    void router.replace({ name: '/libraries/[viewId]', params: { viewId: libraryViewId } })
+    void router.replace({ name: '/libraries/[viewId]/overview', params: { viewId: libraryViewId } })
   }
 })
 </script>

@@ -176,7 +176,7 @@
           'px-2 mb-1',
           { 'min-height': line.allowEmpty },
           line.classes,
-          { 'force-line-count text-wrap': line.lines },
+          { 'force-line-count text-wrap': line.lines && line.lines > 1 ? line.lines : undefined },
         ]"
         :style="[{ '--lines': line.lines }, { '--line-height': 1.4 }]"
       >
@@ -198,7 +198,7 @@ import type { ItemCardEmits, ItemCardLine, ItemCardProps, ItemCardTitle } from '
 import { vOnLongPress } from '@vueuse/components'
 import { usePrimaryInput } from '@/composables/device'
 import { reactiveOmit, reactivePick } from '@vueuse/core'
-import type { RouteLocation } from 'vue-router'
+import type { RouteLocationObject } from '@/types/route'
 
 const { isTouchPrimary } = usePrimaryInput()
 const router = useRouter()
@@ -257,7 +257,7 @@ const {
      */
     menuProps?: object
     progressPercent?: number
-    cardTo?: RouteLocation | string
+    cardTo?: RouteLocationObject
   }
 >()
 

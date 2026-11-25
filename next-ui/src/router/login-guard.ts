@@ -1,5 +1,7 @@
 import type { Router } from 'vue-router'
-import { useCurrentUser } from '@/colada/users'
+import { currentUserQuery } from '@/colada/users'
+import { useQueryCache } from '@pinia/colada'
+import { isApiErrorWithCause } from '@/api/komga-client'
 
 /**
  * Check if the user is authenticated before navigating to any page.
@@ -7,16 +9,26 @@ import { useCurrentUser } from '@/colada/users'
  * Redirect to the startup page if not authenticated.
  */
 export function useLoginGuard(router: Router) {
-  router.beforeEach((to) => {
+  router.beforeEach(async (to) => {
     if (!to.meta.noAuth) {
-      const { isAuthenticated } = useCurrentUser()
-      if (!isAuthenticated.value) {
-        const query = Object.assign(
-          {},
-          to.query,
-          to.fullPath !== '/' ? { redirect: to.fullPath } : {},
-        )
-        return { name: '/startup', query: query }
+      const queryCache = useQueryCache()
+      const entry = queryCache.ensure(currentUserQuery)
+      try {
+        const state = await queryCache.refresh(entry)
+
+        const isAuthenticated = !!state.data
+
+        if (!isAuthenticated) {
+          const query = Object.assign(
+            {},
+            to.query,
+            to.fullPath !== '/' ? { redirect: to.fullPath } : {},
+          )
+          return { name: '/startup', query: query }
+        }
+      } catch (e) {
+        if (isApiErrorWithCause(e) && e.cause.status === 401) return { name: '/login' }
+        return { name: '/error' }
       }
     }
   })

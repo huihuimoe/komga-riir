@@ -557,8 +557,8 @@
     },
     "edit_user_restrictions": {
       "age_restriction": {
-        "allow_under": "Povolit pouze do",
-        "exclude_over": "Vyloučit nad",
+        "allow_under": "Povolit až do",
+        "exclude_over": "Vyloučit z",
         "none": "Bez omezení"
       },
       "edit_restrictions_for": "Upravit omezení pro {name}",
@@ -930,7 +930,8 @@
   "navigation": {
     "home": "Úvod",
     "libraries": "Knihovny",
-    "logout": "Odhlásit se"
+    "logout": "Odhlásit se",
+    "try_new_ui": "Vyzkoušej nové UI"
   },
   "no_libraries_pinned": {
     "subtitle": "Můžete připnout knihovnu pomocí třítečkového menu",

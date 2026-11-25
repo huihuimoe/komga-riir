@@ -1,4 +1,4 @@
-import type { MessageDescriptor } from 'vue-intl'
+import { defineMessage, type MessageDescriptor } from 'vue-intl'
 import type { EntityKind } from '@/functions/entity'
 
 export type Action<T> = {
@@ -15,13 +15,18 @@ export type Action<T> = {
 // By using a single enum, we can find the common actions between different entities for the selection bulk actions
 export const ActionName = {
   Select: 'SELECT',
-  EditSeries: 'EDIT_SERIES',
-  EditBook: 'EDIT_BOOK',
+  EditSeriesBulk: 'EDIT_SERIES_BULK',
+  EditBooksBulk: 'EDIT_BOOKS_BULK',
+  EditEntity: 'EDIT_ENTITY',
   EditCollection: 'EDIT_COLLECTION',
+  EditCollectionElements: 'EDIT_COLLECTION_ELEMENTS',
   EditReadList: 'EDIT_READLIST',
+  EditReadListElements: 'EDIT_READLIST_ELEMENTS',
   Delete: 'DELETE',
   AddToCollection: 'ADD_TO_COLLECTION',
+  RemoveFromCollection: 'REMOVE_FROM_COLLECTION',
   AddToReadList: 'ADD_TO_READLIST',
+  RemoveFromReadList: 'REMOVE_FROM_READLIST',
   MarkRead: 'MARK_READ',
   MarkUnread: 'MARK_UNREAD',
   Download: 'DOWNLOAD',
@@ -39,9 +44,24 @@ export const selectionActions: Record<EntityKind, ActionName[]> = {
     ActionName.MarkRead,
     ActionName.MarkUnread,
     ActionName.AddToReadList,
+    ActionName.RemoveFromReadList,
     ActionName.RefreshMetadata,
     ActionName.Analyze,
-    ActionName.EditBook,
+    ActionName.EditEntity,
+    ActionName.EditBooksBulk,
+    ActionName.Delete,
+  ],
+  book_oneshot: [
+    ActionName.MarkRead,
+    ActionName.MarkUnread,
+    ActionName.AddToReadList,
+    ActionName.RemoveFromReadList,
+    ActionName.AddToCollection,
+    ActionName.RemoveFromCollection,
+    ActionName.RefreshMetadata,
+    ActionName.Analyze,
+    ActionName.EditEntity,
+    ActionName.EditBooksBulk,
     ActionName.Delete,
   ],
   series: [
@@ -49,9 +69,11 @@ export const selectionActions: Record<EntityKind, ActionName[]> = {
     ActionName.MarkUnread,
     ActionName.AddToReadList,
     ActionName.AddToCollection,
+    ActionName.RemoveFromCollection,
     ActionName.RefreshMetadata,
     ActionName.Analyze,
-    ActionName.EditSeries,
+    ActionName.EditEntity,
+    ActionName.EditSeriesBulk,
     ActionName.Delete,
   ],
   collection: [ActionName.Delete],
@@ -59,12 +81,29 @@ export const selectionActions: Record<EntityKind, ActionName[]> = {
 }
 
 const actionEdit = {
-  message: {
+  message: defineMessage({
     description: 'Generic action: edit',
     defaultMessage: 'Edit',
-    id: 'lFGLru',
-  },
+    id: 'wk+b55',
+  }),
   icon: 'i-mdi:pencil',
+}
+
+const actionEditBulk = {
+  message: defineMessage({
+    description: 'Generic action: edit bulk',
+    defaultMessage: 'Bulk edit',
+    id: 'n0tWL5',
+  }),
+  icon: 'i-mdi:pencil-box-multiple',
+}
+const actionEditElements = {
+  message: defineMessage({
+    description: 'Generic action: edit elements',
+    defaultMessage: 'Organize',
+    id: 'dto0D+',
+  }),
+  icon: 'i-mdi:playlist-edit',
 }
 export const actionDetails: Record<ActionName, { message: MessageDescriptor; icon?: string }> = {
   [ActionName.Select]: {
@@ -75,88 +114,107 @@ export const actionDetails: Record<ActionName, { message: MessageDescriptor; ico
     },
     icon: 'i-mdi:plus-box-outline',
   },
-  [ActionName.EditSeries]: actionEdit,
-  [ActionName.EditBook]: actionEdit,
+  [ActionName.EditEntity]: actionEdit,
+  [ActionName.EditSeriesBulk]: actionEditBulk,
+  [ActionName.EditBooksBulk]: actionEditBulk,
   [ActionName.EditCollection]: actionEdit,
+  [ActionName.EditCollectionElements]: actionEditElements,
   [ActionName.EditReadList]: actionEdit,
+  [ActionName.EditReadListElements]: actionEditElements,
   [ActionName.Delete]: {
-    message: {
+    message: defineMessage({
       description: 'Generic action: delete',
       defaultMessage: 'Delete',
-      id: 'lFGLru',
-    },
+      id: 'q6fppQ',
+    }),
     icon: 'i-mdi:delete',
   },
   [ActionName.AddToCollection]: {
-    message: {
+    message: defineMessage({
       description: 'Generic action: add to collection',
       defaultMessage: 'Add to collection',
-      id: 'lFGLru',
-    },
+      id: 'tj5v0L',
+    }),
     icon: 'i-mdi:playlist-plus',
   },
+  [ActionName.RemoveFromCollection]: {
+    message: defineMessage({
+      description: 'Generic action: remove from collection',
+      defaultMessage: 'Remove from collection',
+      id: 'Zzqa/A',
+    }),
+    icon: 'i-mdi:playlist-minus',
+  },
   [ActionName.AddToReadList]: {
-    message: {
+    message: defineMessage({
       description: 'Generic action: add to read list',
       defaultMessage: 'Add to read list',
-      id: 'lFGLru',
-    },
+      id: 'LBuB6T',
+    }),
     icon: 'i-mdi:book-plus-multiple',
   },
+  [ActionName.RemoveFromReadList]: {
+    message: defineMessage({
+      description: 'Generic action: remove from read list',
+      defaultMessage: 'Remove from read list',
+      id: 'kMw47z',
+    }),
+    icon: 'i-mdi:book-minus-multiple',
+  },
   [ActionName.MarkRead]: {
-    message: {
+    message: defineMessage({
       description: 'Generic action: mark as read',
       defaultMessage: 'Mark as read',
-      id: 'lFGLru',
-    },
+      id: 'LOcuZ2',
+    }),
     icon: 'i-mdi:book-check-outline',
   },
   [ActionName.MarkUnread]: {
-    message: {
+    message: defineMessage({
       description: 'Generic action: mark as unread',
       defaultMessage: 'Mark as unread',
-      id: 'lFGLru',
-    },
+      id: 'Ulohnz',
+    }),
     icon: 'i-mdi:book-remove-outline',
   },
   [ActionName.Download]: {
-    message: {
+    message: defineMessage({
       description: 'Generic action: download',
       defaultMessage: 'Download',
-      id: 'jn8Lib',
-    },
+      id: 'ruWj+g',
+    }),
     icon: undefined,
   },
   [ActionName.RefreshMetadata]: {
-    message: {
+    message: defineMessage({
       description: 'Generic action: refresh metadata',
       defaultMessage: 'Refresh metadata',
-      id: 'lFGLru',
-    },
+      id: 'nYtEQI',
+    }),
     icon: 'i-mdi:table-refresh',
   },
   [ActionName.Analyze]: {
-    message: {
+    message: defineMessage({
       description: 'Generic action: analyze',
       defaultMessage: 'Analyze',
-      id: 'lFGLru',
-    },
+      id: '1dgTdi',
+    }),
     icon: 'i-mdi:file-refresh',
   },
   [ActionName.OpenReader]: {
-    message: {
+    message: defineMessage({
       description: 'Generic action: read',
       defaultMessage: 'Read',
-      id: 'Y7Y2T0',
-    },
+      id: 'Ju97UA',
+    }),
     icon: 'i-mdi:play',
   },
   [ActionName.OpenReaderIncognito]: {
-    message: {
+    message: defineMessage({
       description: 'Generic action: read incognito',
       defaultMessage: 'Private reading session',
-      id: 'DLUIbm',
-    },
+      id: 'ST34jK',
+    }),
     icon: 'i-mdi:incognito',
   },
 }

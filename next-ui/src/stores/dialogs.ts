@@ -8,10 +8,17 @@ import type { DialogConfirmEditProps, DialogConfirmProps, DialogSimpleProps } fr
 export const useDialogsStore = defineStore('dialogs', () => {
   const confirmEdit = ref<DialogConfirmEditActivation>({
     dialogProps: {},
-    slot: {
-      component: undefined,
-      props: {},
-      handlers: {},
+    slots: {
+      default: {
+        component: undefined,
+        props: {},
+        handlers: {},
+      },
+      prependActions: {
+        component: undefined,
+        props: {},
+        handlers: {},
+      },
     },
     record: undefined,
     callback: () => {},
@@ -44,14 +51,23 @@ export const useDialogsStore = defineStore('dialogs', () => {
   }
 })
 
+export type DialogResult = 'cancel' | 'confirm'
+
 type DialogActivation<T> = {
   activator?: Element | string
   dialogProps: T
-  callback: (hideDialog: () => void, setLoading: (isLoading: boolean) => void) => void
+  callback: (
+    result: DialogResult,
+    hideDialog: () => void,
+    setLoading: (isLoading: boolean) => void,
+  ) => unknown
 }
 
 type DialogConfirmEditActivation = DialogActivation<DialogConfirmEditProps> & {
-  slot: ComponentWithProps
+  slots: {
+    default: ComponentWithProps
+    prependActions?: ComponentWithProps
+  }
   record?: unknown
 }
 
