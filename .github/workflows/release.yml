@@ -276,11 +276,6 @@ jobs:
       VERSION: ${{ needs.version.outputs.version_next }}
       IMAGE_NAME: ghcr.io/${{ github.repository }}
     steps:
-      - name: Remove unnecessary files
-        run: |
-          sudo rm -rf /usr/share/dotnet
-          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
-
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
