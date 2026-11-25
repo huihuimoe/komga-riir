@@ -75,6 +75,9 @@ async fn komga_rust_data_directory() -> TestDir {
         INSERT INTO SIDECAR (URL, PARENT_URL, LAST_MODIFIED_TIME, LIBRARY_ID) VALUES
             ('{ROOT_PATH}{MAIN_SEPARATOR}Series{MAIN_SEPARATOR}cover.jpg', '{ROOT_PATH}{MAIN_SEPARATOR}Series', CURRENT_TIMESTAMP, 'L'),
             ('{ROOT_PATH}{MAIN_SEPARATOR}Series{MAIN_SEPARATOR}Book #1.jpg', '{ROOT_PATH}{MAIN_SEPARATOR}Series{MAIN_SEPARATOR}Book #1.cbz', CURRENT_TIMESTAMP, 'L');
+        INSERT INTO USER (ID, EMAIL, PASSWORD) VALUES ('U', 'u@x', 'p');
+        INSERT INTO READ_PROGRESS (BOOK_ID, USER_ID, PAGE, COMPLETED, READ_DATE, CREATED_DATE)
+            VALUES ('B', 'U', 1, 0, '2026-09-15T17:57:23.737Z', '2026-09-15T09:00:00+09:00');
         "
     );
     sqlx::raw_sql(sqlx::AssertSqlSafe(seed))
@@ -97,7 +100,7 @@ async fn strings(pool: &SqlitePool, query: &str) -> Vec<String> {
 }
 
 #[tokio::test]
-async fn a_komga_rust_database_is_adopted_with_flyway_history_and_file_urls() {
+async fn a_komga_rust_database_is_adopted_with_flyway_history_file_urls_and_datetimes() {
     let dir = komga_rust_data_directory().await;
     migrate(dir.path())
         .await
@@ -153,6 +156,14 @@ async fn a_komga_rust_database_is_adopted_with_flyway_history_and_file_urls() {
             format!("{ROOT_URL}/Series/Book%20%231.jpg {ROOT_URL}/Series/Book%20%231.cbz"),
             format!("{ROOT_URL}/Series/cover.jpg {ROOT_URL}/Series/"),
         ]
+    );
+    assert_eq!(
+        strings(
+            &main,
+            "SELECT READ_DATE || ' ' || CREATED_DATE FROM READ_PROGRESS"
+        )
+        .await,
+        ["2026-09-15 17:57:23.737 2026-09-15 00:00:00.000"]
     );
     main.close().await;
 

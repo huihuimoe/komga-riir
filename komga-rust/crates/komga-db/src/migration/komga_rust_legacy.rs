@@ -3,8 +3,10 @@
 //!
 //! Legacy komga-rust applies Kotlin's SQL migrations through SQLx and records them only in
 //! `_sqlx_migrations`, never runs the JDBC migrations, and stores plain file paths where Kotlin
-//! stores file URLs. Adoption rebuilds the Flyway history from its record and converts the paths,
-//! after the pre-upgrade backup. Its separate `riir.sqlite` holds no Komga data and stays as is.
+//! stores file URLs. Some of its datetimes are RFC 3339 (`2026-09-15T17:57:23.737Z`), where
+//! Komga stores UTC as `2026-09-15 17:57:23.737`. Adoption rebuilds the Flyway history from its
+//! record and converts the paths and datetimes, after the pre-upgrade backup. Its separate
+//! `riir.sqlite` holds no Komga data and stays as is.
 
 use std::path::Path;
 
@@ -218,14 +220,40 @@ impl Adoption {
                 .execute(&mut *tx)
                 .await?;
         }
+        let datetimes = convert_rfc3339_datetimes(&mut tx).await?;
         sqlx::query("DROP TABLE _sqlx_migrations")
             .execute(&mut *tx)
             .await?;
         tx.commit().await?;
         tracing::info!(
             file_urls = self.file_urls.len(),
+            datetimes,
             "Adopted a database migrated by komga-rust"
         );
         Ok(())
     }
+}
+
+/// Rewrites RFC 3339 datetimes as Komga's UTC datetimes, to millisecond precision, which is
+/// what SQLite's date functions keep.
+async fn convert_rfc3339_datetimes(conn: &mut SqliteConnection) -> Result<u64, DbError> {
+    let columns: Vec<(String, String)> = sqlx::query_as(
+        "SELECT m.name, p.name FROM sqlite_master m JOIN pragma_table_info(m.name) p \
+         WHERE m.type = 'table' AND p.type = 'datetime' COLLATE NOCASE",
+    )
+    .fetch_all(&mut *conn)
+    .await?;
+    let mut converted = 0;
+    for (table, column) in columns {
+        let update = format!(
+            r#"UPDATE "{table}" SET "{column}" = strftime('%Y-%m-%d %H:%M:%f', "{column}")
+               WHERE "{column}" GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]T*'
+                 AND strftime('%Y-%m-%d %H:%M:%f', "{column}") IS NOT NULL"#
+        );
+        converted += sqlx::query(AssertSqlSafe(update))
+            .execute(&mut *conn)
+            .await?
+            .rows_affected();
+    }
+    Ok(converted)
 }
