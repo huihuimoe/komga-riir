@@ -86,9 +86,19 @@ mod tests {
     use super::*;
 
     /// `EIO`, `ENOENT` and `EACCES`, which share their numbers on Linux and macOS.
+    #[cfg(unix)]
     const EIO: i32 = 5;
+    #[cfg(unix)]
     const ENOENT: i32 = 2;
+    #[cfg(unix)]
     const EACCES: i32 = 13;
+    /// `ERROR_READ_FAULT`, `ERROR_FILE_NOT_FOUND` and `ERROR_ACCESS_DENIED`.
+    #[cfg(windows)]
+    const EIO: i32 = 30;
+    #[cfg(windows)]
+    const ENOENT: i32 = 2;
+    #[cfg(windows)]
+    const EACCES: i32 = 5;
 
     fn os(code: i32) -> io::Error {
         io::Error::from_raw_os_error(code)
