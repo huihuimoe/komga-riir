@@ -20,7 +20,7 @@ impl AnnouncementsReadDao {
             .and_where(Expr::col(AR::UserId).eq(user_id))
             .build_sqlx(SqliteQueryBuilder);
         let ids = sqlx::query_scalar_with(AssertSqlSafe(sql.as_str()), values)
-            .fetch_all(database.pool())
+            .fetch_all(database.read_pool())
             .await?;
         Ok(ids.into_iter().collect())
     }

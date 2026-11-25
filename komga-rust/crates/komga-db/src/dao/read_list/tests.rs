@@ -10,7 +10,7 @@ async fn deletes_only_read_lists_without_books_and_their_thumbnails() {
         .await
         .expect("Open database");
     db.migrate().await.expect("Migrate database");
-    let mut tx = db.begin().await.expect("Begin");
+    let mut tx = db.begin_immediate().await.expect("Begin");
     for statement in [
         "INSERT INTO LIBRARY (ID, NAME, ROOT) VALUES ('l', 'L', 'file:/l')",
         "INSERT INTO SERIES (ID, FILE_LAST_MODIFIED, NAME, URL, LIBRARY_ID) \

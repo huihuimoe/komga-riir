@@ -34,7 +34,7 @@ impl ClientSettingsDao {
         let (sql, values) = query.build_sqlx(SqliteQueryBuilder);
         let rows: Vec<(String, String, bool)> =
             sqlx::query_as_with(AssertSqlSafe(sql.as_str()), values)
-                .fetch_all(database.pool())
+                .fetch_all(database.read_pool())
                 .await?;
         Ok(rows
             .into_iter()
@@ -61,7 +61,7 @@ impl ClientSettingsDao {
             .and_where(Expr::col(ClientSettingsUserTable::UserId).eq(user_id))
             .build_sqlx(SqliteQueryBuilder);
         let rows: Vec<(String, String)> = sqlx::query_as_with(AssertSqlSafe(sql.as_str()), values)
-            .fetch_all(database.pool())
+            .fetch_all(database.read_pool())
             .await?;
         Ok(rows.into_iter().collect())
     }
@@ -138,7 +138,7 @@ impl ClientSettingsDao {
             .and_where(Expr::col(ClientSettingsGlobalTable::Key).is_in(keys))
             .build_sqlx(SqliteQueryBuilder);
         sqlx::query_with(AssertSqlSafe(sql.as_str()), values)
-            .execute(database.pool())
+            .execute(database.write_pool())
             .await?;
         Ok(())
     }
@@ -154,7 +154,7 @@ impl ClientSettingsDao {
             .and_where(Expr::col(ClientSettingsUserTable::UserId).eq(user_id))
             .build_sqlx(SqliteQueryBuilder);
         sqlx::query_with(AssertSqlSafe(sql.as_str()), values)
-            .execute(database.pool())
+            .execute(database.write_pool())
             .await?;
         Ok(())
     }

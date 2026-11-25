@@ -95,7 +95,7 @@ async fn rotate(
         created: now,
         secret,
     };
-    let mut transaction = database.begin().await?;
+    let mut transaction = database.begin_immediate().await?;
     ServerSettingsDao::save(&mut transaction, CURRENT, &current.encode()).await?;
     match &previous {
         Some(previous) => {
@@ -154,7 +154,7 @@ mod tests {
     }
 
     async fn store(database: &Database, key: &str, value: &StoredKey) {
-        let mut transaction = database.begin().await.expect("Begin");
+        let mut transaction = database.begin_immediate().await.expect("Begin");
         ServerSettingsDao::save(&mut transaction, key, &value.encode())
             .await
             .expect("Store key");
@@ -206,7 +206,7 @@ mod tests {
     async fn a_corrupt_key_stops_startup() {
         let directory = komga_test_support::tempdir().expect("Temporary directory");
         let database = database(&directory).await;
-        let mut transaction = database.begin().await.expect("Begin");
+        let mut transaction = database.begin_immediate().await.expect("Begin");
         ServerSettingsDao::save(&mut transaction, CURRENT, "1:short")
             .await
             .expect("Store key");

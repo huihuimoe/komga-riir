@@ -53,7 +53,7 @@ fn state(output: OutputState, source: SourceState) -> FileState {
 }
 
 async fn commit(operations: &FileOperations, file: &PendingFile) -> Result<(), FileOperationError> {
-    let mut tx = operations.db.begin().await?;
+    let mut tx = operations.db.begin_immediate().await?;
     operations.commit(&mut tx, file).await?;
     tx.commit().await?;
     Ok(())
@@ -305,7 +305,7 @@ async fn a_commit_is_refused_after_the_source_or_the_output_changed() {
 async fn a_commit_whose_transaction_fails_is_undone() {
     let fixture = Fixture::new();
     let (operations, file) = fixture.published_move().await;
-    let mut tx = operations.db.begin().await.expect("Transaction");
+    let mut tx = operations.db.begin_immediate().await.expect("Transaction");
     operations.commit(&mut tx, &file).await.expect("Commit");
     tx.rollback().await.expect("Roll back");
     operations.finish(file).await.expect("Finish");
@@ -440,7 +440,7 @@ async fn a_removed_source_comes_back_until_committed_and_a_changed_one_is_kept()
         operations.set_aside(&file).await.expect("Set aside");
         assert!(!fixture.source.exists());
         if committed {
-            let mut tx = operations.db.begin().await.expect("Transaction");
+            let mut tx = operations.db.begin_immediate().await.expect("Transaction");
             operations
                 .commit_removal(&mut tx, &file)
                 .await

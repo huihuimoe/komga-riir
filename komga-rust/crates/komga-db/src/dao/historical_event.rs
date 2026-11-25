@@ -76,7 +76,7 @@ impl HistoricalEventDao {
             .and_where(Expr::col(P::Id).is_in(result.items.iter().map(|event| event.id.as_str())))
             .build_sqlx(SqliteQueryBuilder);
         let rows = sqlx::query_with(AssertSqlSafe(sql.as_str()), values)
-            .fetch_all(database.pool())
+            .fetch_all(database.read_pool())
             .await?;
         let mut properties: BTreeMap<String, BTreeMap<String, String>> = BTreeMap::new();
         for row in rows {

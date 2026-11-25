@@ -49,7 +49,7 @@ impl ClientSettingsService {
         &self,
         settings: &BTreeMap<String, GlobalClientSetting>,
     ) -> Result<(), SettingsError> {
-        let mut transaction = self.db.begin().await?;
+        let mut transaction = self.db.begin_immediate().await?;
         for (key, setting) in settings {
             ClientSettingsDao::save_global(&mut transaction, key, setting).await?;
         }
@@ -66,7 +66,7 @@ impl ClientSettingsService {
         user_id: &UserId,
         settings: &BTreeMap<String, String>,
     ) -> Result<(), SettingsError> {
-        let mut transaction = self.db.begin().await?;
+        let mut transaction = self.db.begin_immediate().await?;
         for (key, value) in settings {
             ClientSettingsDao::save_for_user(&mut transaction, user_id.as_str(), key, value)
                 .await?;

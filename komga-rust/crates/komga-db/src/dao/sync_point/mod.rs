@@ -84,7 +84,7 @@ impl SyncPointDao {
             .build_sqlx(SqliteQueryBuilder);
         let row: Option<(SyncPointId, UserId, Option<ApiKeyId>, SqlDateTime)> =
             sqlx::query_as_with(AssertSqlSafe(sql.as_str()), values)
-                .fetch_optional(database.pool())
+                .fetch_optional(database.read_pool())
                 .await?;
         Ok(row.map(|(id, user_id, api_key_id, created)| SyncPoint {
             id,

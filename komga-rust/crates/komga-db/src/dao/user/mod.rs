@@ -21,7 +21,7 @@ pub struct KomgaUserDao;
 
 impl KomgaUserDao {
     pub async fn count(database: &Database) -> Result<i64, DbError> {
-        let pool = database.pool();
+        let pool = database.read_pool();
         let (sql, values) = Query::select()
             .expr(Func::count(Expr::col(UserTable::Id)))
             .from(UserTable::Table)
@@ -62,7 +62,7 @@ impl KomgaUserDao {
     }
 
     pub async fn find_by_id(database: &Database, id: &str) -> Result<Option<KomgaUser>, DbError> {
-        let pool = database.pool();
+        let pool = database.read_pool();
         let (sql, values) = Self::select_users()
             .and_where(Expr::col(UserTable::Id).eq(id))
             .build_sqlx(SqliteQueryBuilder);
@@ -80,7 +80,7 @@ impl KomgaUserDao {
         database: &Database,
         email: &str,
     ) -> Result<Option<KomgaUser>, DbError> {
-        let pool = database.pool();
+        let pool = database.read_pool();
         let (sql, values) = Query::select()
             .column(UserTable::Id)
             .from(UserTable::Table)
@@ -101,7 +101,7 @@ impl KomgaUserDao {
 
     /// Find all users ordered by email.
     pub async fn find_all(database: &Database) -> Result<Vec<KomgaUser>, DbError> {
-        let pool = database.pool();
+        let pool = database.read_pool();
         let (sql, values) = Self::select_users()
             .order_by(UserTable::Email, sea_query::Order::Asc)
             .build_sqlx(SqliteQueryBuilder);

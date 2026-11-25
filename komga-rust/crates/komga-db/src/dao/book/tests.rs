@@ -41,7 +41,7 @@ async fn finds_the_books_scan_follow_ups_queue_tasks_for() {
         .await
         .expect("Open database");
     db.migrate().await.expect("Migrate database");
-    let mut tx = db.begin().await.expect("Begin");
+    let mut tx = db.begin_immediate().await.expect("Begin");
     insert_books(&mut tx).await;
     let library = LibraryId::from("l".to_owned());
 

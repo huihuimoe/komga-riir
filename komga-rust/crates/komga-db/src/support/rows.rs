@@ -142,7 +142,7 @@ pub(crate) async fn fetch_page<T>(
     }
     let (sql, values) = page_query.build_sqlx(SqliteQueryBuilder);
     let rows = sqlx::query_with(AssertSqlSafe(sql.as_str()), values)
-        .fetch_all(database.pool())
+        .fetch_all(database.read_pool())
         .await?;
     let items = rows.iter().map(from_row).collect::<Result<Vec<T>, _>>()?;
     let total_elements = match page {
@@ -153,7 +153,7 @@ pub(crate) async fn fetch_page<T>(
                 .from_subquery(query, Alias::new("q"))
                 .build_sqlx(SqliteQueryBuilder);
             let count: i64 = sqlx::query_scalar_with(AssertSqlSafe(sql.as_str()), values)
-                .fetch_one(database.pool())
+                .fetch_one(database.read_pool())
                 .await?;
             u64::try_from(count).expect("COUNT(*) is never negative")
         }

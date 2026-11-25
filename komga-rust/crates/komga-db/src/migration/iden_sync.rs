@@ -260,8 +260,8 @@ async fn iden_enums_match_migrated_sqlite_schema() {
         .await
         .expect("migrate main and tasks databases");
 
-    let mut actual = introspect_schema(main_db.pool()).await;
-    for (table, cols) in introspect_schema(tasks_db.pool()).await {
+    let mut actual = introspect_schema(main_db.read_pool()).await;
+    for (table, cols) in introspect_schema(tasks_db.read_pool()).await {
         assert!(
             actual.insert(table.clone(), cols).is_none(),
             "table {table} exists in both main and tasks databases"

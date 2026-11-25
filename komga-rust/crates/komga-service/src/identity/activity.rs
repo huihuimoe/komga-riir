@@ -15,7 +15,7 @@ impl IdentityService {
     /// does not fail the request.
     pub async fn record_activity(&self, params: RecordActivityParams<'_>) {
         let result = async {
-            let mut transaction = self.db.begin().await?;
+            let mut transaction = self.db.begin_immediate().await?;
             AuthenticationActivityDao::insert(&mut transaction, &params).await?;
             transaction.commit().await
         }
@@ -55,7 +55,7 @@ impl IdentityService {
         let now = Timestamp::now().to_zoned_datetime(TimeZone::UTC).datetime();
         let cutoff = now.checked_sub(1.month()).expect("A month ago is in range");
         info!(older_than = %cutoff, "Removing authentication activity older than a month (UTC)");
-        let mut transaction = self.db.begin().await?;
+        let mut transaction = self.db.begin_immediate().await?;
         AuthenticationActivityDao::delete_older_than(&mut transaction, cutoff).await?;
         transaction.commit().await?;
         Ok(())

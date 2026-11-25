@@ -27,7 +27,7 @@ async fn queue(rows: &[TaskRow]) -> (komga_test_support::TestDir, Database) {
 }
 
 async fn save(db: &Database, row: &TaskRow) {
-    let mut tx = db.begin().await.expect("Begin");
+    let mut tx = db.begin_immediate().await.expect("Begin");
     TasksDao::save(&mut tx, row).await.expect("Save task");
     tx.commit().await.expect("Commit");
 }
@@ -46,7 +46,7 @@ async fn take(db: &Database, classes: &[&str]) -> Option<String> {
 }
 
 async fn finish(db: &Database, task: &ClaimedTask, end: TaskEnd<'_>) {
-    let mut tx = db.begin().await.expect("Begin");
+    let mut tx = db.begin_immediate().await.expect("Begin");
     TasksDao::finish(&mut tx, &task.id, task.version, end)
         .await
         .expect("Finish task");
@@ -174,7 +174,7 @@ async fn disown_releases_interrupted_tasks_until_attempts_run_out() {
     for (attempt, expected) in [(1, (1, 0)), (2, (0, 1))] {
         let task = claim(&db, &[CLASS]).await.expect("Interrupted task");
         assert_eq!(task.attempts, attempt);
-        let mut tx = db.begin().await.expect("Begin");
+        let mut tx = db.begin_immediate().await.expect("Begin");
         assert_eq!(
             TasksDao::disown(&mut tx, 2).await.expect("Disown"),
             expected
@@ -215,7 +215,7 @@ async fn clearing_the_queue_keeps_running_and_failed_tasks() {
     };
     finish(&db, &retrying, retry).await;
 
-    let mut tx = db.begin().await.expect("Begin");
+    let mut tx = db.begin_immediate().await.expect("Begin");
     let deleted = TasksDao::delete_queued(&mut tx).await.expect("Clear queue");
     tx.commit().await.expect("Commit");
     assert_eq!(deleted, 2, "the queued and the retrying task");

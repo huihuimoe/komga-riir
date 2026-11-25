@@ -23,7 +23,7 @@ impl ServerSettingsDao {
             .build_sqlx(SqliteQueryBuilder);
         let value: Option<Option<String>> =
             sqlx::query_scalar_with(AssertSqlSafe(sql.as_str()), values)
-                .fetch_optional(database.pool())
+                .fetch_optional(database.read_pool())
                 .await?;
         Ok(value.flatten())
     }
@@ -46,7 +46,7 @@ impl ServerSettingsDao {
             )
             .build_sqlx(SqliteQueryBuilder);
         sqlx::query_with(AssertSqlSafe(sql.as_str()), values)
-            .execute(database.pool())
+            .execute(database.write_pool())
             .await?;
 
         let (sql, values) = Query::select()
@@ -55,7 +55,7 @@ impl ServerSettingsDao {
             .and_where(Expr::col(S::Key).eq(key))
             .build_sqlx(SqliteQueryBuilder);
         Ok(sqlx::query_scalar_with(AssertSqlSafe(sql.as_str()), values)
-            .fetch_one(database.pool())
+            .fetch_one(database.write_pool())
             .await?)
     }
 
@@ -67,7 +67,7 @@ impl ServerSettingsDao {
             .and_where(Expr::col(S::Value).is_not_null())
             .build_sqlx(SqliteQueryBuilder);
         let rows: Vec<(String, String)> = sqlx::query_as_with(AssertSqlSafe(sql.as_str()), values)
-            .fetch_all(database.pool())
+            .fetch_all(database.read_pool())
             .await?;
         Ok(rows.into_iter().collect())
     }

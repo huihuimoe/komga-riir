@@ -43,7 +43,7 @@ impl EntityCountDao {
             .from(table)
             .build_sqlx(SqliteQueryBuilder);
         Ok(sqlx::query_scalar_with(AssertSqlSafe(sql.as_str()), values)
-            .fetch_one(database.pool())
+            .fetch_one(database.read_pool())
             .await?)
     }
 
@@ -68,7 +68,7 @@ impl EntityCountDao {
             .group_by_col(ContentKey::LibraryId)
             .build_sqlx(SqliteQueryBuilder);
         Ok(sqlx::query_as_with(AssertSqlSafe(sql.as_str()), values)
-            .fetch_all(database.pool())
+            .fetch_all(database.read_pool())
             .await?)
     }
 }

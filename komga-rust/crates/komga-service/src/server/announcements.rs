@@ -86,7 +86,7 @@ impl AnnouncementService {
     }
 
     pub async fn mark_read(&self, user_id: &str, ids: &BTreeSet<String>) -> Result<(), DbError> {
-        let mut transaction = self.db.begin().await?;
+        let mut transaction = self.db.begin_immediate().await?;
         AnnouncementsReadDao::insert(&mut transaction, user_id, ids).await?;
         transaction.commit().await
     }

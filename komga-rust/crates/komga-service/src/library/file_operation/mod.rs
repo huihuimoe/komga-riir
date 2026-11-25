@@ -128,7 +128,7 @@ impl FileOperations {
             output_version: None,
             committed: false,
         };
-        let mut tx = self.db.begin().await?;
+        let mut tx = self.db.begin_immediate().await?;
         record.id = FileOperationDao::insert(&mut tx, &record).await?;
         tx.commit().await?;
         Ok(PendingFile::new(record))
@@ -148,7 +148,7 @@ impl FileOperations {
             return Err(FileOperationError::SourceChanged(file.source.clone()));
         }
         // Recorded first, so that after a crash the published output is told from another file.
-        let mut tx = self.db.begin().await?;
+        let mut tx = self.db.begin_immediate().await?;
         FileOperationDao::set_output(&mut tx, file.record.id, output).await?;
         tx.commit().await?;
         file.record.output_version = Some(output);
@@ -211,7 +211,7 @@ impl FileOperations {
             let id = record.id;
             let file = PendingFile::new(record);
             task::spawn_blocking(move || file.clean_up()).await??;
-            let mut tx = self.db.begin().await?;
+            let mut tx = self.db.begin_immediate().await?;
             FileOperationDao::delete(&mut tx, id).await?;
             tx.commit().await?;
         }

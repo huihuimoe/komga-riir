@@ -12,7 +12,7 @@ async fn database(
         .await
         .expect("Open database");
     db.migrate().await.expect("Migrate database");
-    let mut tx = db.begin().await.expect("Begin");
+    let mut tx = db.begin_immediate().await.expect("Begin");
     let base = [
         "INSERT INTO LIBRARY (ID, NAME, ROOT) VALUES ('l', 'L', 'file:/l/')",
         "INSERT INTO USER (ID, EMAIL, PASSWORD) VALUES ('u', 'u@x', 'p')",

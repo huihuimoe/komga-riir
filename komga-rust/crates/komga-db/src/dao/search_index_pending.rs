@@ -178,7 +178,7 @@ mod tests {
         db.migrate()
             .await
             .expect("The table is created only when missing");
-        let mut tx = db.begin().await.expect("Begin");
+        let mut tx = db.begin_immediate().await.expect("Begin");
         SearchIndexPendingDao::mark(&mut tx, SearchEntity::Collection, &["r"])
             .await
             .expect("Mark another entity");
@@ -213,7 +213,7 @@ mod tests {
             .await
             .expect("Open database");
         db.migrate().await.expect("Migrate database");
-        let mut tx = db.begin().await.expect("Begin");
+        let mut tx = db.begin_immediate().await.expect("Begin");
         SearchIndexPendingDao::mark(&mut tx, SearchEntity::ReadList, &["a", "b", "c"])
             .await
             .expect("Mark");

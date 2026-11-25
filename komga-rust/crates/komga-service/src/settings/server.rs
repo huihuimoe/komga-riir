@@ -145,7 +145,7 @@ impl ServerSettingsService {
             (NEXTUI_AS_DEFAULT, set(next_ui_as_default)),
         ];
 
-        let mut transaction = self.db.begin().await?;
+        let mut transaction = self.db.begin_immediate().await?;
         for (key, change) in changes {
             match change {
                 Some(Some(value)) => ServerSettingsDao::save(&mut transaction, key, &value).await?,

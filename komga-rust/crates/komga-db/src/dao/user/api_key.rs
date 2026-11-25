@@ -77,7 +77,7 @@ impl KomgaUserDao {
         database: &Database,
         api_key_hash: &str,
     ) -> Result<Option<(KomgaUser, ApiKey)>, DbError> {
-        let pool = database.pool();
+        let pool = database.read_pool();
         let (sql, values) = Query::select()
             .columns([
                 (UserApiKeyTable::Table, UserApiKeyTable::Id),
@@ -128,7 +128,7 @@ impl KomgaUserDao {
             .build_sqlx(SqliteQueryBuilder);
 
         let rows = sqlx::query_with(AssertSqlSafe(sql.as_str()), values)
-            .fetch_all(database.pool())
+            .fetch_all(database.read_pool())
             .await?;
 
         rows.iter()

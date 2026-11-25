@@ -182,7 +182,7 @@ where
     }
     let (sql, values) = page_query.build_sqlx(SqliteQueryBuilder);
     let items: Vec<R> = sqlx::query_as_with(AssertSqlSafe(sql.as_str()), values)
-        .fetch_all(database.pool())
+        .fetch_all(database.read_pool())
         .await?;
 
     let total_elements = match page {
@@ -193,7 +193,7 @@ where
                 .from_subquery(query, Alias::new("q"))
                 .build_sqlx(SqliteQueryBuilder);
             let count: i64 = sqlx::query_scalar_with(AssertSqlSafe(sql.as_str()), values)
-                .fetch_one(database.pool())
+                .fetch_one(database.read_pool())
                 .await?;
             u64::try_from(count).expect("COUNT(*) is never negative")
         }

@@ -13,7 +13,7 @@ async fn resets_the_pages_of_one_book_and_reaggregates_its_series() {
         .await
         .expect("Open database");
     db.migrate().await.expect("Migrate database");
-    let mut tx = db.begin().await.expect("Begin");
+    let mut tx = db.begin_immediate().await.expect("Begin");
     // `s1` holds `b1` and `b2`; `s2` holds `b3`. The series rows start stale.
     for statement in [
         "INSERT INTO LIBRARY (ID, NAME, ROOT) VALUES ('l', 'L', 'file:/l/')",

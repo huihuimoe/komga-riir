@@ -165,7 +165,7 @@ impl PageHashDao {
             .and_where(Expr::col(PHT::Hash).eq(hash))
             .build_sqlx(SqliteQueryBuilder);
         Ok(sqlx::query_scalar_with(AssertSqlSafe(sql.as_str()), values)
-            .fetch_optional(database.pool())
+            .fetch_optional(database.read_pool())
             .await?)
     }
 

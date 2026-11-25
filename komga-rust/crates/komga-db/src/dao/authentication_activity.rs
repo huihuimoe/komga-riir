@@ -95,7 +95,7 @@ impl AuthenticationActivityDao {
             .limit(1)
             .build_sqlx(SqliteQueryBuilder);
         let row = sqlx::query_with(AssertSqlSafe(sql.as_str()), values)
-            .fetch_optional(database.pool())
+            .fetch_optional(database.read_pool())
             .await?;
         row.as_ref().map(from_row).transpose()
     }

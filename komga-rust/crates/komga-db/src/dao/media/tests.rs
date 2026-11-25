@@ -18,7 +18,7 @@ async fn database_with_book() -> (TestDir, Database, BookId) {
         .await
         .expect("Open database");
     db.migrate().await.expect("Migrate database");
-    let mut tx = db.begin().await.expect("Begin");
+    let mut tx = db.begin_immediate().await.expect("Begin");
     for statement in [
         "INSERT INTO LIBRARY (ID, NAME, ROOT) VALUES ('l', 'L', 'file:/l/')",
         "INSERT INTO SERIES (ID, FILE_LAST_MODIFIED, NAME, URL, LIBRARY_ID) \
@@ -42,7 +42,7 @@ async fn database_with_book() -> (TestDir, Database, BookId) {
 #[tokio::test]
 async fn an_updated_media_reads_back_with_its_pages_and_files() {
     let (_directory, db, book) = database_with_book().await;
-    let mut tx = db.begin().await.expect("Begin");
+    let mut tx = db.begin_immediate().await.expect("Begin");
     let page = |name: &str, dimension| BookPage {
         file_name: name.to_owned(),
         media_type: "image/png".to_owned(),
@@ -170,7 +170,7 @@ fn epub_media() -> Media {
 #[tokio::test]
 async fn an_epub_extension_is_stored_as_kotlin_gzipped_json_and_kept_by_other_updates() {
     let (_directory, db, book) = database_with_book().await;
-    let mut tx = db.begin().await.expect("Begin");
+    let mut tx = db.begin_immediate().await.expect("Begin");
     let epub = epub_media();
     MediaDao::update(&mut tx, &book, &epub)
         .await
@@ -237,7 +237,7 @@ async fn an_epub_extension_is_stored_as_kotlin_gzipped_json_and_kept_by_other_up
 #[tokio::test]
 async fn a_stored_epub_extension_reads_back_unless_absent_or_undecodable() {
     let (_directory, db, book) = database_with_book().await;
-    let mut tx = db.begin().await.expect("Begin");
+    let mut tx = db.begin_immediate().await.expect("Begin");
     assert_eq!(
         MediaDao::find_extension(&mut tx, &book)
             .await
@@ -277,7 +277,7 @@ async fn a_stored_epub_extension_reads_back_unless_absent_or_undecodable() {
 #[tokio::test]
 async fn books_missing_page_hashes_lack_one_of_the_first_and_last_pages() {
     let (_directory, db, book) = database_with_book().await;
-    let mut tx = db.begin().await.expect("Begin");
+    let mut tx = db.begin_immediate().await.expect("Begin");
     let media = |page_count: usize, hashed: usize, status| Media {
         status,
         media_type: Some("application/zip".to_owned()),
