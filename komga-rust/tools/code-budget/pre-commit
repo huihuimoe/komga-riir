@@ -1,0 +1,8 @@
+#!/bin/sh
+# Git pre-commit hook for the komga-rust growth budgets.
+# install via
+# `ln -s "$PWD/komga-rust/tools/code-budget/pre-commit" "$(git rev-parse --git-path hooks)/pre-commit"`
+# or add a `komga-rust/tools/code-budget/pre-commit || exit $?` line.
+# All checking lives in the code-budget tool.
+top=$(git rev-parse --show-toplevel) || exit 2
+exec cargo run --quiet --release --manifest-path "$top/komga-rust/Cargo.toml" -p code-budget

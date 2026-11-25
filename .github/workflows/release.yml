@@ -110,7 +110,7 @@ jobs:
           if-no-files-found: error
 
   binary_release:
-    name: Release binary (${{ matrix.artifact_suffix }})
+    name: Release binary (${{ matrix.target }})
     runs-on: ${{ matrix.runner }}
     needs:
       - version
@@ -119,115 +119,27 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - runner: ubuntu-latest
-            platform: linux
-            artifact_suffix: linux-amd64-gnu
-            release_package_name: release-package-amd64-gnu
-            arch: amd64
-            target: x86_64-unknown-linux-gnu
-            pdfium_platform_key: linux-x86_64-gnu
-            pdfium_asset_dir: pdfium-linux-x64
-            binary_source: komga-rust
-            binary_name: komga-riir
-            pdfium_library_path: lib/libpdfium.so
-            pdfium_library_name: libpdfium.so
-            docker_runtime: false
-          - runner: ubuntu-latest
-            platform: linux
-            artifact_suffix: linux-arm64-gnu
-            release_package_name: release-package-arm64-gnu
-            arch: arm64
-            target: aarch64-unknown-linux-gnu
-            pdfium_platform_key: linux-aarch64-gnu
-            pdfium_asset_dir: pdfium-linux-arm64
-            binary_source: komga-rust
-            binary_name: komga-riir
-            pdfium_library_path: lib/libpdfium.so
-            pdfium_library_name: libpdfium.so
-            docker_runtime: false
-          - runner: ubuntu-latest
-            platform: linux
-            artifact_suffix: linux-amd64-musl
-            release_package_name: release-package-amd64-musl
-            arch: amd64
+          # musl builds run in rust:alpine so the C dependencies compile against musl
+          - runner: ubuntu-24.04
             target: x86_64-unknown-linux-musl
-            pdfium_platform_key: linux-x86_64-musl
-            pdfium_asset_dir: pdfium-linux-musl-x64
-            binary_source: komga-rust
-            binary_name: komga-riir
-            pdfium_library_path: lib/libpdfium.so
-            pdfium_library_name: libpdfium.so
-            docker_runtime: true
-          - runner: ubuntu-latest
-            platform: linux
-            artifact_suffix: linux-arm64-musl
-            release_package_name: release-package-arm64-musl
-            arch: arm64
+            docker_arch: amd64
+          - runner: ubuntu-24.04-arm
             target: aarch64-unknown-linux-musl
-            pdfium_platform_key: linux-aarch64-musl
-            pdfium_asset_dir: pdfium-linux-musl-arm64
-            binary_source: komga-rust
-            binary_name: komga-riir
-            pdfium_library_path: lib/libpdfium.so
-            pdfium_library_name: libpdfium.so
-            docker_runtime: true
+            docker_arch: arm64
           - runner: windows-latest
-            platform: windows
-            artifact_suffix: windows-amd64-msvc
-            release_package_name: release-package-windows-amd64-msvc
-            arch: amd64
             target: x86_64-pc-windows-msvc
-            pdfium_platform_key: windows-x86_64-msvc
-            pdfium_asset_dir: pdfium-win-x64
-            binary_source: komga-rust.exe
-            binary_name: komga-riir.exe
-            pdfium_library_path: bin/pdfium.dll
-            pdfium_library_name: pdfium.dll
-            docker_runtime: false
           - runner: macos-14
-            platform: macos
-            artifact_suffix: macos-arm64
-            release_package_name: release-package-macos-arm64
-            arch: arm64
             target: aarch64-apple-darwin
-            pdfium_platform_key: macos-aarch64
-            pdfium_asset_dir: pdfium-mac-arm64
-            binary_source: komga-rust
-            binary_name: komga-riir
-            pdfium_library_path: lib/libpdfium.dylib
-            pdfium_library_name: libpdfium.dylib
-            docker_runtime: false
     env:
       VERSION: ${{ needs.version.outputs.version_next }}
-      VERSION_NEXT: ${{ needs.version.outputs.version_next }}
-      CROSS_CONFIG: komga-rust/Cross.toml
-      CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: --cfg tokio_unstable
-      CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_RUSTFLAGS: --cfg tokio_unstable
-      CARGO_TARGET_X86_64_UNKNOWN_LINUX_MUSL_RUSTFLAGS: -C target-feature=-crt-static --cfg tokio_unstable
-      CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_RUSTFLAGS: -C target-feature=-crt-static --cfg tokio_unstable
-      CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_RUSTFLAGS: --cfg tokio_unstable
-      CARGO_TARGET_AARCH64_APPLE_DARWIN_RUSTFLAGS: --cfg tokio_unstable
+      PACKAGE: komga-rust-${{ needs.version.outputs.version_next }}-${{ matrix.target }}
     defaults:
       run:
         shell: bash
     steps:
-      - name: Remove unnecessary files
-        if: matrix.platform == 'linux'
-        run: |
-          sudo rm -rf /usr/share/dotnet
-          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
-
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
-
-      - name: Setup NASM
-        uses: ilammy/setup-nasm@v1
-
-      - name: Display versions
-        run: |
-          echo "Current version: ${{ needs.version.outputs.version_current }}"
-          echo "Release version: ${VERSION}"
 
       - name: Download web UI dist
         uses: actions/download-artifact@v8
@@ -244,89 +156,51 @@ jobs:
       - name: Verify build inputs
         run: |
           set -euo pipefail
-          test -d komga-webui/dist
           test -f komga-webui/dist/index.html
-          test -d next-ui/dist
           test -f next-ui/dist/index.html
-          test -f komga/src/main/resources/banner.txt
-          test -d komga/src/main/resources/embeddedFonts
+
+      # Prebuilt; the Linux release is a static musl binary, so it also runs inside rust:alpine
+      - name: Install cargo-about
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-about
+
+      - name: Build and package in rust:alpine
+        if: matrix.docker_arch
+        run: |
+          docker run --rm -v "$PWD:/src" -v "$(command -v cargo-about):/usr/local/bin/cargo-about:ro" \
+            -w /src/komga-rust rust:alpine sh -euc '
+            apk add --no-cache bash git musl-dev cmake make perl g++ linux-headers
+            git config --global --add safe.directory /src
+            ./tools/release/package.sh "$0" "$1"
+          ' "${{ matrix.target }}" "$VERSION"
+
+      # aws-lc-sys assembles its Windows x86_64 sources with NASM
+      - name: Setup NASM
+        if: runner.os == 'Windows'
+        uses: ilammy/setup-nasm@v1
 
       - name: Setup Rust toolchain
+        if: ${{ !matrix.docker_arch }}
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Install cross
-        if: matrix.platform == 'linux'
-        run: |
-          cargo install cross --git https://github.com/cross-rs/cross --locked
-
-      - name: Build Rust release binary with cross
-        if: matrix.platform == 'linux'
-        run: |
-          cross build --manifest-path komga-rust/Cargo.toml --locked --release --features image-nasm --bin komga-rust --target ${{ matrix.target }}
-
-      - name: Build Rust release binary
-        if: matrix.platform != 'linux'
-        run: |
-          cargo build --manifest-path komga-rust/Cargo.toml --locked --release --features image-nasm --bin komga-rust --target ${{ matrix.target }}
-
-      - name: Package release artifacts
-        run: |
-          set -euo pipefail
-          mkdir -p dist
-          release_dir="dist/komga-riir-${VERSION}-${{ matrix.artifact_suffix }}"
-          release_artifact="${release_dir}.tar.gz"
-          rm -rf "$release_dir"
-          mkdir -p "$release_dir/licenses/pdfium"
-          binary_path="komga-rust/target/${{ matrix.target }}/release/${{ matrix.binary_source }}"
-          test -f "$binary_path"
-          cp "$binary_path" "$release_dir/${{ matrix.binary_name }}"
-          if [[ "${{ matrix.platform }}" != 'windows' ]]; then
-            chmod +x "$release_dir/${{ matrix.binary_name }}"
-          fi
-          pdfium_release_tag="$(tr -d '\r\n' < komga-rust/vendor/pdfium-release)"
-          test -n "$pdfium_release_tag"
-          pdfium_vendor_directory="$(printf '%s' "$pdfium_release_tag" | tr '/' '-')"
-          pdfium_lib="komga-rust/vendor/pdfium-binaries/${pdfium_vendor_directory}/${{ matrix.pdfium_platform_key }}/${{ matrix.pdfium_asset_dir }}/${{ matrix.pdfium_library_path }}"
-          test -f "$pdfium_lib"
-          cp "$pdfium_lib" "$release_dir/${{ matrix.pdfium_library_name }}"
-          pdfium_license_dir=$(dirname "$pdfium_lib")/../licenses
-          if [[ -d "$pdfium_license_dir" ]]; then
-            cp -R "$pdfium_license_dir/." "$release_dir/licenses/pdfium/"
-          fi
-          tar -czf "$release_artifact" -C dist "$(basename "$release_dir")"
-          if [[ "${{ matrix.docker_runtime }}" == 'true' ]]; then
-            docker_artifact_dir="docker-artifacts/linux-musl/${{ matrix.arch }}"
-            rm -rf "$docker_artifact_dir"
-            mkdir -p "$docker_artifact_dir"
-            cp "$binary_path" "$docker_artifact_dir/komga-rust"
-            chmod +x "$docker_artifact_dir/komga-rust"
-            cp "$pdfium_lib" "$docker_artifact_dir/libpdfium.so"
-          fi
-
-      - name: Verify packaged artifacts
-        run: |
-          set -euo pipefail
-          test -f "dist/komga-riir-${VERSION}-${{ matrix.artifact_suffix }}.tar.gz"
-          if [[ "${{ matrix.docker_runtime }}" == 'true' ]]; then
-            test -f "docker-artifacts/linux-musl/${{ matrix.arch }}/komga-rust"
-            test -f "docker-artifacts/linux-musl/${{ matrix.arch }}/libpdfium.so"
-          fi
+      - name: Build and package
+        if: ${{ !matrix.docker_arch }}
+        run: ./komga-rust/tools/release/package.sh "${{ matrix.target }}" "$VERSION"
 
       - name: Upload release package artifact
         uses: actions/upload-artifact@v7
         with:
-          name: ${{ matrix.release_package_name }}
-          path: dist/komga-riir-${{ env.VERSION }}-${{ matrix.artifact_suffix }}.tar.gz
+          name: release-package-${{ matrix.target }}
+          path: komga-rust/dist/${{ env.PACKAGE }}.*
           if-no-files-found: error
 
       - name: Upload Docker runtime artifact
-        if: matrix.docker_runtime
+        if: matrix.docker_arch
         uses: actions/upload-artifact@v7
         with:
-          name: docker-artifacts-${{ matrix.arch }}
-          path: |
-            docker-artifacts/linux-musl/${{ matrix.arch }}/komga-rust
-            docker-artifacts/linux-musl/${{ matrix.arch }}/libpdfium.so
+          name: docker-artifacts-${{ matrix.docker_arch }}
+          path: komga-rust/dist/${{ env.PACKAGE }}/komga-rust
           if-no-files-found: error
 
   github_release:
@@ -367,24 +241,9 @@ jobs:
           set -euo pipefail
           mkdir -p release_notes
           printf '%b\n' "$RELEASE_NOTES" > release_notes/release_notes.md
-          mapfile -t release_artifacts < <(find dist -maxdepth 1 -type f -name 'komga-riir-*.tar.gz' | sort)
-          if [[ ${#release_artifacts[@]} -eq 0 ]]; then
-            echo "No release artifacts were downloaded" >&2
-            exit 1
-          fi
           if [[ -n "$CHANGELOG" ]]; then
             printf '\n%s\n' "$CHANGELOG" >> release_notes/release_notes.md
           fi
-          {
-            echo ""
-            echo "## Checksums"
-            echo ""
-            for artifact in "${release_artifacts[@]}"; do
-              artifact_name=$(basename "$artifact")
-              artifact_sha256=$(sha256sum "$artifact" | cut -d' ' -f1)
-              printf -- '- `%s`: `%s`\n' "$artifact_name" "$artifact_sha256"
-            done
-          } >> release_notes/release_notes.md
           echo "Release notes:"
           cat release_notes/release_notes.md
           echo ""
@@ -394,7 +253,11 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          mapfile -t release_artifacts < <(find dist -maxdepth 1 -type f -name 'komga-riir-*.tar.gz' | sort)
+          mapfile -t release_artifacts < <(find dist -maxdepth 1 -type f -name 'komga-rust-*' | sort)
+          if [[ ${#release_artifacts[@]} -eq 0 ]]; then
+            echo "No release artifacts were downloaded" >&2
+            exit 1
+          fi
           if gh release view "${VERSION}" >/dev/null 2>&1; then
             gh release edit "${VERSION}" --title "${VERSION}" --notes-file release_notes/release_notes.md
             gh release upload "${VERSION}" "${release_artifacts[@]}" --clobber
@@ -443,19 +306,7 @@ jobs:
         run: |
           set -euo pipefail
           test -f docker-artifacts/linux-musl/amd64/komga-rust
-          test -f docker-artifacts/linux-musl/amd64/libpdfium.so
           test -f docker-artifacts/linux-musl/arm64/komga-rust
-          test -f docker-artifacts/linux-musl/arm64/libpdfium.so
-
-      - name: Strip Docker runtime artifacts
-        run: |
-          set -euo pipefail
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends binutils-aarch64-linux-gnu
-          strip --strip-unneeded docker-artifacts/linux-musl/amd64/komga-rust
-          strip --strip-unneeded docker-artifacts/linux-musl/amd64/libpdfium.so
-          aarch64-linux-gnu-strip --strip-unneeded docker-artifacts/linux-musl/arm64/komga-rust
-          aarch64-linux-gnu-strip --strip-unneeded docker-artifacts/linux-musl/arm64/libpdfium.so
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v4

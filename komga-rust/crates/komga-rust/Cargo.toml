@@ -1,0 +1,64 @@
+[package]
+name = "komga-rust"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "komga-rust"
+path = "src/main.rs"
+
+[[test]]
+name = "it"
+path = "tests/it/main.rs"
+
+[dependencies]
+tokio = { workspace = true }
+clap = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+anyhow = { workspace = true }
+komga-db = { workspace = true }
+komga-scheduler = { workspace = true }
+komga-oauth = { workspace = true }
+komga-search = { workspace = true }
+komga-service = { workspace = true }
+komga-types = { workspace = true }
+komga-api = { workspace = true }
+axum = { workspace = true }
+socket2 = { workspace = true }
+tokio-util = { workspace = true }
+thiserror = { workspace = true }
+yaml-rust2 = { workspace = true }
+java-properties = { workspace = true }
+rustfs-mimalloc = { workspace = true }
+rust-embed = { workspace = true, features = ["include-exclude", "mime-guess"] }
+flate2 = { workspace = true }
+jiff = { workspace = true }
+
+[target.'cfg(target_os = "linux")'.dependencies]
+procfs = { workspace = true }
+
+[target.'cfg(target_os = "macos")'.dependencies]
+rustix = { workspace = true }
+
+[dev-dependencies]
+komga-test-support = { workspace = true }
+sqlx = { workspace = true }
+serde_json = { workspace = true }
+base64 = { workspace = true }
+komga-archive = { workspace = true }
+reqwest = { workspace = true, features = ["multipart"] }
+jsonschema = { workspace = true }
+crc32fast = { workspace = true }
+image = { workspace = true }
+quick-xml = { workspace = true }
+
+[target.'cfg(unix)'.dev-dependencies]
+rustix = { workspace = true }
+
+[target.'cfg(windows)'.dev-dependencies]
+windows-sys = { workspace = true }
+
+[lints]
+workspace = true

@@ -1,0 +1,21 @@
+[package]
+name = "komga-scheduler"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+komga-types = { workspace = true }
+komga-db = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+tokio = { workspace = true }
+tokio-util = { workspace = true }
+tracing = { workspace = true }
+
+[dev-dependencies]
+komga-test-support = { workspace = true }
+
+[lints]
+workspace = true

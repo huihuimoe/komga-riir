@@ -1,8 +1,0 @@
-[package]
-name = "komga-domain"
-version.workspace = true
-edition.workspace = true
-publish = false
-
-[dependencies]
-unicode-normalization.workspace = true

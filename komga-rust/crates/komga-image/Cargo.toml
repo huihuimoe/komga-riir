@@ -1,0 +1,25 @@
+[package]
+name = "komga-image"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+komga-types = { workspace = true }
+imagesize = { workspace = true }
+image = { workspace = true }
+rxing = { workspace = true }
+jxl-oxide = { workspace = true }
+heifer = { workspace = true }
+oxideav-avif = { workspace = true }
+hayro-jpeg2000 = { workspace = true }
+hayro-jbig2 = { workspace = true }
+oxideav-pcx = { workspace = true }
+oxideav-wbmp = { workspace = true }
+thiserror = { workspace = true }
+
+[dev-dependencies]
+crc32fast = { workspace = true }
+
+[lints]
+workspace = true

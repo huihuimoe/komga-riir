@@ -1,0 +1,21 @@
+[package]
+name = "komga-types"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+fancy-regex = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+sea-query = { workspace = true }
+getrandom = { workspace = true }
+jiff = { workspace = true }
+sqlx = { workspace = true }
+language-tags = { workspace = true }
+url = { workspace = true }
+
+[dev-dependencies]
+serde_json = { workspace = true }
+
+[lints]
+workspace = true

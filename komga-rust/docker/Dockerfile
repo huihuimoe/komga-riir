@@ -15,32 +15,18 @@ set -eu
 command="${1:-run}"
 if [ "$command" = "run" ]; then
   shift
-  if [ -z "${KOMGA_RUST_ADDR:-}" ]; then
-    export KOMGA_RUST_ADDR="[::]:${SERVER_PORT:-25600}"
-  else
-    export KOMGA_RUST_ADDR
-  fi
   exec /app/komga-rust "$@"
 fi
 
 if [ "$command" = "healthcheck" ]; then
-  port="${SERVER_PORT:-25600}"
-  if [ -n "${KOMGA_RUST_ADDR:-}" ]; then
-    port="${KOMGA_RUST_ADDR##*:}"
-  fi
-
-  path="${SERVER_SERVLET_CONTEXT_PATH:-}/actuator/health"
-
-  if response="$(wget -qO- "http://[::1]:${port}${path}" 2>/dev/null)"; then
-    :
-  elif response="$(wget -qO- "http://127.0.0.1:${port}${path}" 2>/dev/null)"; then
-    :
-  else
-    exit 1
-  fi
-
-  printf '%s' "$response" | grep -q '"status":"UP"'
-  exit 0
+  url_path="${SERVER_SERVLET_CONTEXT_PATH:-}/actuator/health"
+  for host in 127.0.0.1 '[::1]'; do
+    if response="$(wget -qO- "http://${host}:${SERVER_PORT:-25600}${url_path}" 2>/dev/null)"; then
+      printf '%s' "$response" | grep -q '"status":"UP"'
+      exit
+    fi
+  done
+  exit 1
 fi
 
 exit 64
@@ -48,12 +34,8 @@ SCRIPT
 EOF
 WORKDIR /app
 COPY --chmod=755 docker-artifacts/${TARGETOS}-musl/${TARGETARCH}/komga-rust ./komga-rust
-COPY docker-artifacts/${TARGETOS}-musl/${TARGETARCH}/libpdfium.so ./libpdfium.so
 VOLUME /config
-ENV KOMGA_CONFIG_DIR="/config"
-ENV KOMGA_RUST_MODE="localdb"
-ENV KOMGA_RUST_PLATFORM_PROFILE="docker"
-ENV LOGGING_FILE_NAME="/config/logs/komga.log"
+ENV KOMGA_CONFIGDIR="/config"
 ENV LANG='C.UTF-8' LC_ALL='C.UTF-8'
 ENTRYPOINT ["./docker-runtime.sh", "run"]
 HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 CMD ["./docker-runtime.sh", "healthcheck"]

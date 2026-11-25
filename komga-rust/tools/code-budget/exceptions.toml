@@ -1,0 +1,8 @@
+# Budget exceptions approved by the project maintainer.
+# One entry per file or function; directory or pattern entries are rejected.
+#
+# [[exception]]
+# path = "komga-rust/crates/<crate>/src/<file>.rs"
+# function = "Type::method"   # as printed by the check; omit for the file budget
+# max_lines = 650              # replaces the hard limit
+# reason = "why splitting would harm clarity, and who approved it"

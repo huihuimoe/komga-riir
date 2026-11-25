@@ -1,0 +1,26 @@
+[package]
+name = "komga-oauth"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+base64 = { workspace = true }
+getrandom = { workspace = true }
+jsonwebtoken = { workspace = true }
+reqwest = { workspace = true, features = ["form"] }
+serde = { workspace = true }
+serde_json = { workspace = true }
+sha2 = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+url = { workspace = true }
+webpki-root-certs = { workspace = true }
+
+[dev-dependencies]
+aws-lc-rs = { workspace = true }
+axum = { workspace = true }
+tokio = { workspace = true }
+
+[lints]
+workspace = true

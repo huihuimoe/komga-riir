@@ -1,0 +1,59 @@
+%PDF-1.4 
+1 0 obj
+<<
+/Pages 2 0 R
+/Type /Catalog
+>>
+endobj
+2 0 obj
+<<
+/Type /Pages
+/Kids [ 3 0 R ]
+/Count 1
+>>
+endobj
+3 0 obj
+<<
+/Type /Page
+/Parent 2 0 R
+/Resources <<
+/XObject << /Im0 8 0 R >>
+/ProcSet 6 0 R >>
+/MediaBox [0 0 511.97 511.97]
+/CropBox [0 0 511.97 511.97]
+/Contents 4 0 R
+/Thumb 11 0 R
+>>
+endobj
+4 0 obj
+<<
+/Length 5 0 R
+>>
+stream
+q
+511.97 0 0 511.97 0 0 cm
+/Im0 Do
+Q
+
+endstream
+endobj
+5 0 obj
+37
+endobj
+6 0 obj
+[ /PDF /Text /ImageC ]
+endobj
+7 0 obj
+<<
+>>
+endobj
+8 0 obj
+<<
+/Type /XObject
+/Subtype /Image
+/Name /Im0
+/Filter [ /FlateDecode ]
+/Width 300
+/Height 300
+/ColorSpace 10 0 R
+/

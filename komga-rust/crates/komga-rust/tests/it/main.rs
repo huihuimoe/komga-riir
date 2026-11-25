@@ -1,0 +1,30 @@
+//! Single aggregated integration test target for Komga.
+
+mod books;
+mod catalog;
+mod collections;
+mod database;
+mod events;
+mod file_deletion;
+mod filesystem;
+mod fonts;
+mod full_disk;
+mod full_text;
+mod history;
+mod http_cache;
+mod identity;
+mod kobo;
+mod koreader;
+mod libraries;
+mod metadata;
+mod opds;
+mod produces;
+mod proxy;
+mod read_lists;
+mod series;
+mod server_info;
+mod settings;
+mod startup;
+mod support;
+mod sync_points;
+mod web_ui;

@@ -1,0 +1,33 @@
+[package]
+name = "komga-archive"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+hex = { workspace = true }
+jiff = { workspace = true }
+komga-types = { workspace = true }
+quick-xml = { workspace = true, features = ["escape-html"] }
+html5ever = { workspace = true }
+html5gum = { workspace = true }
+fancy-regex = { workspace = true }
+flate2 = { workspace = true }
+deflate64 = { workspace = true }
+bzip2 = { workspace = true }
+crc32fast = { workspace = true }
+rars = { workspace = true }
+hayro = { workspace = true }
+hayro-write = { workspace = true }
+md-5 = { workspace = true }
+xxhash-rust = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+
+[lints]
+workspace = true
+
+[dev-dependencies]
+komga-test-support = { workspace = true }
+sha2 = { workspace = true }
+tempfile = { workspace = true }

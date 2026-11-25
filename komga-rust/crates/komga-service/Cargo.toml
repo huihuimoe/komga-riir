@@ -1,0 +1,47 @@
+[package]
+name = "komga-service"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+komga-types = { workspace = true }
+komga-archive = { workspace = true }
+komga-image = { workspace = true }
+komga-db = { workspace = true }
+komga-oauth = { workspace = true }
+komga-search = { workspace = true }
+komga-scheduler = { workspace = true }
+bcrypt = { workspace = true }
+reqwest = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+hex = { workspace = true }
+getrandom = { workspace = true }
+sha2 = { workspace = true }
+base64 = { workspace = true }
+tokio = { workspace = true }
+tokio-util = { workspace = true }
+fs4 = { workspace = true }
+icu_casemap = { workspace = true }
+icu_normalizer = { workspace = true }
+jiff = { workspace = true }
+quick_cache = { workspace = true }
+quick-xml = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+url = { workspace = true }
+rust-embed = { workspace = true }
+tempfile = { workspace = true }
+
+[target.'cfg(windows)'.dependencies]
+windows-sys = { workspace = true }
+
+[target.'cfg(any(target_os = "linux", target_os = "android", target_vendor = "apple"))'.dependencies]
+rustix = { workspace = true }
+
+[lints]
+workspace = true
+
+[dev-dependencies]
+komga-test-support = { workspace = true }
