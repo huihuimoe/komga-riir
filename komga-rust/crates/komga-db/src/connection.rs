@@ -32,13 +32,13 @@ struct DatabaseInner {
     write_pool: Pool<Sqlite>,
     read_pool: Pool<Sqlite>,
     db_path: PathBuf,
-    sort_rules: Arc<SortRules>,
+    sort_rules: SortRules,
 }
 
 /// A database transaction whose SQLx connection stays private to the DB crate.
 pub struct DbTransaction {
     transaction: Transaction<'static, Sqlite>,
-    sort_rules: Arc<SortRules>,
+    db: Database,
     events: Vec<DomainEvent>,
 }
 
@@ -85,7 +85,7 @@ impl DbTransaction {
     }
 
     pub(crate) fn sort_rules(&self) -> &SortRules {
-        &self.sort_rules
+        self.db.sort_rules()
     }
 }
 
@@ -126,7 +126,7 @@ impl Database {
             write_pool: pool.clone(),
             read_pool: pool,
             db_path: db_path.to_path_buf(),
-            sort_rules: Arc::new(SortRules::default()),
+            sort_rules: SortRules::default(),
         })))
     }
 
@@ -160,7 +160,7 @@ impl Database {
             write_pool,
             read_pool,
             db_path: db_path.to_path_buf(),
-            sort_rules: Arc::new(sort_rules),
+            sort_rules,
         })))
     }
 
@@ -193,7 +193,7 @@ impl Database {
     fn transaction(&self, transaction: Transaction<'static, Sqlite>) -> DbTransaction {
         DbTransaction {
             transaction,
-            sort_rules: Arc::clone(&self.0.sort_rules),
+            db: self.clone(),
             events: Vec::new(),
         }
     }
