@@ -108,10 +108,10 @@ image = { version = "0.25", default-features = false, features = ["bmp", "gif", 
 # bounded pool thread. Chosen over `oxideav-jpegxl` 0.0.15, which on 36 MP VarDCT pages was 4.6-36x
 # slower and drew wrong 8x8 blocks; switch once it matches in speed and output.
 jxl-oxide = { version = "0.12", default-features = false, features = ["image"] }
-# Pure-Rust HEVC-coded HEIF/HEIC decoder. Chosen over `oxideav-heif` 0.0.15, which decoded 36 MP
-# pages about 2.2x slower and with jagged colour edges (max diff ~100 vs macOS, heifer 3); switch
-# once it catches up, and let it decode AVIF too in place of `oxideav-avif`.
-heifer = { version = "0.5", default-features = false }
+# Pure-Rust HEVC-coded HEIF/HEIC decoder. Chosen at 0.5 over `oxideav-heif` 0.0.15, which decoded
+# 36 MP pages about 2.2x slower and with jagged colour edges (max diff ~100 vs macOS, heifer 3);
+# switch once it catches up, and let it decode AVIF too in place of `oxideav-avif`.
+heifer = { version = "0.7", default-features = false }
 # Pure-Rust AVIF decoder: `image`'s AVIF decoder refuses grid images.
 oxideav-avif = "0.0.18"
 # Pure-Rust JPEG 2000 (JP2 and bare codestream) and JBIG2 decoders behind `image::ImageDecoder`.
