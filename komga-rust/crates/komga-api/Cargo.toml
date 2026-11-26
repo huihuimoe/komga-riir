@@ -26,6 +26,7 @@ tokio = { workspace = true }
 tracing = { workspace = true }
 getrandom = { workspace = true }
 hex = { workspace = true }
+uuid = { workspace = true }
 md-5 = { workspace = true }
 url = { workspace = true }
 quick-xml = { workspace = true }

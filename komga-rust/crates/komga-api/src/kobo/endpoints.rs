@@ -143,7 +143,7 @@ pub(super) async fn auth_device(
         access_token: random_alphanumeric(24),
         refresh_token: random_alphanumeric(24),
         token_type: "Bearer",
-        tracking_id: random_uuid(),
+        tracking_id: uuid::Uuid::new_v4().to_string(),
         user_key,
     })
     .into_response()
@@ -248,23 +248,6 @@ fn random_alphanumeric(length: usize) -> String {
         }
     }
     token
-}
-
-/// A version 4 UUID, as `UUID.randomUUID`.
-fn random_uuid() -> String {
-    let mut bytes = [0u8; 16];
-    getrandom::fill(&mut bytes).expect("Failed to get random bytes");
-    bytes[6] = (bytes[6] & 0x0f) | 0x40;
-    bytes[8] = (bytes[8] & 0x3f) | 0x80;
-    let hex = hex::encode(bytes);
-    format!(
-        "{}-{}-{}-{}-{}",
-        &hex[..8],
-        &hex[8..12],
-        &hex[12..16],
-        &hex[16..20],
-        &hex[20..]
-    )
 }
 
 #[cfg(test)]
